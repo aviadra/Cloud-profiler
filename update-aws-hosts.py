@@ -2,7 +2,6 @@
 # coding: UTF-8
 
 import boto3
-import re
 import json
 
 # Main function that runs the whole thing
@@ -59,7 +58,6 @@ def getEC2Instances():
 # and the last a single # character.
 def updateHosts(instances,groups):
     handle = open('/etc/hosts')
-    line = " "
     lines = handle.read().splitlines()    
     handle.close()
     state = False
