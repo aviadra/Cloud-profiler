@@ -1,105 +1,117 @@
-#!/usr/bin/python
+#!/usr/local/bin/python
 # coding: UTF-8
 
-import os
+import boto3
 import re
 import json
 
+# Main function that runs the whole thing
+def updateAll():
+    instances,groups = getEC2Instances()
+    updateHosts(instances,groups)
+    updateTerm(instances,groups)
+
 # Outputs to stdout the list of instances and returns EC2 instances as an array of dictionaries containing the following fields:
-# name          => Instance name formed by the server class/group plus an index (i.e. webapp1, webapp2, etc.)
-# serverClass   => Group associated with the instance (webapp, vpn, etc.)
+# name          => Instance name formed by the instance class/group and the domain prefix (aws.)
+# group         => Group associated with the instance (webapp, vpn, etc.)
+# index         => Index of this instance in the group
 def getEC2Instances():
-    handle = os.popen('bash -e /usr/local/bin/aws_list')
-    line = " "
-    line = handle.read().splitlines()
-    handle.close()
-    servers = {}
 
-    webapps = 1
-    radius = 1
+    client = boto3.client('ec2')
 
-    for x in line:                
+    response = client.describe_instances(
+            Filters = [{
+                    'Name':'instance-state-name',
+                    'Values': [
+                            'running'
+                    ]
+                    }
+            ]
+    )
 
-        parts = re.compile("(?:(?:[\w\-\.]+)\s*)(?:(?:[\w\-\.]+)\s*)(?:(?:[\w\-\.]+)\s*)(?:([\w\-\.]+)\s*)(?:(?:[\w\-\.]+)\s*)(?:([\w\-\.]+)\s*)")
-        parts = parts.split(x)
+    groups = {}
+    instances = {}
+
+    for reservation in response['Reservations']:
+            for instance in reservation['Instances']:
+                    for tag in instance['Tags']:
+                            if tag['Key'] == 'Name':
+                                    name = tag['Value']
+                                    break
+                    ip = instance['NetworkInterfaces'][0]['PrivateIpAddress']
         
-        ip = parts[1]
-        name = 'aws.' + parts[2]
+                    if name in groups:
+                        groups[name] = groups[name] + 1
+                    else:
+                        groups[name] = 1
 
-        if ip == 'None':
-            continue
+                    instances[ip] = {'name':'aws.' + name,'index':groups[name],'group':name}
+                    print ip + "\t" + 'aws.' + name + str(groups[name])
+   
+    for ip in instances:
+        instance = instances[ip]
+        instance['name'] = instance['name'] + str(instance['index']) if groups[instance['group']] > 1 else instance['name']
 
-        if name == 'aws.webapp':
-            name += str(webapps)
-            webapps += 1
-
-        if name == 'aws.radius':
-            name += str(radius)
-            radius += 1
-
-        print ip + "\t" + name
-        servers[ip] = {'name':name,'serverClass':parts[2]}
-
-    return servers
+    return instances, groups
 
 # Updates the /etc/hosts file with the EC2 private addresses
 # /etc/hosts must include the list of EC2 instances between two lines: the first contains '# AWS EC2' 
 # and the last a single # character.
-def updateHosts(servers):
+def updateHosts(instances,groups):
     handle = open('/etc/hosts')
     line = " "
-    lines = handle.read().splitlines()
+    lines = handle.read().splitlines()    
     handle.close()
     state = False
 
     hout = open('/etc/hosts','wt')
 
-    startRe = re.compile("# AWS EC2")
-    endRe = re.compile("#")
+    startDelimiter = "# AWS EC2"
+    endDelimiter = "#"
 
-    for x in lines:
-        if startRe.match(x):
+    for line in lines:
+        if line == startDelimiter:
             state = True
             continue
-        if state == True and endRe.match(x):
+        if state == True and line == endDelimiter:
             state = False
             continue
         if not state:
-            hout.write(x + "\n")
+            hout.write(line + "\n")
 
-    hout.write("# AWS EC2\n")
-    for server in servers:        
-        hout.write(server + "\t" + servers[server]['name'] + "\n")
+    hout.write(startDelimiter + "\n")
+    for ip in instances:
+        instance = instances[ip]
+        name = instance['name']
+        hout.write(ip + "\t" + name + "\n")
 	
-    hout.write("#\n")
+    hout.write(endDelimiter + "\n")
     hout.close()
 
-def updateTerm(servers):
+def updateTerm(instances,groups):
     handle = open('/Users/gmartin/Library/Application Support/iTerm2/DynamicProfiles/aws','wt')
     state = False
 
     profiles = []
 
-    for server in servers:
-        shortName = servers[server]['name'][4:]
-        serverClass = servers[server]['serverClass']
-        profile = {"Name":servers[server]['name'],
-                    "Guid":servers[server]['name'],
+    for instance in instances:
+        shortName = instances[instance]['name'][4:]
+        group = instances[instance]['group']
+        tags =["AWS",group] if groups[group] > 1 else ['AWS']
+        name = instances[instance]['name']
+
+        profile = {"Name":name,
+                    "Guid":name,
                     "Badge Text":shortName,
-                    "Tags":["AWS",serverClass],
+                    "Tags":tags,
                     "Dynamic Profile Parent Name": "Bastión AWS",
                     "Custom Command" : "Yes",
-                    "Command" : "ssh -oStrictHostKeyChecking=no -oUpdateHostKeys=yes "+servers[server]['name']}
-          
+                    "Command" : "ssh -oStrictHostKeyChecking=no -oUpdateHostKeys=yes "+name}
+
         profiles.append(profile)
 
-    profiles = sorted(profiles, key=lambda x: x)
-    
-    profiles = {"Profiles":profiles} 
+    profiles = {"Profiles":sorted(profiles)} 
     handle.write(json.dumps(profiles,sort_keys=True,indent=4, separators=(',', ': ')))
     handle.close()
-    
-servers = getEC2Instances()
-updateHosts(servers)
-updateTerm(servers)
 
+updateAll()
