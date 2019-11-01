@@ -1,22 +1,24 @@
 #!/usr/local/bin/python
 # coding: UTF-8
 
+import getpass
 import boto3
 import json
+import configparser
 
 # Main function that runs the whole thing
-def updateAll():
-    instances,groups = getEC2Instances()
+def updateAll(profile_to_use):
+    instances,groups = getEC2Instances(profile_to_use)
     # updateHosts(instances,groups)
-    updateTerm(instances,groups)
+    updateTerm(instances,groups,profile_to_use)
 
 # Outputs to stdout the list of instances and returns EC2 instances as an array of dictionaries containing the following fields:
 # name          => Instance name formed by the instance class/group and the domain prefix (aws.)
 # group         => Group associated with the instance (webapp, vpn, etc.)
 # index         => Index of this instance in the group
-def getEC2Instances():
+def getEC2Instances(profile_to_use):
 
-    boto3.setup_default_session(profile_name='devops')
+    boto3.setup_default_session(profile_name=profile_to_use)
 
     client = boto3.client('ec2')
 
@@ -47,7 +49,7 @@ def getEC2Instances():
                         groups[name] = 1
 
                     instances[ip] = {'name':'aws.' + name,'index':groups[name],'group':name}
-                    print ip + "\t" + 'aws.' + name + str(groups[name])
+                    print(ip + "\t" + 'aws.' + name + str(groups[name]))
    
     for ip in instances:
         instance = instances[ip]
@@ -88,8 +90,8 @@ def updateHosts(instances,groups):
     hout.write(endDelimiter + "\n")
     hout.close()
 
-def updateTerm(instances,groups):
-    handle = open('/Users/aviad/Library/Application Support/iTerm2/DynamicProfiles/aws','wt')
+def updateTerm(instances,groups,profile_to_use):
+    handle = open('/Users/' + username + '/Library/Application Support/iTerm2/DynamicProfiles/aws-' + profile_to_use,'wt')
     state = False
 
     profiles = []
@@ -97,7 +99,7 @@ def updateTerm(instances,groups):
     for instance in instances:
         shortName = instances[instance]['name'][4:]
         group = instances[instance]['group']
-        tags =["AWS",group] if groups[group] > 1 else ['AWS']
+        tags =["Account: " + profile_to_use,"AWS",group] if groups[group] > 1 else ["Account: " + profile_to_use,'AWS']
         name = instances[instance]['name']
 
         profile = {"Name":name,
@@ -110,8 +112,16 @@ def updateTerm(instances,groups):
 
         profiles.append(profile)
 
-    profiles = {"Profiles":sorted(profiles)} 
+    profiles = {"Profiles":(profiles)} 
     handle.write(json.dumps(profiles,sort_keys=True,indent=4, separators=(',', ': ')))
     handle.close()
+    print("end of loop")
 
-updateAll()
+
+username = getpass.getuser()
+config = configparser.ConfigParser()
+config.read('/Users/' + username + '/.aws/credentials')
+config.sections()
+for i in config.sections(): 
+    print(i) 
+    updateAll(i)
