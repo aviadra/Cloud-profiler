@@ -7,7 +7,7 @@ import json
 # Main function that runs the whole thing
 def updateAll():
     instances,groups = getEC2Instances()
-    updateHosts(instances,groups)
+    # updateHosts(instances,groups)
     updateTerm(instances,groups)
 
 # Outputs to stdout the list of instances and returns EC2 instances as an array of dictionaries containing the following fields:
@@ -15,6 +15,8 @@ def updateAll():
 # group         => Group associated with the instance (webapp, vpn, etc.)
 # index         => Index of this instance in the group
 def getEC2Instances():
+
+    boto3.setup_default_session(profile_name='devops')
 
     client = boto3.client('ec2')
 
@@ -87,7 +89,7 @@ def updateHosts(instances,groups):
     hout.close()
 
 def updateTerm(instances,groups):
-    handle = open('/Users/gmartin/Library/Application Support/iTerm2/DynamicProfiles/aws','wt')
+    handle = open('/Users/aviad/Library/Application Support/iTerm2/DynamicProfiles/aws','wt')
     state = False
 
     profiles = []
