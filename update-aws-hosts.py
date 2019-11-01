@@ -36,10 +36,14 @@ def getEC2Instances(profile_to_use):
     instances = {}
 
     for reservation in response['Reservations']:
-            for instance in reservation['Instances']:
+            for instance in reservation['Instances']:      
                     for tag in instance['Tags']:
                             if tag['Key'] == 'Name':
                                     name = tag['Value']
+                                    break
+                    for tag in instance['Tags']:
+                            if tag['Key'] == 'Bastion':
+                                    bastion = tag['Value']
                                     break
                     ip = instance['NetworkInterfaces'][0]['PrivateIpAddress']
         
@@ -48,7 +52,7 @@ def getEC2Instances(profile_to_use):
                     else:
                         groups[name] = 1
 
-                    instances[ip] = {'name':'aws.' + name,'index':groups[name],'group':name}
+                    instances[ip] = {'name':'aws.' + name,'index':groups[name],'group':name, 'bastion': bastion}
                     print(ip + "\t" + 'aws.' + name + str(groups[name]))
    
     for ip in instances:
@@ -98,17 +102,22 @@ def updateTerm(instances,groups,profile_to_use):
 
     for instance in instances:
         shortName = instances[instance]['name'][4:]
-        group = instances[instance]['group']
+        group = instances[instance]['group']       
         tags =["Account: " + profile_to_use,"AWS",group] if groups[group] > 1 else ["Account: " + profile_to_use,'AWS']
         name = instances[instance]['name']
 
+        if instances[instance]['bastion']:
+            connection_command="ssh -J " + instances[instance]['bastion'] + " -oStrictHostKeyChecking=no -oUpdateHostKeys=yes" + name
+        else:
+            connection_command="ssh -oStrictHostKeyChecking=no -oUpdateHostKeys=yes" + name
+            
         profile = {"Name":name,
                     "Guid":name,
                     "Badge Text":shortName,
                     "Tags":tags,
                     "Dynamic Profile Parent Name": "Bastión AWS",
                     "Custom Command" : "Yes",
-                    "Command" : "ssh -oStrictHostKeyChecking=no -oUpdateHostKeys=yes "+name}
+                    "Command" : connection_command}
 
         profiles.append(profile)
 
