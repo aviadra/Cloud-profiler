@@ -34,6 +34,7 @@ def getEC2Instances(profile_to_use):
 
     groups = {}
     instances = {}
+    bastion=''
 
     for reservation in response['Reservations']:
             for instance in reservation['Instances']:      
@@ -107,9 +108,9 @@ def updateTerm(instances,groups,profile_to_use):
         name = instances[instance]['name']
 
         if instances[instance]['bastion']:
-            connection_command="ssh -J " + instances[instance]['bastion'] + " -oStrictHostKeyChecking=no -oUpdateHostKeys=yes" + name
+            connection_command="ssh -J " + instances[instance]['bastion'] + " -oStrictHostKeyChecking=no -oUpdateHostKeys=yes " + instance
         else:
-            connection_command="ssh -oStrictHostKeyChecking=no -oUpdateHostKeys=yes" + name
+            connection_command="ssh -oStrictHostKeyChecking=no -oUpdateHostKeys=yes " + instance
             
         profile = {"Name":name,
                     "Guid":name,
@@ -117,7 +118,8 @@ def updateTerm(instances,groups,profile_to_use):
                     "Tags":tags,
                     "Dynamic Profile Parent Name": "Bastión AWS",
                     "Custom Command" : "Yes",
-                    "Command" : connection_command}
+                    "Initial Text" : connection_command
+                    }
 
         profiles.append(profile)
 
