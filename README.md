@@ -1,7 +1,8 @@
 # iTerm-cloud-profile-generator
+
 This project currently has some assumptions:
 - when running "locally", the system is MacOS
-- The awscli + profiles and credentials are already setup on your system and you're using the default locations for the configuration files
+- The awscli + profiles and credentials are already setup on your system and you're using the default locations for the configuration files.
 - You're connecting to the machines connecting your own user + key.
 - Your system has python3 installed
 - The default is to use internal IPs for instances (you can change this by adding the tag "external_ip") TODO.
