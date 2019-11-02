@@ -22,8 +22,8 @@ This project currently has some assumptions:
 # AWS setup
 In general there really isn't anything you "need" to do on the AWS side. With that said, there are TAGs you can add to instances and/or VPCs, to toggle script behavior.
 - VPC tags
-    - You can add the "bastion" tag to a VPC, and VMs within that VPC will automatically use it.
-    - Default profile to inherit colors from TODO    
+  - You can add the "bastion" tag to a VPC, and VMs within that VPC will automatically use it.
+  - Default profile to inherit colors from TODO    
 - Instance(VM) tags
   - You can specify the "bastion" tag. Doing so overrides the VPC "default" one.
   - You can use the "external_ip" tag to note that this instance profile, should use the public IP for the connection. TODO
