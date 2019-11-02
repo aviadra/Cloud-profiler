@@ -16,12 +16,35 @@ def updateAll(profile_to_use):
 # name          => Instance name formed by the instance class/group and the domain prefix (aws.)
 # group         => Group associated with the instance (webapp, vpn, etc.)
 # index         => Index of this instance in the group
+
 def getEC2Instances(profile_to_use):
+
+    groups = {}
+    instances = {}
+    bastion=''
+    vpc_bastion=''
+    instance_bastion=''
 
     boto3.setup_default_session(profile_name=profile_to_use)
 
     client = boto3.client('ec2')
 
+    def vpc_data(vpcid):
+        vpc_bastion=''
+        response_vpc = client.describe_vpcs(
+            VpcIds=[
+                vpcid,
+            ]
+        )
+        # print(json.dumps(response_vpc, sort_keys=True, indent=4))
+        for VPCs in response_vpc['Vpcs']:
+            # if 'Tags' in response_vpc['Vpcs']:
+            for tag in VPCs['Tags']:
+                    if tag['Key'] == 'Bastion':
+                            vpc_bastion = tag['Value']
+                            break
+        return vpc_bastion
+    
     response = client.describe_instances(
             Filters = [{
                     'Name':'instance-state-name',
@@ -32,10 +55,10 @@ def getEC2Instances(profile_to_use):
             ]
     )
 
-    groups = {}
-    instances = {}
-    bastion=''
 
+    
+
+    
     for reservation in response['Reservations']:
             for instance in reservation['Instances']:      
                     for tag in instance['Tags']:
@@ -44,7 +67,7 @@ def getEC2Instances(profile_to_use):
                                     break
                     for tag in instance['Tags']:
                             if tag['Key'] == 'Bastion':
-                                    bastion = tag['Value']
+                                    instance_bastion = tag['Value']
                                     break
                     ip = instance['NetworkInterfaces'][0]['PrivateIpAddress']
         
@@ -53,8 +76,15 @@ def getEC2Instances(profile_to_use):
                     else:
                         groups[name] = 1
 
-                    instances[ip] = {'name':'aws.' + name,'index':groups[name],'group':name, 'bastion': bastion}
-                    print(ip + "\t" + 'aws.' + name + str(groups[name]))
+
+                    vpc_bastion = vpc_data(instance['VpcId'])
+                    if vpc_bastion:
+                        bastion = vpc_bastion
+                    if instance_bastion:
+                        bastion = instance_bastion
+
+                    instances[ip] = {'name':'aws.' + profile_to_use + '.' + name,'index':groups[name],'group':name, 'bastion': bastion, 'vpc':reservation['Instances'][0]['VpcId']}
+                    print(ip + "\t" + 'aws.' + profile_to_use + "." + name + "\t\t bastion: \"" + bastion + "\"")
    
     for ip in instances:
         instance = instances[ip]
@@ -126,13 +156,12 @@ def updateTerm(instances,groups,profile_to_use):
     profiles = {"Profiles":(profiles)} 
     handle.write(json.dumps(profiles,sort_keys=True,indent=4, separators=(',', ': ')))
     handle.close()
-    print("end of loop")
 
 
 username = getpass.getuser()
 config = configparser.ConfigParser()
 config.read('/Users/' + username + '/.aws/credentials')
 config.sections()
-for i in config.sections(): 
-    print(i) 
+for i in reversed(config.sections()):
+    print('working on profile: ' + i) 
     updateAll(i)
