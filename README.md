@@ -9,10 +9,13 @@ This project currently has some assumptions:
 
 # How to use (local)
 - Clone the repo
+
 `git clone https://github.com/aviadra/iTerm-cloud-profile-generator`
 - Change the permissions on the iTerm dynamic profiles directory, so that you can change it without invoking the script with sudo rights (TODO)
+
 `chown $(whoami):staff /Application/iTerm/dynamic`
 - Using python3 run the script
+
 `python3 update-aws-hosts.py`
 - You should see the dynamic profiles populated in iTerm
 
