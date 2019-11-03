@@ -23,76 +23,79 @@ def getEC2Instances(profile_to_use):
     instances = {}
 
     boto3.setup_default_session(profile_name=profile_to_use)
-
     client = boto3.client('ec2')
-
-    def vpc_data(vpcid):
-        vpc_bastion=''
-        response_vpc = client.describe_vpcs(
-            VpcIds=[
-                vpcid,
-            ]
-        )
-        # print(json.dumps(response_vpc, sort_keys=True, indent=4))
-        for VPCs in response_vpc['Vpcs']:
-            # if 'Tags' in response_vpc['Vpcs']:
-            for tag in VPCs['Tags']:
-                    if tag['Key'] == 'iTerm_bastion':
-                            vpc_bastion = tag['Value']
-                            break
-        return vpc_bastion
+    ec2_regions = [region['RegionName'] for region in client.describe_regions()['Regions']]
     
-    response = client.describe_instances(
-            Filters = [{
-                    'Name':'instance-state-name',
-                    'Values': [
-                            'running'
-                    ]
-                    }
-            ]
-    )
+    for region in ec2_regions:
+        client = boto3.client('ec2',region_name=region)
 
-    for reservation in response['Reservations']:
-            bastion=''
+        def vpc_data(vpcid):
             vpc_bastion=''
-            instance_bastion=''
-            instance_use_ip_public=''
-            instance_use_bastion=''
-            for instance in reservation['Instances']:      
-                    for tag in instance['Tags']:
-                            if tag['Key'] == 'Name':
-                                    name = tag['Value']
-                                    break
-                    for tag in instance['Tags']:
-                            if tag['Key'] == 'iTerm_bastion':
-                                    instance_bastion = tag['Value']
-                                    break
-                    for tag in instance['Tags']:
-                            if tag['Key'] == 'iTerm_use_ip_public':
-                                    instance_use_ip_public = tag['Value']
-                                    break
-                    for tag in instance['Tags']:
-                            if tag['Key'] == 'iTerm_use_bastion':
-                                    instance_use_bastion = tag['Value']
-                                    break
-                    ip = instance['NetworkInterfaces'][0]['PrivateIpAddress']
+            response_vpc = client.describe_vpcs(
+                VpcIds=[
+                    vpcid,
+                ]
+            )
+            # print(json.dumps(response_vpc, sort_keys=True, indent=4))
+            for VPCs in response_vpc['Vpcs']:
+                # if 'Tags' in response_vpc['Vpcs']:
+                for tag in VPCs['Tags']:
+                        if tag['Key'] == 'iTerm_bastion':
+                                vpc_bastion = tag['Value']
+                                break
+            return vpc_bastion
         
-                    if name in groups:
-                        groups[name] = groups[name] + 1
-                    else:
-                        groups[name] = 1
+        response = client.describe_instances(
+                Filters = [{
+                        'Name':'instance-state-name',
+                        'Values': [
+                                'running'
+                        ]
+                        }
+                ]
+        )
+
+        for reservation in response['Reservations']:
+                bastion=''
+                vpc_bastion=''
+                instance_bastion=''
+                instance_use_ip_public=''
+                instance_use_bastion=''
+                for instance in reservation['Instances']:      
+                        for tag in instance['Tags']:
+                                if tag['Key'] == 'Name':
+                                        name = tag['Value']
+                                        break
+                        for tag in instance['Tags']:
+                                if tag['Key'] == 'iTerm_bastion':
+                                        instance_bastion = tag['Value']
+                                        break
+                        for tag in instance['Tags']:
+                                if tag['Key'] == 'iTerm_use_ip_public':
+                                        instance_use_ip_public = tag['Value']
+                                        break
+                        for tag in instance['Tags']:
+                                if tag['Key'] == 'iTerm_use_bastion':
+                                        instance_use_bastion = tag['Value']
+                                        break
+                        ip = instance['NetworkInterfaces'][0]['PrivateIpAddress']
+            
+                        if name in groups:
+                            groups[name] = groups[name] + 1
+                        else:
+                            groups[name] = 1
 
 
-                    vpc_bastion = vpc_data(instance['VpcId'])
-                    if vpc_bastion:
-                        bastion = vpc_bastion
-                    if instance_bastion:
-                        bastion = instance_bastion
+                        vpc_bastion = vpc_data(instance['VpcId'])
+                        if vpc_bastion:
+                            bastion = vpc_bastion
+                        if instance_bastion:
+                            bastion = instance_bastion
 
-                    instances[ip] = {'name':'aws.' + profile_to_use + '.' + name,'index':groups[name],'group':name, 'bastion': bastion, 'vpc':reservation['Instances'][0]['VpcId'], 'instance_use_ip_public': instance_use_ip_public, 'instance_use_bastion': instance_use_bastion, 'ip_public': instance['PublicIpAddress']}
-                    # print(json.dumps(instances[ip], sort_keys=True, indent=4))
-                    print(ip + "\t" + 'aws.' + profile_to_use + "." + name + "\t\t associated bastion: \"" + bastion + "\"")
-   
+                        instances[ip] = {'name':'aws.' + profile_to_use + '.' + name,'index':groups[name],'group':name, 'bastion': bastion, 'vpc':reservation['Instances'][0]['VpcId'], 'instance_use_ip_public': instance_use_ip_public, 'instance_use_bastion': instance_use_bastion, 'ip_public': instance['PublicIpAddress']}
+                        # print(json.dumps(instances[ip], sort_keys=True, indent=4))
+                        print(ip + "\t" + 'aws.' + profile_to_use + "." + name + "\t\t associated bastion: \"" + bastion + "\"")
+    
     for ip in instances:
         instance = instances[ip]
         instance['name'] = instance['name'] + str(instance['index']) if groups[instance['group']] > 1 else instance['name']
