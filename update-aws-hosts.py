@@ -29,22 +29,24 @@ def getEC2Instances(profile_to_use):
     for region in ec2_regions:
         print("Working on region: " + region)
         client = boto3.client('ec2',region_name=region)
-
-        def vpc_data(vpcid):
-            vpc_bastion=''
+        
+        def get_tag_value(tags,q_tag):
+            q_tag_value=''    
+            for tag in tags:
+                if tag['Key'] == q_tag:
+                        q_tag_value = tag['Value']
+                        break
+            return q_tag_value
+        
+        def vpc_data(vpcid,q_tag):
+            q_tag_value=''
             response_vpc = client.describe_vpcs(
                 VpcIds=[
                     vpcid,
                 ]
             )
-            # print(json.dumps(response_vpc, sort_keys=True, indent=4))
-            for VPCs in response_vpc['Vpcs']:
-                # if 'Tags' in response_vpc['Vpcs']:
-                for tag in VPCs['Tags']:
-                        if tag['Key'] == 'iTerm_bastion':
-                                vpc_bastion = tag['Value']
-                                break
-            return vpc_bastion
+            q_tag_value=get_tag_value(response_vpc['Vpcs'][0]['Tags'], q_tag)
+            return q_tag_value
         
         response = client.describe_instances(
                 Filters = [{
@@ -57,28 +59,19 @@ def getEC2Instances(profile_to_use):
         )
 
         for reservation in response['Reservations']:
+                instance_dynamic_profile_parent_name=''
                 bastion=''
                 vpc_bastion=''
                 instance_bastion=''
                 instance_use_ip_public=''
                 instance_use_bastion=''
                 for instance in reservation['Instances']:      
-                        for tag in instance['Tags']:
-                                if tag['Key'] == 'Name':
-                                        name = tag['Value']
-                                        break
-                        for tag in instance['Tags']:
-                                if tag['Key'] == 'iTerm_bastion':
-                                        instance_bastion = tag['Value']
-                                        break
-                        for tag in instance['Tags']:
-                                if tag['Key'] == 'iTerm_use_ip_public':
-                                        instance_use_ip_public = tag['Value']
-                                        break
-                        for tag in instance['Tags']:
-                                if tag['Key'] == 'iTerm_use_bastion':
-                                        instance_use_bastion = tag['Value']
-                                        break
+                        name=get_tag_value(instance['Tags'], 'Name')
+                        instance_bastion=get_tag_value(instance['Tags'], 'iTerm_bastion')
+                        instance_use_ip_public=get_tag_value(instance['Tags'], 'iTerm_use_ip_public')
+                        instance_use_bastion=get_tag_value(instance['Tags'], 'iTerm_use_bastion')
+                        instance_dynamic_profile_parent_name=get_tag_value(instance['Tags'], 'iTerm_dynamic_profile_parent_name')
+                        
                         ip = instance['NetworkInterfaces'][0]['PrivateIpAddress']
             
                         if name in groups:
@@ -86,14 +79,19 @@ def getEC2Instances(profile_to_use):
                         else:
                             groups[name] = 1
 
-
-                        vpc_bastion = vpc_data(instance['VpcId'])
+                        vpc_bastion = vpc_data(instance['VpcId'], 'iTerm_bastion')
                         if vpc_bastion:
                             bastion = vpc_bastion
                         if instance_bastion:
                             bastion = instance_bastion
 
-                        instances[ip] = {'name':'aws.' + profile_to_use + '.' + name,'index':groups[name],'group':name, 'bastion': bastion, 'vpc':reservation['Instances'][0]['VpcId'], 'instance_use_ip_public': instance_use_ip_public, 'instance_use_bastion': instance_use_bastion, 'ip_public': instance['PublicIpAddress']}
+                        vpc_dynamic_profile_parent_name = vpc_data(instance['VpcId'], 'iTerm_dynamic_profile_parent_name')
+                        if vpc_dynamic_profile_parent_name:
+                            dynamic_profile_parent_name = vpc_dynamic_profile_parent_name
+                        if instance_dynamic_profile_parent_name:
+                            dynamic_profile_parent_name = instance_dynamic_profile_parent_name
+
+                        instances[ip] = {'name':'aws.' + profile_to_use + '.' + name,'index':groups[name],'group':name, 'bastion': bastion, 'vpc':reservation['Instances'][0]['VpcId'], 'instance_use_ip_public': instance_use_ip_public, 'instance_use_bastion': instance_use_bastion, 'ip_public': instance['PublicIpAddress'], 'dynamic_profile_parent_name': dynamic_profile_parent_name}
                         # print(json.dumps(instances[ip], sort_keys=True, indent=4))
                         print(ip + "\t" + 'aws.' + profile_to_use + "." + name + "\t\t associated bastion: \"" + bastion + "\"")
     
@@ -125,12 +123,11 @@ def updateTerm(instances,groups,profile_to_use):
             connection_command="ssh "  + ip_for_connection + " -J " + instances[instance]['bastion'] + " -oStrictHostKeyChecking=no -oUpdateHostKeys=yes -oServerAliveInterval=30 -oAddKeysToAgent=no"
         else:
             connection_command="ssh "  + ip_for_connection + " -oStrictHostKeyChecking=no -oUpdateHostKeys=yes -oServerAliveInterval=30 -oAddKeysToAgent=no"
-            
         profile = {"Name":name,
                     "Guid":name,
                     "Badge Text":shortName,
                     "Tags":tags,
-                    "Dynamic Profile Parent Name": "Bastión AWS",
+                    "Dynamic Profile Parent Name": instances[instance]['dynamic_profile_parent_name'],
                     "Custom Command" : "Yes",
                     "Initial Text" : connection_command
                     }

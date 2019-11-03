@@ -23,12 +23,10 @@ This project currently has some assumptions:
 - You should see the dynamic profiles populated in iTerm
 
 # AWS setup
-In general there really isn't anything you "need" to do on the AWS side. However seeing that be default only internal IPs are used, as they don't change and thus provide a fixed point (also original script behaver), you would have to be VPNed to the VPC in order to be able to connect to the instances. So there are TAGs you can add to instances and/or VPCs, to toggle script behavior. In general it is recommended to "tattoo" the "iTerm_bastion" at the VPC level.
-All the iTerm tags are prefixed with "iTerm" and they are:
-- VPC tags
-  - iTerm_bastion - You can add the tag to a VPC, and instances within that VPC will automatically use it's value as the bastion for the connection.
-  - iTerm_profile - Sets the default profile to inherit colors from TODO.
-- Instance tags
-  - iTerm_bastion - Specifying this tag on an instance, overrides the VPC "default" one.
-  - iTerm_use_ip_public - Denote that this instance profile, should use the public IP for the connection. Setting this tag, also sets the profile to not use a bastion, unless the "iTerm_bastion_use" tag is set.
-  - iTerm_bastion_use - When using "iTerm_ip_public", the bastion is not used. unless this tag is set with the value of "yes".
+In general there really isn't anything you "need" to do on the AWS side. However seeing that by default only internal IPs are used, as they don't change and thus provide a fixed point (also original script behavior), you would have to be VPNed to the VPC in order to be able to connect to the instances. So there are TAGs you can add to instances and/or VPCs, to toggle script behavior. In general it is recommended to "tattoo" the "iTerm_bastion" at the VPC level.
+All the iTerm tags are prefixed with "iTerm". Some tags can be set on the VPC level noted in the description.
+Possible tags for the script are:
+- iTerm_dynamic_profile_parent_name - Sets the profile to inherit colors and other settings from. Note that this script doesn't distribute/create the profiles, thats on you... [VPCable] (possible TODO)
+- iTerm_bastion - Specifying this tag on an instance, overrides the VPC "default" one. [VPCable]
+- iTerm_use_ip_public - Denote that this instance profile, should use the public IP for the connection. Setting this tag, also sets the profile to not use a bastion, unless the "iTerm_bastion_use" tag is set.
+- iTerm_bastion_use - When using "iTerm_ip_public", the bastion is not used. unless this tag is set with the value of "yes".
