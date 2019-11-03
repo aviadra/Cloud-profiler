@@ -27,6 +27,7 @@ def getEC2Instances(profile_to_use):
     ec2_regions = [region['RegionName'] for region in client.describe_regions()['Regions']]
     
     for region in ec2_regions:
+        print("Working on region: " + region)
         client = boto3.client('ec2',region_name=region)
 
         def vpc_data(vpcid):
