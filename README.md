@@ -10,7 +10,7 @@ This project currently has some assumptions:
 - You have boto3 installed.
 - Only running instances are used.
 - You're connecting to the. machines connecting your own user + key.
-- Your system has python3 installed
+- Your system has python3 installed.
 - The default is to use internal IPs for instances (you can change this by adding the tag "ip_public") TODO.
 
 # How to use (local)
