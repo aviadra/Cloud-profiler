@@ -7,7 +7,9 @@ This project currently has some assumptions:
 - When running "locally", the system is MacOS
 - You have iTerm installed
 - The awscli + profiles and credentials are already setup on your system and you're using the default locations for the configuration files.
-- You're connecting to the machines connecting your own user + key.
+- You have boto3 installed.
+- Only running instances are used.
+- You're connecting to the. machines connecting your own user + key.
 - Your system has python3 installed
 - The default is to use internal IPs for instances (you can change this by adding the tag "ip_public") TODO.
 
