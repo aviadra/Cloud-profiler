@@ -60,6 +60,7 @@ def getEC2Instances(profile_to_use):
 
         for reservation in response['Reservations']:
                 instance_dynamic_profile_parent_name=''
+                dynamic_profile_parent_name=''
                 bastion=''
                 vpc_bastion=''
                 instance_bastion=''
@@ -176,6 +177,6 @@ username = getpass.getuser()
 config = configparser.ConfigParser()
 config.read('/Users/' + username + '/.aws/credentials')
 config.sections()
-for i in reversed(config.sections()):
+for i in config.sections():
     print('working on profile: ' + i) 
     updateAll(i)

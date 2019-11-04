@@ -26,7 +26,7 @@ This project currently has some assumptions:
 In general there really isn't anything you "need" to do on the AWS side. However seeing that by default only internal IPs are used, as they don't change and thus provide a fixed point (also original script behavior), you would have to be VPNed to the VPC in order to be able to connect to the instances. So there are TAGs you can add to instances and/or VPCs, to toggle script behavior. In general it is recommended to "tattoo" the "iTerm_bastion" at the VPC level.
 All the iTerm tags are prefixed with "iTerm". Some tags can be set on the VPC level noted in the description.
 Possible tags for the script are:
-- iTerm_dynamic_profile_parent_name - Sets the profile to inherit colors and other settings from. Note that this script doesn't distribute/create the profiles, thats on you... [VPCable] (possible TODO)
+- iTerm_dynamic_profile_parent_name - Sets the profile to inherit colors and other settings from. Note that this script doesn't distribute/create the profiles, thats on you... [VPCable]
 - iTerm_bastion - Specifying this tag on an instance, overrides the VPC "default" one. [VPCable]
 - iTerm_use_ip_public - Denote that this instance profile, should use the public IP for the connection. Setting this tag, also sets the profile to not use a bastion, unless the "iTerm_bastion_use" tag is set.
 - iTerm_bastion_use - When using "iTerm_ip_public", the bastion is not used. unless this tag is set with the value of "yes".
@@ -35,9 +35,10 @@ Possible tags for the script are:
 Again, in general you don't need to change anything in your iTerm configuration. With that said, it is recommended that you create the profiles you're going to reference when using the "iTerm_dynamic_profile_parent_name" tag. if you don't, nothing major will happen, iTerm will simply use the default profile and through some errors to the logs.
 In order to ease the setup, I've set the https://github.com/mbadolato/iTerm2-Color-Schemes, as a submodule. 
 For example to create "Red Alert" profile (which i recommend for production servers):
-- Create a new profile by clicking the plus (+) sign.
+- Create a new profile by clicking the plus (+) sign, in the profiles section of the "preferences".
 - Give it the name "Red Alert".
 - Go to the "Colors" tab and click "Color Presets" dropdown menu.
-- Click on "Import". It will open up a finder window. Go into the "schemes" folder within the fubmodule folder.
+- Click on "Import". It will open up a finder window. Go into the "schemes" folder within the submodule folder.
 - Choose "Red Alert.itermcolors".
+- Now the "Red Alert" schema is selectable in the dropdown list.
 
