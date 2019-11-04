@@ -30,3 +30,14 @@ Possible tags for the script are:
 - iTerm_bastion - Specifying this tag on an instance, overrides the VPC "default" one. [VPCable]
 - iTerm_use_ip_public - Denote that this instance profile, should use the public IP for the connection. Setting this tag, also sets the profile to not use a bastion, unless the "iTerm_bastion_use" tag is set.
 - iTerm_bastion_use - When using "iTerm_ip_public", the bastion is not used. unless this tag is set with the value of "yes".
+
+# iTerm setup
+Again, in general you don't need to change anything in your iTerm configuration. With that said, it is recommended that you create the profiles you're going to reference when using the "iTerm_dynamic_profile_parent_name" tag. if you don't, nothing major will happen, iTerm will simply use the default profile and through some errors to the logs.
+In order to ease the setup, I've set the https://github.com/mbadolato/iTerm2-Color-Schemes, as a submodule. 
+For example to create "Red Alert" profile (which i recommend for production servers):
+- Create a new profile by clicking the plus (+) sign.
+- Give it the name "Red Alert".
+- Go to the "Colors" tab and click "Color Presets" dropdown menu.
+- Click on "Import". It will open up a finder window. Go into the "schemes" folder within the fubmodule folder.
+- Choose "Red Alert.itermcolors".
+
