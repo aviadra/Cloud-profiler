@@ -14,6 +14,10 @@ This project currently has some assumptions:
 - The default is to use internal IPs for instances (you can change this by adding the tag "ip_public") TODO.
 
 # How to use (local)
+- Install boto3 using pip
+
+`pip3 install boto3 --user`
+
 - Clone the repo
 
 `git clone https://github.com/aviadra/iTerm-cloud-profile-generator`
