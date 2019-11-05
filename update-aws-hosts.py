@@ -29,7 +29,7 @@ def getEC2Instances(profile_to_use):
     ec2_regions = [region['RegionName'] for region in client.describe_regions()['Regions']]
     
     for region in ec2_regions:
-        print("Working on region: " + region)
+        print("Working on AWS profile: " + profile_to_use + " region: " + region)
         client = boto3.client('ec2',region_name=region)
         
         def get_tag_value(tags,q_tag):
@@ -143,10 +143,17 @@ def updateTerm(instances,groups,profile_to_use):
 
 def update_statics():
     profiles =[]
+    
     app_static_profile_handle = open('/Users/' + username + '/Library/Application Support/iTerm2/DynamicProfiles/Statics','wt')
-    path_to_static_profiles = os.path.join(os.getcwd(),'iTerm2-static-profiles')
+    script_path = os.path.abspath(__file__)
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    path_to_static_profiles = os.path.join(script_dir,'iTerm2-static-profiles')
+    
     for root, dirs, files in os.walk(path_to_static_profiles, topdown=False):
         for name in files:
+            if name == '.DS_Store':
+                print("Static profiles, skipping \".DS_Store\"")
+                continue
             print("Working on static profile: "+ name)
             static_profile_handle=open(os.path.join(root, name))
             profiles.append(json.load(static_profile_handle))
@@ -198,7 +205,7 @@ config.read('/Users/' + username + '/.aws/credentials')
 config.sections()
 update_statics()
 for i in config.sections():
-    print('working on profile: ' + i) 
+    print('Working on AWS profile: ' + i) 
     updateAll(i)
 
 
