@@ -144,7 +144,7 @@ def updateTerm(instances,groups,profile_to_use):
 def update_statics():
     profiles =[]
     
-    app_static_profile_handle = open('/Users/' + username + '/Library/Application Support/iTerm2/DynamicProfiles/Statics','wt')
+    app_static_profile_handle = open('/Users/' + username + '/Library/Application Support/iTerm2/DynamicProfiles/statics','wt')
     script_path = os.path.abspath(__file__)
     script_dir = os.path.dirname(os.path.abspath(__file__))
     path_to_static_profiles = os.path.join(script_dir,'iTerm2-static-profiles')

@@ -46,3 +46,9 @@ For example to create "DRACULA" profile:
 - Choose "Dracula.itermcolors".
 - Now the "DRACULA" schema is selectable in the dropdown list.
 Note: The "Red Alert" profile, which i recommend for production servers is part of the "Static profiles", so you can just use it
+
+# Static profiles
+The static profiles are a shim for the cases where you want to distribute profiles that don't come from AWS. For example, the two profiles in the repo, give the "Red Alert" color schema, and Dracula with my beloved keyboard shortcuts, are installed for you in the dynamic profiles automatically. This makes it possible to reference them with the tag "iTerm_dynamic_profile_parent_name", and get a clear distinction when you're on prod vs normal servers.
+
+The way to add/remove profiles, is to do so in the "iTerm2-static-profiles" directory within the repo. You get the profiles, by using the "export to json" options at the bottom of the "profiles" tab in preferences.
+TODO - configuration file to set the local profiles directory
