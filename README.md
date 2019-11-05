@@ -38,11 +38,11 @@ Possible tags for the script are:
 # iTerm setup
 Again, in general you don't need to change anything in your iTerm configuration. With that said, it is recommended that you create the profiles you're going to reference when using the "iTerm_dynamic_profile_parent_name" tag. if you don't, nothing major will happen, iTerm will simply use the default profile and throw some errors to the logs.
 In order to ease the setup, I've set the https://github.com/mbadolato/iTerm2-Color-Schemes, as a submodule. 
-For example to create "Red Alert" profile (which i recommend for production servers):
+For example to create "DRACULA" profile:
 - Create a new profile by clicking the plus (+) sign, in the profiles section of the "preferences".
-- Give it the name "Red Alert".
+- Give it the name "DRACULA".
 - Go to the "Colors" tab and click "Color Presets" dropdown menu.
 - Click on "Import". It will open up a finder window. Go into the "schemes" folder within the submodule folder.
-- Choose "Red Alert.itermcolors".
-- Now the "Red Alert" schema is selectable in the dropdown list.
-
+- Choose "Dracula.itermcolors".
+- Now the "DRACULA" schema is selectable in the dropdown list.
+Note: The "Red Alert" profile, which i recommend for production servers is part of the "Static profiles", so you can just use it

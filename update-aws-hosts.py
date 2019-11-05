@@ -147,7 +147,7 @@ def update_statics():
     path_to_static_profiles = os.path.join(os.getcwd(),'iTerm2-static-profiles')
     for root, dirs, files in os.walk(path_to_static_profiles, topdown=False):
         for name in files:
-            print(os.path.join(root, name))
+            print("Working on static profile: "+ name)
             static_profile_handle=open(os.path.join(root, name))
             profiles.append(json.load(static_profile_handle))
 
@@ -197,8 +197,8 @@ config = configparser.ConfigParser()
 config.read('/Users/' + username + '/.aws/credentials')
 config.sections()
 update_statics()
-# for i in config.sections():
-#     print('working on profile: ' + i) 
-#     updateAll(i)
+for i in config.sections():
+    print('working on profile: ' + i) 
+    updateAll(i)
 
 
