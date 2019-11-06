@@ -47,7 +47,7 @@ The way to add/remove profiles, is to do so in the "iTerm2-static-profiles" dire
 TODO - configuration file to set the local profiles directory
 
 ## Profile creation within iTerm
-In order to ease the setup, I've set the https://github.com/mbadolato/iTerm2-Color-Schemes, as a submodule, so all many color schemes are available "out of the box". 
+In order to ease the setup, I've set the https://github.com/mbadolato/iTerm2-Color-Schemes, as a submodule, so many color schemes are available "out of the box". 
 The instructions below are the regular iTerm way of creating profiles.
 For example to create "DRACULA" profile:
 - Create a new profile by clicking the plus (+) sign, in the profiles section of the "preferences".
@@ -56,4 +56,4 @@ For example to create "DRACULA" profile:
 - Click on "Import". It will open up a finder window. Go into the "schemes" folder within the sub-module folder.
 - Choose "Dracula.itermcolors".
 - Now the "DRACULA" schema is select-able in the dropdown list.
-Note: The "Red Alert" profile, which i recommend for production servers is part of the "Static profiles", so you can just use it
+Note: The "Red Alert" profile, which i recommend for production servers is part of the "Static profiles", so you can just use it by making it the value of the "iTerm_dynamic_profile_parent_name" tag.
