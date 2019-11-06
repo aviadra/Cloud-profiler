@@ -47,7 +47,8 @@ def getEC2Instances(profile_to_use):
                     vpcid,
                 ]
             )
-            q_tag_value=get_tag_value(response_vpc['Vpcs'][0]['Tags'], q_tag)
+            if 'Tags' in response_vpc['Vpcs'][0]:
+                q_tag_value=get_tag_value(response_vpc['Vpcs'][0]['Tags'], q_tag)
             return q_tag_value
         
         response = client.describe_instances(
