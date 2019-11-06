@@ -7,6 +7,8 @@ import json
 import configparser
 import json
 import os
+import sys
+import yaml
 
 # Main function that runs the whole thing
 def updateAll(profile_to_use):
@@ -29,11 +31,14 @@ def getEC2Instances(profile_to_use):
     ec2_regions = [region['RegionName'] for region in client.describe_regions()['Regions']]
     
     for region in ec2_regions:
+        if region in script_config['AWS']['exclude_regions']:
+            continue
+
         print("Working on AWS profile: " + profile_to_use + " region: " + region)
         client = boto3.client('ec2',region_name=region)
         
         def get_tag_value(tags,q_tag):
-            q_tag_value=''    
+            q_tag_value='' 
             for tag in tags:
                 if tag['Key'] == q_tag:
                         q_tag_value = tag['Value']
@@ -51,12 +56,15 @@ def getEC2Instances(profile_to_use):
                 q_tag_value=get_tag_value(response_vpc['Vpcs'][0]['Tags'], q_tag)
             return q_tag_value
         
+        if script_config['AWS']['skip_stopped'] == True:
+            search_states = ['running']
+        else:
+            search_states = ['running','pending','shutting-down', 'terminated', 'stopping', 'stopped']
+        
         response = client.describe_instances(
                 Filters = [{
                         'Name':'instance-state-name',
-                        'Values': [
-                                'running'
-                        ]
+                        'Values': search_states
                         }
                 ]
         )
@@ -69,13 +77,17 @@ def getEC2Instances(profile_to_use):
                 instance_bastion=''
                 instance_use_ip_public=''
                 instance_use_bastion=''
+                public_ip=''
                 for instance in reservation['Instances']:      
-                        name=get_tag_value(instance['Tags'], 'Name')
-                        instance_bastion=get_tag_value(instance['Tags'], 'iTerm_bastion')
-                        instance_use_ip_public=get_tag_value(instance['Tags'], 'iTerm_use_ip_public')
-                        instance_use_bastion=get_tag_value(instance['Tags'], 'iTerm_use_bastion')
-                        instance_dynamic_profile_parent_name=get_tag_value(instance['Tags'], 'iTerm_dynamic_profile_parent_name')
-                        
+                        if 'Tags' in instance:
+                            name=get_tag_value(instance['Tags'], 'Name')
+                            instance_bastion=get_tag_value(instance['Tags'], 'iTerm_bastion')
+                            instance_use_ip_public=get_tag_value(instance['Tags'], 'iTerm_use_ip_public')
+                            instance_use_bastion=get_tag_value(instance['Tags'], 'iTerm_use_bastion')
+                            instance_dynamic_profile_parent_name=get_tag_value(instance['Tags'], 'iTerm_dynamic_profile_parent_name')
+                        else:
+                            name=instance['InstanceId']
+                                
                         ip = instance['NetworkInterfaces'][0]['PrivateIpAddress']
             
                         if name in groups:
@@ -95,7 +107,12 @@ def getEC2Instances(profile_to_use):
                         if instance_dynamic_profile_parent_name:
                             dynamic_profile_parent_name = instance_dynamic_profile_parent_name
 
-                        instances[ip] = {'name':'aws.' + profile_to_use + '.' + name,'index':groups[name],'group':name, 'bastion': bastion, 'vpc':reservation['Instances'][0]['VpcId'], 'instance_use_ip_public': instance_use_ip_public, 'instance_use_bastion': instance_use_bastion, 'ip_public': instance['PublicIpAddress'], 'dynamic_profile_parent_name': dynamic_profile_parent_name}
+                        if 'PublicIpAddress' in instance:
+                            public_ip=instance['PublicIpAddress']
+                        else:
+                            public_ip=''
+
+                        instances[ip] = {'name':'aws.' + profile_to_use + '.' + name,'index':groups[name],'group':name, 'bastion': bastion, 'vpc':reservation['Instances'][0]['VpcId'], 'instance_use_ip_public': instance_use_ip_public, 'instance_use_bastion': instance_use_bastion, 'ip_public': public_ip, 'dynamic_profile_parent_name': dynamic_profile_parent_name}
                         # print(json.dumps(instances[ip], sort_keys=True, indent=4))
                         print(ip + "\t" + 'aws.' + profile_to_use + "." + name + "\t\t associated bastion: \"" + bastion + "\"")
     
@@ -146,9 +163,7 @@ def update_statics():
     profiles =[]
     
     app_static_profile_handle = open('/Users/' + username + '/Library/Application Support/iTerm2/DynamicProfiles/statics','wt')
-    script_path = os.path.abspath(__file__)
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    path_to_static_profiles = os.path.join(script_dir,'iTerm2-static-profiles')
+    path_to_static_profiles = os.path.expanduser(script_config['AWS']['static_profiles'])
     
     for root, dirs, files in os.walk(path_to_static_profiles, topdown=False):
         for name in files:
@@ -200,13 +215,21 @@ def updateHosts(instances,groups):
     hout.close()
 
 
+#MAIN
+script_path = os.path.abspath(__file__)
+script_dir = os.path.dirname(os.path.abspath(__file__))
+
+with open(os.path.join(script_dir,'config.yaml')) as conf_file:
+    script_config = yaml.full_load(conf_file)
+
 username = getpass.getuser()
 config = configparser.ConfigParser()
-config.read('/Users/' + username + '/.aws/credentials')
-config.sections()
+
+config.read(os.path.expanduser(script_config['AWS']['aws_credentials_file']))
 update_statics()
 for i in config.sections():
-    print('Working on AWS profile: ' + i) 
-    updateAll(i)
+    if i not in script_config['AWS']['exclude_accounts']:
+        print('Working on AWS profile: ' + i) 
+        updateAll(i)
 
 
