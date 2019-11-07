@@ -230,11 +230,12 @@ with open(os.path.join(script_dir,'config.yaml')) as conf_file:
     script_config_repo = yaml.full_load(conf_file)
 
 # From user home direcotry
+script_config_user = {}
 if os.path.isfile(os.path.expanduser("~/.iTerm-cloud-profile-generator/config.yaml")):
     with open(os.path.expanduser("~/.iTerm-cloud-profile-generator/config.yaml")) as conf_file:
         script_config_user = yaml.full_load(conf_file)
 
-script_config = {**script_config_repo['AWS'],**script_config_user['AWS']}
+script_config = {**script_config_repo['AWS'],**script_config_user.get('AWS', {})}
 
 
 username = getpass.getuser()
