@@ -31,7 +31,7 @@ def getEC2Instances(profile_to_use):
     ec2_regions = [region['RegionName'] for region in client.describe_regions()['Regions']]
     
     for region in ec2_regions:
-        if region in script_config['AWS']['exclude_regions']:
+        if region in script_config['exclude_regions']:
             continue
 
         print("Working on AWS profile: " + profile_to_use + " region: " + region)
@@ -56,7 +56,7 @@ def getEC2Instances(profile_to_use):
                 q_tag_value=get_tag_value(response_vpc['Vpcs'][0]['Tags'], q_tag)
             return q_tag_value
         
-        if script_config['AWS']['skip_stopped'] == True:
+        if script_config['skip_stopped'] == True:
             search_states = ['running']
         else:
             search_states = ['running','pending','shutting-down', 'terminated', 'stopping', 'stopped']
@@ -87,8 +87,13 @@ def getEC2Instances(profile_to_use):
                             instance_dynamic_profile_parent_name=get_tag_value(instance['Tags'], 'iTerm_dynamic_profile_parent_name')
                         else:
                             name=instance['InstanceId']
-                                
-                        ip = instance['NetworkInterfaces'][0]['PrivateIpAddress']
+
+                        vpc_use_ip_public = vpc_data(instance['VpcId'], 'iTerm_use_ip_public')
+
+                        if (vpc_use_ip_public == True or script_config['use_ip_public'] == True) and 'PublicIpAddress' in instance:
+                            ip = instance['PublicIpAddress']
+                        else:
+                            ip = instance['NetworkInterfaces'][0]['PrivateIpAddress']
             
                         if name in groups:
                             groups[name] = groups[name] + 1
@@ -163,7 +168,7 @@ def update_statics():
     profiles =[]
     
     app_static_profile_handle = open('/Users/' + username + '/Library/Application Support/iTerm2/DynamicProfiles/statics','wt')
-    path_to_static_profiles = os.path.expanduser(script_config['AWS']['static_profiles'])
+    path_to_static_profiles = os.path.expanduser(script_config['static_profiles'])
     
     for root, dirs, files in os.walk(path_to_static_profiles, topdown=False):
         for name in files:
@@ -219,17 +224,26 @@ def updateHosts(instances,groups):
 script_path = os.path.abspath(__file__)
 script_dir = os.path.dirname(os.path.abspath(__file__))
 
+
+# From repo
 with open(os.path.join(script_dir,'config.yaml')) as conf_file:
-    script_config = yaml.full_load(conf_file)
+    script_config_repo = yaml.full_load(conf_file)
+
+# From user home direcotry
+if os.path.isfile(os.path.expanduser("~/.iTerm-cloud-profile-generator/config.yaml")):
+    with open(os.path.expanduser("~/.iTerm-cloud-profile-generator/config.yaml")) as conf_file:
+        script_config_user = yaml.full_load(conf_file)
+
+script_config = {**script_config_repo['AWS'],**script_config_user['AWS']}
+
 
 username = getpass.getuser()
 config = configparser.ConfigParser()
 
-config.read(os.path.expanduser(script_config['AWS']['aws_credentials_file']))
+config.read(os.path.expanduser(script_config['aws_credentials_file']))
 update_statics()
 for i in config.sections():
-    if i not in script_config['AWS']['exclude_accounts']:
+    if i not in script_config['exclude_accounts']:
         print('Working on AWS profile: ' + i) 
         updateAll(i)
-
-
+print("\nWe wish you calm clouds and a serene path...\n")
