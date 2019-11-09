@@ -1,3 +1,6 @@
+Local:
+  static_profiles: "./iTerm2-static-profiles"
+
 AWS:
   aws_credentials_file: "~/.aws/credentials"
   static_profiles: "./iTerm2-static-profiles"

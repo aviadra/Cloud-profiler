@@ -14,9 +14,9 @@ import shutil
 
 # Main function that runs the whole thing
 def updateAll(profile_to_use):
+    instance_source = "AWS-" + profile_to_use
     instances,groups = getEC2Instances(profile_to_use)
-    # updateHosts(instances,groups)
-    updateTerm(instances,groups,profile_to_use)
+    updateTerm(instances,groups,instance_source)
 
 # Outputs to stdout the list of instances and returns EC2 instances as an array of dictionaries containing the following fields:
 # name          => Instance name formed by the instance class/group and the domain prefix (aws.)
@@ -24,17 +24,28 @@ def updateAll(profile_to_use):
 # index         => Index of this instance in the group
 
 def getDOInstances():
+    instance_source = "DO"
     groups = {}
     instances = {}
         
-    manager = digitalocean.Manager()
+    manager = digitalocean.Manager(token=script_config['DO']['token'])
     my_droplets = manager.get_all_droplets()
     print(my_droplets)
+
+    for drop in my_droplets:
+        if drop.name in drop.tags:
+            groups[drop.name] = groups[drop.name] + 1
+        else:
+            groups[drop.name] = 1
+        public_ip=drop.ip_address
+        instances[drop.ip_address] = {'name':'DO.'+ drop.name, 'group': drop.name,'index':groups[drop.name]}
+        print(drop.ip_address + "\t\t" + 'DO.' + drop.name)
+    
+    updateTerm(instances,groups,instance_source)
 
 
 
 def getEC2Instances(profile_to_use):
-
     groups = {}
     instances = {}
 
@@ -43,7 +54,7 @@ def getEC2Instances(profile_to_use):
     ec2_regions = [region['RegionName'] for region in client.describe_regions()['Regions']]
     
     for region in ec2_regions:
-        if region in script_config['exclude_regions']:
+        if region in script_config['AWS']['exclude_regions']:
             continue
 
         print("Working on AWS profile: " + profile_to_use + " region: " + region)
@@ -68,7 +79,7 @@ def getEC2Instances(profile_to_use):
                 q_tag_value=get_tag_value(response_vpc['Vpcs'][0]['Tags'], q_tag)
             return q_tag_value
         
-        if script_config['skip_stopped'] == True:
+        if script_config['AWS']['skip_stopped'] == True:
             search_states = ['running']
         else:
             search_states = ['running','pending','shutting-down', 'terminated', 'stopping', 'stopped']
@@ -102,7 +113,7 @@ def getEC2Instances(profile_to_use):
 
                         vpc_use_ip_public = vpc_data(instance['VpcId'], 'iTerm_use_ip_public')
 
-                        if (vpc_use_ip_public == True or script_config['use_ip_public'] == True) and 'PublicIpAddress' in instance:
+                        if (vpc_use_ip_public == True or script_config['AWS']['use_ip_public'] == True) and 'PublicIpAddress' in instance:
                             ip = instance['PublicIpAddress']
                         else:
                             ip = instance['NetworkInterfaces'][0]['PrivateIpAddress']
@@ -139,8 +150,8 @@ def getEC2Instances(profile_to_use):
 
     return instances, groups
 
-def updateTerm(instances,groups,profile_to_use):
-    handle = open('/Users/' + username + '/Library/Application Support/iTerm2/DynamicProfiles/aws-' + profile_to_use,'wt')
+def updateTerm(instances,groups,instance_source):
+    handle = open(os.path.expanduser("~/Library/Application Support/iTerm2/DynamicProfiles/" + instance_source),'wt')
     state = False
 
     profiles = []
@@ -148,16 +159,16 @@ def updateTerm(instances,groups,profile_to_use):
     for instance in instances:
         shortName = instances[instance]['name'][4:]
         group = instances[instance]['group']       
-        tags =["Account: " + profile_to_use,"AWS",group] if groups[group] > 1 else ["Account: " + profile_to_use,'AWS']
+        tags =["Account: " + instance_source,group] if groups[group] > 1 else ["Account: " + instance_source]
         name = instances[instance]['name']
 
-        if instances[instance]['instance_use_ip_public'] == "yes":
+        if instances[instance].get('instance_use_ip_public', 'no') == "yes":
             ip_for_connection = instances[instance]['ip_public']
         else:
             ip_for_connection = instance
         
 
-        if (instances[instance]['bastion'] and instances[instance]['instance_use_ip_public'] != "yes") or instances[instance]['instance_use_bastion'] == "yes":
+        if (instances[instance].get('bastion','') and instances[instance].get('instance_use_ip_public', 'no' != "yes")) or instances[instance].get('instance_use_bastion', 'no') == "yes":
             connection_command="ssh "  + ip_for_connection + " -J " + instances[instance]['bastion'] + " -oStrictHostKeyChecking=no -oUpdateHostKeys=yes -oServerAliveInterval=30 -oAddKeysToAgent=no"
         else:
             connection_command="ssh "  + ip_for_connection + " -oStrictHostKeyChecking=no -oUpdateHostKeys=yes -oServerAliveInterval=30 -oAddKeysToAgent=no"
@@ -165,7 +176,7 @@ def updateTerm(instances,groups,profile_to_use):
                     "Guid":name,
                     "Badge Text":shortName,
                     "Tags":tags,
-                    "Dynamic Profile Parent Name": instances[instance]['dynamic_profile_parent_name'],
+                    "Dynamic Profile Parent Name": instances[instance].get('dynamic_profile_parent_name', ''),
                     "Custom Command" : "Yes",
                     "Initial Text" : connection_command
                     }
@@ -179,8 +190,8 @@ def updateTerm(instances,groups,profile_to_use):
 def update_statics():
     profiles =[]
     
-    app_static_profile_handle = open('/Users/' + username + '/Library/Application Support/iTerm2/DynamicProfiles/statics','wt')
-    path_to_static_profiles = os.path.expanduser(script_config['static_profiles'])
+    app_static_profile_handle = open(os.path.expanduser("~/Library/Application Support/iTerm2/DynamicProfiles/statics"),"wt")
+    path_to_static_profiles = os.path.expanduser(script_config["Local"]['static_profiles'])
     
     for root, dirs, files in os.walk(path_to_static_profiles, topdown=False):
         for name in files:
@@ -242,6 +253,7 @@ with open(os.path.join(script_dir,'config.yaml')) as conf_file:
     script_config_repo = yaml.full_load(conf_file)
 
 # From user home direcotry
+script_config = {}
 script_config_user = {}
 if os.path.isfile(os.path.expanduser("~/.iTerm-cloud-profile-generator/config.yaml")):
     with open(os.path.expanduser("~/.iTerm-cloud-profile-generator/config.yaml")) as conf_file:
@@ -251,16 +263,19 @@ else:
     shutil.copy2(os.path.join(script_dir,'config.yaml'), os.path.expanduser("~/.iTerm-cloud-profile-generator/")) # target filename is /dst/dir/file.ext
 
 
-script_config = {**script_config_repo['AWS'],**script_config_user.get('AWS', {})}
+for key in script_config_repo:
+    print(key)
+    script_config[key] = {**script_config_repo.get(key, {}),**script_config_user.get(key, {})}
 
 
 username = getpass.getuser()
 config = configparser.ConfigParser()
 
-config.read(os.path.expanduser(script_config['aws_credentials_file']))
+config.read(os.path.expanduser(script_config['AWS']['aws_credentials_file']))
+getDOInstances()
 update_statics()
 for i in config.sections():
-    if i not in script_config['exclude_accounts']:
+    if i not in script_config['AWS']['exclude_accounts']:
         print('Working on AWS profile: ' + i) 
         updateAll(i)
 print("\nWe wish you calm clouds and a serene path...\n")
