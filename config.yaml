@@ -3,7 +3,6 @@ Local:
 
 AWS:
   aws_credentials_file: "~/.aws/credentials"
-  static_profiles: "./iTerm2-static-profiles"
   use_ip_public: False
   skip_stopped: True
   exclude_accounts: []
