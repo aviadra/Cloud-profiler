@@ -1,7 +1,7 @@
 # iTerm-cloud-profile-generator
 
-The purpose of this script, is to connect to cloud providers (currently only AWS is supported) and generate iTerm profiles.
-It is a fork of "https://gist.github.com/gmartinerro/40831c8874ebb32bc17711af95e1416b", which gave me a good starting point. With that said, currently this version of the script doesn't change the hosts file, so that it can be ran without sudo.
+The purpose of this script, is to connect to cloud providers (currently, AWS and Digital Ocean are supported) and generate iTerm profiles.
+It is a fork of "https://gist.github.com/gmartinerro/40831c8874ebb32bc17711af95e1416b", which gave me a good starting point. With that said, this version of the script doesn't change the hosts file, so that it can be ran without sudo.
 
 This project currently has some assumptions:
 - When running "locally", the system is MacOS.
