@@ -7,8 +7,8 @@ This project, is a fork of [gmartinerro](https://gist.github.com/gmartinerro/408
 This project has some assumptions:
 - The script runs on MacOS (tested only on Catalina and Mojave).
 - You have [iTerm](https://iterm2.com/) installed.
-- The awscli+ profiles and credentials are already setup on your system and you're using the default locations for the configuration files.
-- You're connecting to the. machines connecting your own user + key.
+- The awscli+ profiles and credentials are already setup on your system.
+- You're SSHing to the machines with your own user + key.
 - Your system has python3 installed.
 
 # How to use
