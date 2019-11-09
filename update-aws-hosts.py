@@ -9,6 +9,8 @@ import json
 import os
 import sys
 import yaml
+import digitalocean
+import shutil
 
 # Main function that runs the whole thing
 def updateAll(profile_to_use):
@@ -20,6 +22,16 @@ def updateAll(profile_to_use):
 # name          => Instance name formed by the instance class/group and the domain prefix (aws.)
 # group         => Group associated with the instance (webapp, vpn, etc.)
 # index         => Index of this instance in the group
+
+def getDOInstances():
+    groups = {}
+    instances = {}
+        
+    manager = digitalocean.Manager()
+    my_droplets = manager.get_all_droplets()
+    print(my_droplets)
+
+
 
 def getEC2Instances(profile_to_use):
 
@@ -234,6 +246,10 @@ script_config_user = {}
 if os.path.isfile(os.path.expanduser("~/.iTerm-cloud-profile-generator/config.yaml")):
     with open(os.path.expanduser("~/.iTerm-cloud-profile-generator/config.yaml")) as conf_file:
         script_config_user = yaml.full_load(conf_file)
+else:
+    os.makedirs(os.path.expanduser("~/.iTerm-cloud-profile-generator/"))
+    shutil.copy2(os.path.join(script_dir,'config.yaml'), os.path.expanduser("~/.iTerm-cloud-profile-generator/")) # target filename is /dst/dir/file.ext
+
 
 script_config = {**script_config_repo['AWS'],**script_config_user.get('AWS', {})}
 
