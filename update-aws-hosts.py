@@ -25,16 +25,48 @@ def getDOInstances(profile):
         
     manager = digitalocean.Manager(token=profile['token'])
     my_droplets = manager.get_all_droplets()
-    print(my_droplets)
+    
+    def get_tag_value(tags,q_tag):
+            q_tag_value='' 
+            tag_key=''
+            tag_value=''
+            for tag in tags:
+                if ':' in tag and 'iTerm' in tag:
+                    tag_key,tag_value = tag.split(':')
+                    if tag_key == q_tag:
+                        q_tag_value = tag_value.replace('_', ' ')
+                        q_tag_value = tag_value.replace('-', '.')
+                        break
+            return q_tag_value
+                       
 
-    for drop in my_droplets:
+    for drop in reversed(my_droplets):
+        dynamic_profile_parent_name=''
+        bastion=''
+        vpc_bastion=''
+        instance_bastion=''
+        instance_use_ip_public=''
+        instance_use_bastion=''
+        public_ip=''
+
+        bastion=get_tag_value(drop.tags, 'iTerm_bastion')
+        drop_use_ip_public=get_tag_value(drop.tags, 'iTerm_use_ip_public')
+        instance_use_bastion=get_tag_value(drop.tags, 'iTerm_use_bastion')
+
+        if script_config['DO'].get('use_ip_public', True) == True and ( drop_use_ip_public == 'True' or drop_use_ip_public == ''): # and 'PublicIpAddress' in instance:
+            ip = drop.ip_address
+        else:
+            ip = drop.private_ip_address
+            
         if drop.name in drop.tags:
             groups[drop.name] = groups[drop.name] + 1
         else:
             groups[drop.name] = 1
-        public_ip=drop.ip_address
-        instances[drop.ip_address] = {'name':instance_source + '.' + drop.name, 'group': drop.name,'index':groups[drop.name]}
-        print(drop.ip_address + "\t\t" + instance_source + '.' + drop.name)
+
+        dynamic_profile_parent_name = get_tag_value(drop.tags, 'iTerm_dynamic_profile_parent_name')
+
+        instances[ip] = {'name':instance_source + '.' + drop.name, 'group': drop.name,'index':groups[drop.name], 'dynamic_profile_parent_name': dynamic_profile_parent_name, 'public_ip': public_ip}
+        print(ip + "\t\t" + instance_source + '.' + drop.name + "\t\t associated bastion: \"" + bastion + "\"")
     
     updateTerm(instances,groups,instance_source)
 

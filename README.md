@@ -72,13 +72,15 @@ Possible tags are:
 ## Digital Ocean
 Digital Ocean's implementation of VPC is such that there isn't a way to set tags on it (that I have seen).
 Other then that the tags are the same as for AWS.
-On DO, you set a tag by adding to the instance. The format to be used is: "tag_name: value". 
-
+On DO, you set a tag by adding to the instance. The format to be used is: "tag_name:value". Note that there are no spaces between the key and the value.
+Note: Underscores(_) in the value part of the tag are replaced with spaces, and dashes(-) are replaced with dots(.).
 For example:
 
-`iTerm_bastion_use: "yes"`
+`iTerm_bastion_use:yes`
+`iTerm_bastion:1-1-1-1`
 
-TODO!!!
+
+
 
 # iTerm setup
 Again, in general you don't need to change anything in your iTerm configuration. With that said, it is recommended that you create in your iTerm, the profiles you're going to reference when using the "iTerm_dynamic_profile_parent_name" tag. if you don't, nothing major will happen, iTerm will simply use the default profile and throw some errors to the Mac's console log.
