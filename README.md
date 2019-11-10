@@ -20,7 +20,7 @@ This project has some assumptions:
 `git clone https://github.com/aviadra/iTerm-cloud-profile-generator`
 - Using python3 run the script
 
-`python3 ./iTerm-cloud-profile-generator/update-aws-hosts.py`
+`python3 ./iTerm-cloud-profile-generator/update-cloud-hosts.py`
 - You should see the dynamic profiles populated in iTerm (cmd + O)
 
 # Configuration files (Optional)
