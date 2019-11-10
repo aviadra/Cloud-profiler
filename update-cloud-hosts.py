@@ -40,7 +40,7 @@ def getDOInstances(profile):
             return q_tag_value
                        
 
-    for drop in reversed(my_droplets):
+    for drop in my_droplets:
         dynamic_profile_parent_name=''
         bastion=''
         vpc_bastion=''
@@ -80,7 +80,7 @@ def getEC2Instances(profile):
     # if profile.get('aws_access_key_id', ""):
         instance_source = "aws." + profile['name']
         profile_name = profile['name']
-        boto3.setup_default_session(aws_access_key_id=profile['aws_access_key_id'],aws_secret_access_key=profile['aws_secret_access_key'])
+        boto3.setup_default_session(aws_access_key_id=profile['aws_access_key_id'],aws_secret_access_key=profile['aws_secret_access_key'],region_name="eu-central-1")
     else:
         instance_source = "aws." + profile
         boto3.setup_default_session(profile_name=profile)
@@ -207,7 +207,7 @@ def updateTerm(instances,groups,instance_source):
             ip_for_connection = instance
         
 
-        if (instances[instance].get('bastion','') and instances[instance].get('instance_use_ip_public', 'no' != "yes")) or instances[instance].get('instance_use_bastion', 'no') == "yes":
+        if (instances[instance].get('bastion','') and instances[instance].get('instance_use_ip_public', 'no') != "yes") or instances[instance].get('instance_use_bastion', 'no') == "yes":
             connection_command="ssh "  + ip_for_connection + " -J " + instances[instance]['bastion'] + " -oStrictHostKeyChecking=no -oUpdateHostKeys=yes -oServerAliveInterval=30 -oAddKeysToAgent=no"
         else:
             connection_command="ssh "  + ip_for_connection + " -oStrictHostKeyChecking=no -oUpdateHostKeys=yes -oServerAliveInterval=30 -oAddKeysToAgent=no"
@@ -304,7 +304,6 @@ else:
 
 
 for key in script_config_repo:
-    print(key)
     script_config[key] = {**script_config_repo.get(key, {}),**script_config_user.get(key, {})}
 
 
@@ -318,14 +317,14 @@ update_statics()
 profiles_to_use = {}
 if script_config['DO'].get('profiles', False):
     for profile in script_config['DO']['profiles']:
-        print("working on " + profile['name'])
+        print("Working on " + profile['name'])
         getDOInstances(profile)        
 
 # AWS profiles iterator
 profiles_to_use = {}
 if script_config['AWS'].get('profiles', False):
     for profile in script_config['AWS']['profiles']:
-        print("working on " + profile['name'])
+        print("Working on " + profile['name'])
         getEC2Instances(profile)
         
 # AWS profiles iterator from config file
