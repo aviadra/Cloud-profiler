@@ -1,16 +1,16 @@
 # iTerm-cloud-profile-generator
 
-The purpose of this script, is to connect to cloud providers (currently only AWS is supported) and generate iTerm profiles.
-It is a fork of "https://gist.github.com/gmartinerro/40831c8874ebb32bc17711af95e1416b", which gave me a good starting point. With that said, currently this version of the script doesn't change the hosts file, so that it can be ran without sudo.
+The purpose of this script, is to connect to cloud providers and generate iTerm profiles for quick SSHing.
+Currently, AWS and Digital Ocean are supported.
+This project, is a fork of [gmartinerro](https://gist.github.com/gmartinerro/40831c8874ebb32bc17711af95e1416b), which gave me a good starting point. With that said, this version doesn't change the hosts file, so that it can be ran without sudo.
 
-This project currently has some assumptions:
-- When running "locally", the system is MacOS.
-- You have iTerm installed.
-- The awscli+ profiles and credentials are already setup on your system and you're using the default locations for the configuration files.
-- You're connecting to the. machines connecting your own user + key.
+This project has some assumptions:
+- The script runs on MacOS (tested only on Catalina and Mojave).
+- You have [iTerm](https://iterm2.com/) installed.
+- You're SSHing to the machines with your own user + key.
 - Your system has python3 installed.
 
-# How to use (local)
+# How to use
 - Install requirements using pip
 
 `pip3 install requirements.txt --user`
@@ -20,26 +20,67 @@ This project currently has some assumptions:
 `git clone https://github.com/aviadra/iTerm-cloud-profile-generator`
 - Using python3 run the script
 
-`python3 ./iTerm-cloud-profile-generator/update-aws-hosts.py`
+`python3 ./iTerm-cloud-profile-generator/update-cloud-hosts.py`
 - You should see the dynamic profiles populated in iTerm (cmd + O)
 
 # Configuration files (Optional)
 There is a YAML configuration file within the repo that gives the default values for the script behaver.
-There is also an option to create a personal configuration file, so you don't have to fork the repo in order to have your own settings. Settings in the personal file will take precedence over the default ones from the repo file.
-The personal configuration file should be placed at:
+On the first run of the script, a personal configuration file is create in `~/.iTerm-cloud-profile-generator/config.yaml`.  so you don't have to fork the repo in order to have your own settings. Settings in the personal file will take precedence over the default ones from the repo file.
+Possible options within the configuration files are noted below.
 
-`~/.iTerm-cloud-profile-generator/config.yaml`
+## Local options
+These are local to your Mac settings.
 
-You may copy the default configuration file from the repo, to get a starting point.
+`static_profiles` - Set the location of the "static profiles" on your computer. The default, is to point to where the repo is.
 
-# AWS setup
-In general there really isn't anything you "need" to do on the AWS side. With that said, the default configuration is to push you towards securing your connections and to use a [Bastion](https://docs.aws.amazon.com/quickstart/latest/linux-bastion/architecture.html#bastion-hosts) for everything. This can be changed in the configuration files or using TAGs that you can add to instances and/or VPCs. In general it is recommended to "tattoo" the "iTerm_bastion" at the VPC level.
+## AWS options
+These are settings for your AWS account/s. 
+
+`aws_credentials_file` - The script knows how to yank profiles from a standard awscli configuration. This directive sets the location to get the credentials which holds the keys. The default is "~/.aws/credentials"
+
+`use_ip_public` - Toggles if the IPs for the connection should be the internal ones (with Bastion) or external ones. The default is to use internal ones with the value of "False".
+
+`skip_stopped` - Toggles if profiles for stopped instances should be created. The default is to skip stopped instances with the value of "True".
+
+`exclude_accounts` - This is a list of accounts that are in your awscli configuration, but should be be excluded from the lookup. The default is an empty array([]).
+
+`exclude_regions` - This is a list of regions to be skipped from lookup. One might want to populate this list if there are regions that are not used regularly, as skipping them shortens the amount of time the script runs.
+
+`profiles` - This is an array of hashes that represents AWS profiles. The structure is: a hyphen to separate the hashes in the array. Each hash has the following keys: "name", "aws_access_key_id and "aws_secret_access_key". See the example in the "repo settings file". 
+Note: The example is deliberately commented out, so that if you don't configure it the script will not encounter errors).
+
+## DO
+`profiles` - This is an array of hashes that represents DO profiles. The structure is: a hyphen to separate the hashes in the array. Each hash has the following keys: "name" and "token". See the example in the "repo settings file".
+Note: The example is deliberately commented out, so that if you don't configure it the script will not encounter errors).
+
+# Cloud side setup
+In general there really isn't anything you "need" to do on the clouds side. With that said, there are Things you can/should set on the cloud side to make the setup more specific.
+
+## AWS setup
+On AWS, the default configuration is to push you towards securing your connections and to use a [Bastion](https://docs.aws.amazon.com/quickstart/latest/linux-bastion/architecture.html#bastion-hosts) for everything. This can be changed in the configuration files or using TAGs that you can add to instances and/or VPCs. In general it is recommended to "tattoo" the "iTerm_bastion" at the VPC level.
 All the iTerm tags are prefixed with "iTerm". Some tags can be set on the VPC level noted in the description.
-Possible tags for the script are:
-- iTerm_dynamic_profile_parent_name - Sets the profile to inherit colors and other settings from. [VPCable]
-- iTerm_bastion - Specifying this tag on an instance, overrides the VPC "default" one. [VPCable]
-- iTerm_use_ip_public - Denote that this instance profile, should use the public IP for the connection. Setting this tag, also sets the profile to not use a bastion, unless the "iTerm_bastion_use" tag is set.
-- iTerm_bastion_use - When using "iTerm_ip_public", the bastion is not used. unless this tag is set with the value of "yes".
+On AWS you set a tag by adding it to the desired resource(instance of VPC where applicable), and putting in the "key" field the name of the tag and in the "value" field the desired setting.
+Possible tags are:
+`iTerm_dynamic_profile_parent_name` - Sets the profile to inherit colors and other settings from. [VPCable]
+
+`iTerm_bastion` - Specifying this tag on an instance, overrides the VPC "default" one. [VPCable]
+
+`iTerm_use_ip_public` - Denote that this instance profile, should use the public IP for the connection. Setting this tag, also sets the profile to not use a bastion, unless the "iTerm_bastion_use" tag is set.
+
+`iTerm_bastion_use` - When using "iTerm_ip_public", the bastion is not used. unless this tag is set with the value of "yes".
+
+## Digital Ocean
+Digital Ocean's implementation of VPC is such that there isn't a way to set tags on it (that I have seen).
+Other then that the tags are the same as for AWS.
+On DO, you set a tag by adding to the instance. The format to be used is: "tag_name:value". Note that there are no spaces between the key and the value.
+Note: Underscores(_) in the value part of the tag are replaced with spaces, and dashes(-) are replaced with dots(.).
+For example:
+
+`iTerm_bastion_use:yes`
+`iTerm_bastion:1-1-1-1`
+
+
+
 
 # iTerm setup
 Again, in general you don't need to change anything in your iTerm configuration. With that said, it is recommended that you create in your iTerm, the profiles you're going to reference when using the "iTerm_dynamic_profile_parent_name" tag. if you don't, nothing major will happen, iTerm will simply use the default profile and throw some errors to the Mac's console log.
