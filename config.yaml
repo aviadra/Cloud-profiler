@@ -7,6 +7,14 @@ AWS:
   skip_stopped: True
   exclude_accounts: []
   exclude_regions: [] # for example: ["ap-southeast-1", "ap-southeast-2","sa-east-1","ap-northeast-1","ap-northeast-2","ap-south-1"]
+  profiles:
+  #   -
+  #     name: "name_of_profile"
+  #     aws_access_key_id: "your_id"
+  #     aws_secret_access_key: "your_key"
 
 DO:
-  token: "secretspecialuniquesnowflake"
+  profiles:
+  #   -
+  #     name: "name_of_profile"
+  #     token: "secretspecialuniquesnowflake"

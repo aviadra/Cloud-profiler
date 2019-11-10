@@ -266,7 +266,8 @@ if os.path.isfile(os.path.expanduser("~/.iTerm-cloud-profile-generator/config.ya
     with open(os.path.expanduser("~/.iTerm-cloud-profile-generator/config.yaml")) as conf_file:
         script_config_user = yaml.full_load(conf_file)
 else:
-    os.makedirs(os.path.expanduser("~/.iTerm-cloud-profile-generator/"))
+    if not os.path.isdir(os.path.expanduser("~/.iTerm-cloud-profile-generator/")):
+        os.makedirs(os.path.expanduser("~/.iTerm-cloud-profile-generator/"))
     shutil.copy2(os.path.join(script_dir,'config.yaml'), os.path.expanduser("~/.iTerm-cloud-profile-generator/")) # target filename is /dst/dir/file.ext
 
 
