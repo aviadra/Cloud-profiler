@@ -12,23 +12,18 @@ import yaml
 import digitalocean
 import shutil
 
-# Main function that runs the whole thing
-def updateAll(profile_to_use):
-    instance_source = "AWS-" + profile_to_use
-    instances,groups = getEC2Instances(profile_to_use)
-    updateTerm(instances,groups,instance_source)
 
-# Outputs to stdout the list of instances and returns EC2 instances as an array of dictionaries containing the following fields:
-# name          => Instance name formed by the instance class/group and the domain prefix (aws.)
+# Outputs to stdout the list of instances containing the following fields:
+# name          => Instance name formed by the instance class/group and the domain prefix with appropriate cloud provider (aws., DO.,)
 # group         => Group associated with the instance (webapp, vpn, etc.)
 # index         => Index of this instance in the group
 
-def getDOInstances():
-    instance_source = "DO"
+def getDOInstances(profile):
+    instance_source = "DO." + profile['name']
     groups = {}
     instances = {}
         
-    manager = digitalocean.Manager(token=script_config['DO']['token'])
+    manager = digitalocean.Manager(token=profile['token'])
     my_droplets = manager.get_all_droplets()
     print(my_droplets)
 
@@ -38,18 +33,30 @@ def getDOInstances():
         else:
             groups[drop.name] = 1
         public_ip=drop.ip_address
-        instances[drop.ip_address] = {'name':'DO.'+ drop.name, 'group': drop.name,'index':groups[drop.name]}
-        print(drop.ip_address + "\t\t" + 'DO.' + drop.name)
+        instances[drop.ip_address] = {'name':instance_source + '.' + drop.name, 'group': drop.name,'index':groups[drop.name]}
+        print(drop.ip_address + "\t\t" + instance_source + '.' + drop.name)
     
     updateTerm(instances,groups,instance_source)
 
 
 
-def getEC2Instances(profile_to_use):
+def getEC2Instances(profile):
     groups = {}
     instances = {}
 
-    boto3.setup_default_session(profile_name=profile_to_use)
+    if isinstance(profile,dict):
+    # if profile.get('aws_access_key_id', ""):
+        instance_source = "aws." + profile['name']
+        profile_name = profile['name']
+        boto3.setup_default_session(aws_access_key_id=profile['aws_access_key_id'],aws_secret_access_key=profile['aws_secret_access_key'])
+    else:
+        instance_source = "aws." + profile
+        boto3.setup_default_session(profile_name=profile)
+        profile_name = profile
+    
+        
+    
+    
     client = boto3.client('ec2')
     ec2_regions = [region['RegionName'] for region in client.describe_regions()['Regions']]
     
@@ -57,7 +64,7 @@ def getEC2Instances(profile_to_use):
         if region in script_config['AWS']['exclude_regions']:
             continue
 
-        print("Working on AWS profile: " + profile_to_use + " region: " + region)
+        print("Working on AWS profile: " + profile_name + " region: " + region)
         client = boto3.client('ec2',region_name=region)
         
         def get_tag_value(tags,q_tag):
@@ -140,15 +147,15 @@ def getEC2Instances(profile_to_use):
                         else:
                             public_ip=''
 
-                        instances[ip] = {'name':'aws.' + profile_to_use + '.' + name,'index':groups[name],'group':name, 'bastion': bastion, 'vpc':reservation['Instances'][0]['VpcId'], 'instance_use_ip_public': instance_use_ip_public, 'instance_use_bastion': instance_use_bastion, 'ip_public': public_ip, 'dynamic_profile_parent_name': dynamic_profile_parent_name}
+                        instances[ip] = {'name':instance_source + '.' + name,'index':groups[name],'group':name, 'bastion': bastion, 'vpc':reservation['Instances'][0]['VpcId'], 'instance_use_ip_public': instance_use_ip_public, 'instance_use_bastion': instance_use_bastion, 'ip_public': public_ip, 'dynamic_profile_parent_name': dynamic_profile_parent_name}
                         # print(json.dumps(instances[ip], sort_keys=True, indent=4))
-                        print(ip + "\t" + 'aws.' + profile_to_use + "." + name + "\t\t associated bastion: \"" + bastion + "\"")
+                        print(ip + "\t" + instance_source + "." + name + "\t\t associated bastion: \"" + bastion + "\"")
     
     for ip in instances:
         instance = instances[ip]
         instance['name'] = instance['name'] + str(instance['index']) if groups[instance['group']] > 1 else instance['name']
-
-    return instances, groups
+    
+    updateTerm(instances,groups,instance_source)
 
 def updateTerm(instances,groups,instance_source):
     handle = open(os.path.expanduser("~/Library/Application Support/iTerm2/DynamicProfiles/" + instance_source),'wt')
@@ -271,11 +278,28 @@ for key in script_config_repo:
 username = getpass.getuser()
 config = configparser.ConfigParser()
 
-config.read(os.path.expanduser(script_config['AWS']['aws_credentials_file']))
-getDOInstances()
+# Static profiles iterator
 update_statics()
-for i in config.sections():
-    if i not in script_config['AWS']['exclude_accounts']:
-        print('Working on AWS profile: ' + i) 
-        updateAll(i)
+
+# DO profiles iterator
+profiles_to_use = {}
+if script_config['DO'].get('profiles', False):
+    for profile in script_config['DO']['profiles']:
+        print("working on " + profile['name'])
+        getDOInstances(profile)        
+
+# AWS profiles iterator
+profiles_to_use = {}
+if script_config['AWS'].get('profiles', False):
+    for profile in script_config['AWS']['profiles']:
+        print("working on " + profile['name'])
+        getEC2Instances(profile)
+        
+# AWS profiles iterator from config file
+if os.path.exists(os.path.expanduser(script_config['AWS']['aws_credentials_file'])):
+    config.read(os.path.expanduser(script_config['AWS']['aws_credentials_file']))
+    for i in config.sections():
+        if i not in script_config['AWS']['exclude_accounts']:
+            print('Working on AWS profile from credentials file: ' + i) 
+            getEC2Instances(i)
 print("\nWe wish you calm clouds and a serene path...\n")
