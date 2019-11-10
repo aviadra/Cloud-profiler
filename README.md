@@ -30,14 +30,15 @@ Possible options within the configuration files are noted below.
 
 ## Local options
 These are local to your Mac settings.
+
 `static_profiles` - Set the location of the "static profiles" on your computer. The default, is to point to where the repo is.
 
 ## AWS options
-These are settings for you AWS account/s. 
+These are settings for your AWS account/s. 
 
 `aws_credentials_file` - The script knows how to yank profiles from a standard awscli configuration. This directive sets the location to get the credentials which holds the keys. The default is "~/.aws/credentials"
 
-`use_ip_public` - Toggles if the IPs for the connection should be the internal whens (with Bastion) or external ones. The default is to use internal ones with the value of "False".
+`use_ip_public` - Toggles if the IPs for the connection should be the internal ones (with Bastion) or external ones. The default is to use internal ones with the value of "False".
 
 `skip_stopped` - Toggles if profiles for stopped instances should be created. The default is to skip stopped instances with the value of "True".
 
@@ -69,8 +70,12 @@ Possible tags are:
 ## Digital Ocean
 Digital Ocean's implementation of VPC is such that there isn't a way to set tags on it (that I have seen).
 Other then that the tags are the same as for AWS.
-On DO, you set a tag by adding to the instance. The format to be used is: "tag_name: value". For example
+On DO, you set a tag by adding to the instance. The format to be used is: "tag_name: value". 
+
+For example:
+
 `iTerm_bastion_use: "yes"`
+
 TODO!!!
 
 # iTerm setup
