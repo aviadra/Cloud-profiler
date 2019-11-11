@@ -47,11 +47,16 @@ def getDOInstances(profile):
         instance_bastion=''
         instance_use_ip_public=''
         instance_use_bastion=''
-        public_ip=''
-
+        iterm_tags = []
         bastion=get_tag_value(drop.tags, 'iTerm_bastion')
         drop_use_ip_public=get_tag_value(drop.tags, 'iTerm_use_ip_public')
         instance_use_bastion=get_tag_value(drop.tags, 'iTerm_use_bastion')
+        or_host_name=get_tag_value(drop.tags, 'iTerm_host_name')
+
+        if or_host_name:
+            drop_name = or_host_name
+        else:
+            drop_name = drop.name
 
         if script_config['DO'].get('use_ip_public', True) == True and ( drop_use_ip_public == 'True' or drop_use_ip_public == ''): # and 'PublicIpAddress' in instance:
             ip = drop.ip_address
@@ -64,9 +69,15 @@ def getDOInstances(profile):
             groups[drop.name] = 1
 
         dynamic_profile_parent_name = get_tag_value(drop.tags, 'iTerm_dynamic_profile_parent_name')
+        if drop.tags:
+            for tag in drop.tags:
+                if tag:
+                    # iterm_tags += tag + ','
+                    iterm_tags.append(tag)
 
-        instances[ip] = {'name':instance_source + '.' + drop.name, 'group': drop.name,'index':groups[drop.name], 'dynamic_profile_parent_name': dynamic_profile_parent_name, 'public_ip': public_ip}
-        print(ip + "\t\t" + instance_source + '.' + drop.name + "\t\t associated bastion: \"" + bastion + "\"")
+        iterm_tags += ip,drop.name
+        instances[ip] = {'name':instance_source + '.' + drop_name, 'group': drop_name,'index':groups[drop.name], 'dynamic_profile_parent_name': dynamic_profile_parent_name, 'iterm_tags': iterm_tags}
+        print(ip + "\t\t" + instance_source + '.' + drop_name + "\t\t associated bastion: \"" + bastion + "\"")
     
     updateTerm(instances,groups,instance_source)
 
@@ -100,11 +111,14 @@ def getEC2Instances(profile):
         client = boto3.client('ec2',region_name=region)
         
         def get_tag_value(tags,q_tag):
-            q_tag_value='' 
+            q_tag_value=''
             for tag in tags:
-                if tag['Key'] == q_tag:
-                        q_tag_value = tag['Value']
-                        break
+                if q_tag == 'flat':
+                    q_tag_value += tag['Key'] + ': ' + tag['Value'] + ","
+                else:
+                    if tag['Key'] == q_tag:
+                            q_tag_value = tag['Value']
+                            break
             return q_tag_value
         
         def vpc_data(vpcid,q_tag):
@@ -115,7 +129,12 @@ def getEC2Instances(profile):
                 ]
             )
             if 'Tags' in response_vpc['Vpcs'][0]:
-                q_tag_value=get_tag_value(response_vpc['Vpcs'][0]['Tags'], q_tag)
+                if q_tag == "flat":
+                    for tag in response_vpc['Vpcs'][0]['Tags']:
+                        if "iTerm" not in tag['Key']:
+                            q_tag_value += "VPC." + tag['Key'] + ': ' + tag['Value'] + ","
+                else:
+                    q_tag_value=get_tag_value(response_vpc['Vpcs'][0]['Tags'], q_tag)
             return q_tag_value
         
         if script_config['AWS']['skip_stopped'] == True:
@@ -140,6 +159,9 @@ def getEC2Instances(profile):
                 instance_use_ip_public=''
                 instance_use_bastion=''
                 public_ip=''
+                instance_vpc_flat_tags=''
+                instance_flat_tags=''
+                iterm_tags=[]
                 for instance in reservation['Instances']:      
                         if 'Tags' in instance:
                             name=get_tag_value(instance['Tags'], 'Name')
@@ -147,6 +169,8 @@ def getEC2Instances(profile):
                             instance_use_ip_public=get_tag_value(instance['Tags'], 'iTerm_use_ip_public')
                             instance_use_bastion=get_tag_value(instance['Tags'], 'iTerm_use_bastion')
                             instance_dynamic_profile_parent_name=get_tag_value(instance['Tags'], 'iTerm_dynamic_profile_parent_name')
+                            instance_vpc_flat_tags=vpc_data(instance['VpcId'], "flat")
+                            instance_flat_tags=get_tag_value(instance['Tags'], 'flat')
                         else:
                             name=instance['InstanceId']
 
@@ -176,10 +200,23 @@ def getEC2Instances(profile):
 
                         if 'PublicIpAddress' in instance:
                             public_ip=instance['PublicIpAddress']
+                            iterm_tags.append(instance['PublicIpAddress'])
                         else:
                             public_ip=''
+                        
+                        if instance_flat_tags:
+                            for tag in instance_flat_tags.split(','):
+                                if tag:
+                                    iterm_tags.append(tag)
+                        if instance_vpc_flat_tags:
+                            for tag in instance_vpc_flat_tags.split(','):
+                                if tag:
+                                    iterm_tags.append(tag)
+                            
+                        iterm_tags.append(instance['VpcId'])
 
-                        instances[ip] = {'name':instance_source + '.' + name,'index':groups[name],'group':name, 'bastion': bastion, 'vpc':reservation['Instances'][0]['VpcId'], 'instance_use_ip_public': instance_use_ip_public, 'instance_use_bastion': instance_use_bastion, 'ip_public': public_ip, 'dynamic_profile_parent_name': dynamic_profile_parent_name}
+
+                        instances[ip] = {'name':instance_source + '.' + name,'index':groups[name],'group':name, 'bastion': bastion, 'vpc':reservation['Instances'][0]['VpcId'], 'instance_use_ip_public': instance_use_ip_public, 'instance_use_bastion': instance_use_bastion, 'ip_public': public_ip, 'dynamic_profile_parent_name': dynamic_profile_parent_name, 'iterm_tags': iterm_tags}
                         # print(json.dumps(instances[ip], sort_keys=True, indent=4))
                         print(ip + "\t" + instance_source + "." + name + "\t\t associated bastion: \"" + bastion + "\"")
     
@@ -197,8 +234,14 @@ def updateTerm(instances,groups,instance_source):
 
     for instance in instances:
         shortName = instances[instance]['name'][4:]
-        group = instances[instance]['group']       
-        tags =["Account: " + instance_source,group] if groups[group] > 1 else ["Account: " + instance_source]
+        group = instances[instance]['group']
+
+        tags = ["Account: " + instance_source, instance]
+        for tag in instances[instance]['iterm_tags']:
+            tags.append(tag)
+        if groups.get(group, 0) > 1:
+            tags + groups
+
         name = instances[instance]['name']
 
         if instances[instance].get('instance_use_ip_public', 'no') == "yes":
@@ -328,10 +371,11 @@ if script_config['AWS'].get('profiles', False):
         getEC2Instances(profile)
         
 # AWS profiles iterator from config file
-if os.path.exists(os.path.expanduser(script_config['AWS']['aws_credentials_file'])):
-    config.read(os.path.expanduser(script_config['AWS']['aws_credentials_file']))
-    for i in config.sections():
-        if i not in script_config['AWS']['exclude_accounts']:
-            print('Working on AWS profile from credentials file: ' + i) 
-            getEC2Instances(i)
+if script_config['AWS'].get('use_awscli_profiles', False):
+    if os.path.exists(os.path.expanduser(script_config['AWS']['aws_credentials_file'])):
+        config.read(os.path.expanduser(script_config['AWS']['aws_credentials_file']))
+        for i in config.sections():
+            if i not in script_config['AWS']['exclude_accounts']:
+                print('Working on AWS profile from credentials file: ' + i) 
+                getEC2Instances(i)
 print("\nWe wish you calm clouds and a serene path...\n")
