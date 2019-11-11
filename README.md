@@ -71,11 +71,13 @@ Possible tags are:
 
 ## Digital Ocean
 Digital Ocean's implementation of VPC is such that there isn't a way to set tags on it (that I have seen).
+DO does has one spacial tag "iTerm_host_name", which changes the node's host name to the value in the tag.
 Other then that the tags are the same as for AWS.
-On DO, you set a tag by adding to the instance. The format to be used is: "tag_name:value". Note that there are no spaces between the key and the value.
-Note: Underscores(_) in the value part of the tag are replaced with spaces, and dashes(-) are replaced with dots(.).
+On DO, you set a tag by adding it to the instance. The format to be used is: "tag_name:value". Note that there are no spaces between the key and the value.
+Also note, that underscores(_) in the value part of the tag are replaced with spaces, and dashes(-) are replaced with dots(.).
 For example:
 
+`iTerm_host_name:Incredible_name1`
 `iTerm_bastion_use:yes`
 `iTerm_bastion:1-1-1-1`
 
