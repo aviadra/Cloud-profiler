@@ -116,23 +116,43 @@
   "Use Italic Font" : true,
   "Unlimited Scrollback" : false,
   "Keyboard Map" : {
-    "0x7f-0x100000" : {
-      "Action" : 11,
-      "Text" : "0x1B 0x08"
-    },
-    "0xf702-0x280000" : {
-      "Action" : 10,
-      "Text" : "b"
-    },
-    "0x9-0x40000" : {
-      "Action" : 32,
-      "Text" : ""
-    },
     "0xf703-0x380000" : {
       "Action" : 0,
       "Text" : ""
     },
+    "0xf702-0x320000" : {
+      "Action" : 33,
+      "Text" : ""
+    },
     "0x62-0x100000" : {
+      "Action" : 10,
+      "Text" : "b"
+    },
+    "0xf702-0x300000" : {
+      "Action" : 2,
+      "Text" : ""
+    },
+    "0xf703-0x320000" : {
+      "Action" : 34,
+      "Text" : ""
+    },
+    "0x66-0x40000" : {
+      "Action" : 25,
+      "Text" : "Find...\nFind.Find..."
+    },
+    "0xf703-0x300000" : {
+      "Action" : 0,
+      "Text" : ""
+    },
+    "0xf72b-0x100000" : {
+      "Action" : 4,
+      "Text" : ""
+    },
+    "0xf703-0x280000" : {
+      "Action" : 10,
+      "Text" : "f"
+    },
+    "0xf702-0x280000" : {
       "Action" : 10,
       "Text" : "b"
     },
@@ -140,25 +160,65 @@
       "Action" : 10,
       "Text" : "f"
     },
-    "0xf703-0x280000" : {
-      "Action" : 10,
-      "Text" : "f"
+    "0xf72c-0x100000" : {
+      "Action" : 9,
+      "Text" : ""
+    },
+    "0xf700-0x300000" : {
+      "Action" : 7,
+      "Text" : ""
+    },
+    "0xf72d-0x100000" : {
+      "Action" : 8,
+      "Text" : ""
+    },
+    "0x9-0x40000" : {
+      "Action" : 32,
+      "Text" : ""
+    },
+    "0xf701-0x300000" : {
+      "Action" : 6,
+      "Text" : ""
+    },
+    "0x54-0x120000" : {
+      "Action" : 44,
+      "Text" : ""
+    },
+    "0x19-0x60000" : {
+      "Action" : 39,
+      "Text" : ""
+    },
+    "0xf729-0x100000" : {
+      "Action" : 5,
+      "Text" : ""
     },
     "0x64-0x100000" : {
       "Action" : 10,
       "Text" : "d"
     },
-    "0x66-0x40000" : {
-      "Action" : 25,
-      "Text" : "Find...\nFind.Find..."
+    "0xf72c-0x20000" : {
+      "Action" : 9,
+      "Text" : ""
     },
-    "0x7f-0x80000" : {
+    "0x2e-0x100000" : {
       "Action" : 10,
-      "Text" : "0x1B 0x08"
+      "Text" : "."
     },
     "0xf702-0x380000" : {
       "Action" : 2,
       "Text" : ""
+    },
+    "0xf72d-0x20000" : {
+      "Action" : 8,
+      "Text" : ""
+    },
+    "0x7f-0x100000" : {
+      "Action" : 11,
+      "Text" : "0x1B 0x08"
+    },
+    "0x7f-0x80000" : {
+      "Action" : 11,
+      "Text" : "0x1B 0x08"
     }
   },
   "Window Type" : 0,
@@ -176,9 +236,9 @@
   "Send Code When Idle" : false,
   "Close Sessions On End" : true,
   "Terminal Type" : "xterm-256color",
-  "Visual Bell" : true,
-  "Flashing Bell" : false,
   "Badge Text" : "Red Alert",
+  "Flashing Bell" : false,
+  "Visual Bell" : true,
   "Silence Bell" : false,
   "Ansi 14 Color" : {
     "Green Component" : 0.87450981140136719,
