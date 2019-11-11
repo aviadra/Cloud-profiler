@@ -83,7 +83,7 @@ def getEC2Instances(profile):
         boto3.setup_default_session(aws_access_key_id=profile['aws_access_key_id'],aws_secret_access_key=profile['aws_secret_access_key'],region_name="eu-central-1")
     else:
         instance_source = "aws." + profile
-        boto3.setup_default_session(profile_name=profile)
+        boto3.setup_default_session(profile_name=profile,region_name="eu-central-1")
         profile_name = profile
     
         
