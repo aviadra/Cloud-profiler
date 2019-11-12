@@ -74,9 +74,9 @@ def getDOInstances(profile):
                 if tag:
                     # iterm_tags += tag + ','
                     iterm_tags.append(tag)
-
-        iterm_tags += ip,drop.name
-        instances[ip] = {'name':instance_source + '.' + drop_name, 'group': drop_name,'index':groups[drop.name], 'dynamic_profile_parent_name': dynamic_profile_parent_name, 'iterm_tags': iterm_tags}
+        
+        iterm_tags += ip,drop.name,drop.size['slug']
+        instances[ip] = {'name':instance_source + '.' + drop_name, 'group': drop_name,'index':groups[drop.name], 'dynamic_profile_parent_name': dynamic_profile_parent_name, 'iterm_tags': iterm_tags, 'InstanceType': drop.size['slug']}
         print(ip + "\t\t" + instance_source + '.' + drop_name + "\t\t associated bastion: \"" + bastion + "\"")
     
     updateTerm(instances,groups,instance_source)
@@ -214,9 +214,10 @@ def getEC2Instances(profile):
                                     iterm_tags.append(tag)
                             
                         iterm_tags.append(instance['VpcId'])
+                        iterm_tags.append(instance['InstanceType'])
 
 
-                        instances[ip] = {'name':instance_source + '.' + name,'index':groups[name],'group':name, 'bastion': bastion, 'vpc':reservation['Instances'][0]['VpcId'], 'instance_use_ip_public': instance_use_ip_public, 'instance_use_bastion': instance_use_bastion, 'ip_public': public_ip, 'dynamic_profile_parent_name': dynamic_profile_parent_name, 'iterm_tags': iterm_tags}
+                        instances[ip] = {'name':instance_source + '.' + name,'index':groups[name],'group':name, 'bastion': bastion, 'vpc':reservation['Instances'][0]['VpcId'], 'instance_use_ip_public': instance_use_ip_public, 'instance_use_bastion': instance_use_bastion, 'ip_public': public_ip, 'dynamic_profile_parent_name': dynamic_profile_parent_name, 'iterm_tags': iterm_tags, 'InstanceType': instance['InstanceType']}
                         # print(json.dumps(instances[ip], sort_keys=True, indent=4))
                         print(ip + "\t" + instance_source + "." + name + "\t\t associated bastion: \"" + bastion + "\"")
     
@@ -254,9 +255,12 @@ def updateTerm(instances,groups,instance_source):
             connection_command="ssh "  + ip_for_connection + " -J " + instances[instance]['bastion'] + " -oStrictHostKeyChecking=no -oUpdateHostKeys=yes -oServerAliveInterval=30 -oAddKeysToAgent=no"
         else:
             connection_command="ssh "  + ip_for_connection + " -oStrictHostKeyChecking=no -oUpdateHostKeys=yes -oServerAliveInterval=30 -oAddKeysToAgent=no"
+        
+        badge = shortName + '\n' + instances[instance]['InstanceType'] + '\n' + ip_for_connection
+        
         profile = {"Name":name,
                     "Guid":name,
-                    "Badge Text":shortName,
+                    "Badge Text":badge,
                     "Tags":tags,
                     "Dynamic Profile Parent Name": instances[instance].get('dynamic_profile_parent_name', ''),
                     "Custom Command" : "Yes",
