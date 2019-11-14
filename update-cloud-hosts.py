@@ -93,24 +93,20 @@ def get_tag_value(tags, q_tag):
     return q_tag_value
 
 
-def vpc_data(vpcid, q_tag, client):
+def vpc_data(vpcid, q_tag, response_vpc):
     q_tag_value = ''
-    response_vpc = client.describe_vpcs(
-        VpcIds=[
-            vpcid,
-        ]
-    )
-    if 'Tags' in response_vpc['Vpcs'][0]:
-        if q_tag == "flat":
-            for tag in response_vpc['Vpcs'][0]['Tags']:
-                if "iTerm" not in tag['Key']:
-                    q_tag_value += "VPC." + tag['Key'] + ': ' + tag['Value'] + ","
-        else:
-            q_tag_value = get_tag_value(response_vpc['Vpcs'][0]['Tags'], q_tag)
+    for vpc in response_vpc['Vpcs']:
+        if vpc.get('Tags', False):
+            if q_tag == "flat":
+                for tag in vpc.get('Tags'):
+                    if "iTerm" not in tag['Key']:
+                        q_tag_value += "VPC." + tag['Key'] + ': ' + tag['Value'] + ","
+            else:
+                q_tag_value = get_tag_value(vpc.get('Tags'), q_tag)
     return q_tag_value
 
 
-def fetchEC2Instance(instance, client, groups, instances, instance_source, reservation):
+def fetchEC2Instance(instance, client, groups, instances, instance_source, reservation, vpc_data_all):
     instance_dynamic_profile_parent_name = ''
     dynamic_profile_parent_name = ''
     bastion = ''
@@ -128,12 +124,12 @@ def fetchEC2Instance(instance, client, groups, instances, instance_source, reser
         instance_use_bastion = get_tag_value(instance['Tags'], 'iTerm_use_bastion')
         instance_dynamic_profile_parent_name = get_tag_value(instance['Tags'],
                                                              'iTerm_dynamic_profile_parent_name')
-        instance_vpc_flat_tags = vpc_data(instance['VpcId'], "flat", client)
+        instance_vpc_flat_tags = vpc_data(instance['VpcId'], "flat", vpc_data_all)
         instance_flat_tags = get_tag_value(instance['Tags'], 'flat')
     else:
         name = instance['InstanceId']
 
-    vpc_use_ip_public = vpc_data(instance['VpcId'], 'iTerm_use_ip_public', client)
+    vpc_use_ip_public = vpc_data(instance['VpcId'], "iTerm_use_ip_public", vpc_data_all)
     if (vpc_use_ip_public == True or script_config['AWS'][
         'use_ip_public'] == True) and 'PublicIpAddress' in instance:
         ip = instance['PublicIpAddress']
@@ -145,13 +141,13 @@ def fetchEC2Instance(instance, client, groups, instances, instance_source, reser
     else:
         groups[name] = 1
 
-    vpc_bastion = vpc_data(instance['VpcId'], 'iTerm_bastion', client)
+    vpc_bastion = vpc_data(instance['VpcId'], "iTerm_bastion", vpc_data_all)
     if vpc_bastion:
         bastion = vpc_bastion
     if instance_bastion:
         bastion = instance_bastion
 
-    vpc_dynamic_profile_parent_name = vpc_data(instance['VpcId'], 'iTerm_dynamic_profile_parent_name', client)
+    vpc_dynamic_profile_parent_name = vpc_data(instance['VpcId'], "iTerm_dynamic_profile_parent_name", vpc_data_all)
     if vpc_dynamic_profile_parent_name:
         dynamic_profile_parent_name = vpc_dynamic_profile_parent_name
     if instance_dynamic_profile_parent_name:
@@ -181,7 +177,6 @@ def fetchEC2Instance(instance, client, groups, instances, instance_source, reser
                      'instance_use_bastion': instance_use_bastion, 'ip_public': public_ip,
                      'dynamic_profile_parent_name': dynamic_profile_parent_name, 'iterm_tags': iterm_tags,
                      'InstanceType': instance['InstanceType']}
-    # print(json.dumps(instances[ip], sort_keys=True, indent=4))
     print(ip + "\t" + instance_source + "." + name + "\t\t associated bastion: \"" + bastion + "\"")
 
 
@@ -205,12 +200,17 @@ def fetchEC2Region(region, profile_name, instances, groups, instance_source):
         ]
     )
 
+    vpc_data_all = client.describe_vpcs(
+            VpcIds=[]
+        )
+
+
     threads = []
 
     for reservation in response['Reservations']:
         for instance in reservation['Instances']:
             thread = threading.Thread(target=fetchEC2Instance,
-                                      args=(instance, client, groups, instances, instance_source, reservation))
+                                      args=(instance, client, groups, instances, instance_source, reservation, vpc_data_all))
             threads.append(thread)
             thread.start()
 
