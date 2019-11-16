@@ -241,9 +241,6 @@ def getEC2Instances(profile):
 
 
 def updateTerm(instances,groups,instance_source):
-    handle = open(os.path.expanduser("~/Library/Application Support/iTerm2/DynamicProfiles/" + instance_source),'wt')
-    state = False
-
     profiles = []
 
     for instance in instances:
@@ -282,7 +279,8 @@ def updateTerm(instances,groups,instance_source):
 
         profiles.append(profile)
 
-    profiles = {"Profiles":(profiles)} 
+    profiles = {"Profiles":(profiles)}
+    handle = open(os.path.expanduser("~/Library/Application Support/iTerm2/DynamicProfiles/" + instance_source),'wt')
     handle.write(json.dumps(profiles,sort_keys=True,indent=4, separators=(',', ': ')))
     handle.close()
 
@@ -361,7 +359,7 @@ if __name__ == '__main__':
     else:
         if not os.path.isdir(os.path.expanduser("~/.iTerm-cloud-profile-generator/")):
             os.makedirs(os.path.expanduser("~/.iTerm-cloud-profile-generator/"))
-        shutil.copy2(os.path.join(script_dir,'config.yaml'), os.path.expanduser("~/.iTerm-cloud-profile-generator/")) # target filename is /dst/dir/file.ext
+        shutil.copy2(os.path.join(script_dir,'config.yaml'), os.path.expanduser("~/.iTerm-cloud-profile-generator/"))
 
 
     for key in script_config_repo:
