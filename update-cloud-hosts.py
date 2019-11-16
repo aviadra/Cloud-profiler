@@ -9,7 +9,7 @@ import os
 import yaml
 import digitalocean
 import shutil
-import threading
+import concurrent.futures
 
 
 # Outputs to stdout the list of instances containing the following fields:
@@ -169,6 +169,7 @@ def fetchEC2Instance(instance, client, groups, instances, instance_source, reser
                 iterm_tags.append(tag)
 
     iterm_tags.append(instance['VpcId'])
+    iterm_tags.append(instance['Placement']['AvailabilityZone'])
     iterm_tags.append(instance['InstanceType'])
 
     instances[ip] = {'name': instance_source + '.' + name, 'index': groups[name], 'group': name,
@@ -177,14 +178,13 @@ def fetchEC2Instance(instance, client, groups, instances, instance_source, reser
                      'instance_use_bastion': instance_use_bastion, 'ip_public': public_ip,
                      'dynamic_profile_parent_name': dynamic_profile_parent_name, 'iterm_tags': iterm_tags,
                      'InstanceType': instance['InstanceType']}
-    print(ip + "\t" + instance_source + "." + name + "\t\t associated bastion: \"" + bastion + "\"")
+    return (ip + "\t" + instance['Placement']['AvailabilityZone'] + "\t" + instance_source + "." + name + "\t\t associated bastion: \"" + bastion + "\"")
 
 
 def fetchEC2Region(region, profile_name, instances, groups, instance_source):
     if region in script_config['AWS']['exclude_regions']:
         return
 
-    print("Working on AWS profile: " + profile_name + " region: " + region)
     client = boto3.client('ec2', region_name=region)
 
     if script_config['AWS']['skip_stopped'] == True:
@@ -205,18 +205,12 @@ def fetchEC2Region(region, profile_name, instances, groups, instance_source):
         )
 
 
-    threads = []
-
     for reservation in response['Reservations']:
         for instance in reservation['Instances']:
-            thread = threading.Thread(target=fetchEC2Instance,
-                                      args=(instance, client, groups, instances, instance_source, reservation, vpc_data_all))
-            threads.append(thread)
-            thread.start()
-
-    for thread in threads:
-        thread.join()
-
+            with concurrent.futures.ThreadPoolExecutor() as executor:
+                future = executor.submit(fetchEC2Instance, instance, client, groups, instances, instance_source, reservation, vpc_data_all)
+                return_value = future.result()
+                print(return_value)
 
 def getEC2Instances(profile):
     groups = {}
@@ -235,14 +229,9 @@ def getEC2Instances(profile):
     client = boto3.client('ec2')
     ec2_regions = [region['RegionName'] for region in client.describe_regions()['Regions']]
 
-    threads = [threading.Thread(target=fetchEC2Region, args=(region, profile_name, instances, groups, instance_source))
-               for region in ec2_regions]
 
-    for thread in threads:
-        thread.start()
-
-    for thread in threads:
-        thread.join()
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        future = [executor.submit(fetchEC2Region, region , profile_name, instances, groups, instance_source) for region in ec2_regions]
 
     for ip in instances:
         instance = instances[ip]
@@ -354,56 +343,55 @@ def updateHosts(instances,groups):
 
 
 #MAIN
-script_path = os.path.abspath(__file__)
-script_dir = os.path.dirname(os.path.abspath(__file__))
+if __name__ == '__main__':
+    script_path = os.path.abspath(__file__)
+    script_dir = os.path.dirname(os.path.abspath(__file__))
 
 
-# From repo
-with open(os.path.join(script_dir,'config.yaml')) as conf_file:
-    script_config_repo = yaml.full_load(conf_file)
+    # From repo
+    with open(os.path.join(script_dir,'config.yaml')) as conf_file:
+        script_config_repo = yaml.full_load(conf_file)
 
-# From user home direcotry
-script_config = {}
-script_config_user = {}
-if os.path.isfile(os.path.expanduser("~/.iTerm-cloud-profile-generator/config.yaml")):
-    with open(os.path.expanduser("~/.iTerm-cloud-profile-generator/config.yaml")) as conf_file:
-        script_config_user = yaml.full_load(conf_file)
-else:
-    if not os.path.isdir(os.path.expanduser("~/.iTerm-cloud-profile-generator/")):
-        os.makedirs(os.path.expanduser("~/.iTerm-cloud-profile-generator/"))
-    shutil.copy2(os.path.join(script_dir,'config.yaml'), os.path.expanduser("~/.iTerm-cloud-profile-generator/")) # target filename is /dst/dir/file.ext
-
-
-for key in script_config_repo:
-    script_config[key] = {**script_config_repo.get(key, {}),**script_config_user.get(key, {})}
+    # From user home direcotry
+    script_config = {}
+    script_config_user = {}
+    if os.path.isfile(os.path.expanduser("~/.iTerm-cloud-profile-generator/config.yaml")):
+        with open(os.path.expanduser("~/.iTerm-cloud-profile-generator/config.yaml")) as conf_file:
+            script_config_user = yaml.full_load(conf_file)
+    else:
+        if not os.path.isdir(os.path.expanduser("~/.iTerm-cloud-profile-generator/")):
+            os.makedirs(os.path.expanduser("~/.iTerm-cloud-profile-generator/"))
+        shutil.copy2(os.path.join(script_dir,'config.yaml'), os.path.expanduser("~/.iTerm-cloud-profile-generator/")) # target filename is /dst/dir/file.ext
 
 
-username = getpass.getuser()
-config = configparser.ConfigParser()
+    for key in script_config_repo:
+        script_config[key] = {**script_config_repo.get(key, {}),**script_config_user.get(key, {})}
 
-# Static profiles iterator
-update_statics()
 
-# DO profiles iterator
-profiles_to_use = {}
-if script_config['DO'].get('profiles', False):
-    for profile in script_config['DO']['profiles']:
-        print("Working on " + profile['name'])
-        getDOInstances(profile)
+    username = getpass.getuser()
+    config = configparser.ConfigParser()
 
-# AWS profiles iterator
-profiles_to_use = {}
-if script_config['AWS'].get('profiles', False):
-    for profile in script_config['AWS']['profiles']:
-        print("Working on " + profile['name'])
-        getEC2Instances(profile)
-        
-# AWS profiles iterator from config file
-if script_config['AWS'].get('use_awscli_profiles', False):
-    if os.path.exists(os.path.expanduser(script_config['AWS']['aws_credentials_file'])):
-        config.read(os.path.expanduser(script_config['AWS']['aws_credentials_file']))
-        for i in config.sections():
-            if i not in script_config['AWS']['exclude_accounts']:
-                print('Working on AWS profile from credentials file: ' + i) 
-                getEC2Instances(i)
-print("\nWe wish you calm clouds and a serene path...\n")
+    # Static profiles iterator
+    update_statics()
+
+    # DO profiles iterator
+    if script_config['DO'].get('profiles', False):
+        for profile in script_config['DO']['profiles']:
+            print("Working on " + profile['name'])
+            getDOInstances(profile)
+
+    # AWS profiles iterator
+    if script_config['AWS'].get('profiles', False):
+        for profile in script_config['AWS']['profiles']:
+            print("Working on " + profile['name'])
+            getEC2Instances(profile)
+            
+    # AWS profiles iterator from config file
+    if script_config['AWS'].get('use_awscli_profiles', False):
+        if os.path.exists(os.path.expanduser(script_config['AWS']['aws_credentials_file'])):
+            config.read(os.path.expanduser(script_config['AWS']['aws_credentials_file']))
+            for i in config.sections():
+                if i not in script_config['AWS']['exclude_accounts']:
+                    print('Working on AWS profile from credentials file: ' + i) 
+                    getEC2Instances(i)
+    print("\nWe wish you calm clouds and a serene path...\n")
