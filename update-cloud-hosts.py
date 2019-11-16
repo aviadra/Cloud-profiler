@@ -76,7 +76,7 @@ def getDOInstances(profile):
         
         iterm_tags += ip,drop.name,drop.size['slug']
         instances[ip] = {'name':instance_source + '.' + drop_name, 'group': drop_name,'index':groups[drop.name], 'dynamic_profile_parent_name': dynamic_profile_parent_name, 'iterm_tags': iterm_tags, 'InstanceType': drop.size['slug']}
-        print(ip + "\t\t" + instance_source + '.' + drop_name + "\t\t associated bastion: \"" + bastion + "\"")
+        print(profile['name'] + ": " + ip + "\t\t" + instance_source + '.' + drop_name + "\t\t associated bastion: \"" + bastion + "\"")
     
     updateTerm(instances,groups,instance_source)
 
@@ -183,6 +183,7 @@ def fetchEC2Instance(instance, client, groups, instances, instance_source, reser
 
 def fetchEC2Region(region, profile_name, instances, groups, instance_source):
     if region in script_config['AWS']['exclude_regions']:
+        print(profile_name + ": region " + "\"" + region + "\" is in excluded list")
         return
 
     client = boto3.client('ec2', region_name=region)
@@ -205,19 +206,21 @@ def fetchEC2Region(region, profile_name, instances, groups, instance_source):
         )
 
 
-    for reservation in response['Reservations']:
-        for instance in reservation['Instances']:
-            with concurrent.futures.ThreadPoolExecutor() as executor:
-                future = executor.submit(fetchEC2Instance, instance, client, groups, instances, instance_source, reservation, vpc_data_all)
-                return_value = future.result()
-                print(return_value)
+    if response.get('Reservations',False):
+        for reservation in response['Reservations']:
+            for instance in reservation['Instances']:
+                with concurrent.futures.ThreadPoolExecutor() as executor:
+                    future = executor.submit(fetchEC2Instance, instance, client, groups, instances, instance_source, reservation, vpc_data_all)
+                    return_value = future.result()
+                    print(profile_name + ": " + return_value)
+    else:
+        print(profile_name + ": \"" + region + "\" No instances found")
 
 def getEC2Instances(profile):
     groups = {}
     instances = {}
 
     if isinstance(profile,dict):
-    # if profile.get('aws_access_key_id', ""):
         instance_source = "aws." + profile['name']
         profile_name = profile['name']
         boto3.setup_default_session(aws_access_key_id=profile['aws_access_key_id'],aws_secret_access_key=profile['aws_secret_access_key'],region_name="eu-central-1")
@@ -231,7 +234,7 @@ def getEC2Instances(profile):
 
 
     with concurrent.futures.ThreadPoolExecutor() as executor:
-        future = [executor.submit(fetchEC2Region, region , profile_name, instances, groups, instance_source) for region in ec2_regions]
+        [executor.submit(fetchEC2Region, region , profile_name, instances, groups, instance_source) for region in ec2_regions]
 
     for ip in instances:
         instance = instances[ip]
