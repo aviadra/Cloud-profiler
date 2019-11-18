@@ -80,6 +80,11 @@ def getDOInstances(profile):
     updateTerm(instances,groups,instance_source)
 
 
+def tagSplitter(flat_tags):
+    for tag in flat_tags.split(','):
+            if tag:
+                return tag
+
 def get_tag_value(tags, q_tag, sg=False):
     q_tag_value = ''
     for tag in tags:
@@ -190,18 +195,13 @@ def fetchEC2Instance(instance, client, groups, instances, instance_source, reser
     else:
         public_ip = ''
     
+    
     if instance_flat_tags:
-        for tag in instance_flat_tags.split(','):
-            if tag:
-                iterm_tags.append(tag)
+        iterm_tags.append(tagSplitter(instance_flat_tags))
     if instance_vpc_flat_tags:
-        for tag in instance_vpc_flat_tags.split(','):
-            if tag:
-                iterm_tags.append(tag)
+        iterm_tags.append(tagSplitter(instance_vpc_flat_tags))
     if instance_flat_sgs:
-        for tag in instance_flat_sgs.split(','):
-            if tag:
-                iterm_tags.append(tag)
+        iterm_tags.append(tagSplitter(instance_flat_sgs))
 
     iterm_tags.append(instance['VpcId'])
     iterm_tags.append(instance['InstanceId'])
