@@ -80,11 +80,13 @@ def getDOInstances(profile):
     updateTerm(instances,groups,instance_source)
 
 
-def get_tag_value(tags, q_tag):
+def get_tag_value(tags, q_tag, sg=False):
     q_tag_value = ''
     for tag in tags:
-        if q_tag == 'flat':
+        if q_tag == 'flat' and not sg:
             q_tag_value += tag['Key'] + ': ' + tag['Value'] + ","
+        elif q_tag == 'flat' and sg == "sg":
+            q_tag_value += tag['GroupName'] + ': ' + tag['GroupId'] + ","
         else:
             if tag['Key'] == q_tag:
                 q_tag_value = tag['Value']
@@ -109,23 +111,30 @@ def fetchEC2Instance(instance, client, groups, instances, instance_source, reser
     instance_dynamic_profile_parent_name = ''
     dynamic_profile_parent_name = ''
     bastion = ''
-    username = False
+    con_username = False
+    con_port = ''
+    instance_con_port = False
+    instance_con_username = ''
     instance_bastion = ''
     instance_use_ip_public = ''
     instance_use_bastion = ''
     instance_vpc_flat_tags = ''
     instance_flat_tags = ''
+    instance_flat_sgs = ''
     iterm_tags = []
 
     if 'Tags' in instance:
         name = get_tag_value(instance['Tags'], 'Name')
         instance_bastion = get_tag_value(instance['Tags'], 'iTerm_bastion')
+        instance_con_username = get_tag_value(instance['Tags'], 'iTerm_con_username')
         instance_use_ip_public = get_tag_value(instance['Tags'], 'iTerm_use_ip_public')
         instance_use_bastion = get_tag_value(instance['Tags'], 'iTerm_use_bastion')
         instance_dynamic_profile_parent_name = get_tag_value(instance['Tags'],
                                                              'iTerm_dynamic_profile_parent_name')
         instance_vpc_flat_tags = vpc_data(instance['VpcId'], "flat", vpc_data_all)
         instance_flat_tags = get_tag_value(instance['Tags'], 'flat')
+        instance_flat_tags = get_tag_value(instance['Tags'], 'flat')
+        instance_flat_sgs = get_tag_value(instance['NetworkInterfaces'][0]['Groups'],'flat',"sg")
     else:
         name = instance['InstanceId']
 
@@ -142,11 +151,26 @@ def fetchEC2Instance(instance, client, groups, instances, instance_source, reser
         groups[name] = 1
 
      
-    vpc_username = vpc_data(instance['VpcId'], "iTerm_username", vpc_data_all)
-    if vpc_username:
-        username = vpc_username
-    if script_config["Local"]['static_profiles'].get('instance_username', False):
-        username = instance_bastion
+    if instance_con_username:
+        con_username = instance_con_username
+    else:
+        if script_config["Local"].get('con_username', ''):
+            con_username = script_config["Local"].get('con_username')
+        
+        vpc_username = vpc_data(instance['VpcId'], "iTerm_con_username", vpc_data_all)
+        if vpc_username:
+            con_username = vpc_username
+    
+    if instance_con_port:
+        con_port = instance_con_port
+    else:
+        if script_config["Local"].get('con_port', ''):
+            con_port = script_config["Local"].get('con_port')
+        
+        vpc_port = vpc_data(instance['VpcId'], "iTerm_con_port", vpc_data_all)
+        if vpc_port:
+            con_port = vpc_port
+    
         
     vpc_bastion = vpc_data(instance['VpcId'], "iTerm_bastion", vpc_data_all)
     if vpc_bastion:
@@ -165,7 +189,7 @@ def fetchEC2Instance(instance, client, groups, instances, instance_source, reser
         iterm_tags.append(instance['PublicIpAddress'])
     else:
         public_ip = ''
-
+    
     if instance_flat_tags:
         for tag in instance_flat_tags.split(','):
             if tag:
@@ -174,8 +198,13 @@ def fetchEC2Instance(instance, client, groups, instances, instance_source, reser
         for tag in instance_vpc_flat_tags.split(','):
             if tag:
                 iterm_tags.append(tag)
+    if instance_flat_sgs:
+        for tag in instance_flat_sgs.split(','):
+            if tag:
+                iterm_tags.append(tag)
 
     iterm_tags.append(instance['VpcId'])
+    iterm_tags.append(instance['InstanceId'])
     iterm_tags.append(instance['Placement']['AvailabilityZone'])
     iterm_tags.append(instance['InstanceType'])
 
@@ -184,7 +213,7 @@ def fetchEC2Instance(instance, client, groups, instances, instance_source, reser
                      'instance_use_ip_public': instance_use_ip_public,
                      'instance_use_bastion': instance_use_bastion, 'ip_public': public_ip,
                      'dynamic_profile_parent_name': dynamic_profile_parent_name, 'iterm_tags': iterm_tags,
-                     'InstanceType': instance['InstanceType'], 'username': username}
+                     'InstanceType': instance['InstanceType'], 'con_username': con_username, 'con_port': con_port}
     return (ip + "\t" + instance['Placement']['AvailabilityZone'] + "\t" + instance_source + "." + name + "\t\t associated bastion: \"" + bastion + "\"")
 
 
@@ -276,6 +305,9 @@ def updateTerm(instances,groups,instance_source):
             connection_command="{} -J {}".format(connection_command,instances[instance]['bastion'])
 
         connection_command = "{} {}".format(connection_command, script_config["Local"]['ssh_base_string'])
+
+        if instances[instance]['con_username']:
+            connection_command = "{} -l {}".format(connection_command, instances[instance]['con_username'])
         
         badge = shortName + '\n' + instances[instance]['InstanceType'] + '\n' + ip_for_connection
         profile = {"Name":name,
