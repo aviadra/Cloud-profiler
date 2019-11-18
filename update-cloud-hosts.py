@@ -71,7 +71,6 @@ def getDOInstances(profile):
         if drop.tags:
             for tag in drop.tags:
                 if tag:
-                    # iterm_tags += tag + ','
                     iterm_tags.append(tag)
         
         iterm_tags += ip,drop.name,drop.size['slug']
@@ -110,6 +109,7 @@ def fetchEC2Instance(instance, client, groups, instances, instance_source, reser
     instance_dynamic_profile_parent_name = ''
     dynamic_profile_parent_name = ''
     bastion = ''
+    username = False
     instance_bastion = ''
     instance_use_ip_public = ''
     instance_use_bastion = ''
@@ -141,6 +141,13 @@ def fetchEC2Instance(instance, client, groups, instances, instance_source, reser
     else:
         groups[name] = 1
 
+     
+    vpc_username = vpc_data(instance['VpcId'], "iTerm_username", vpc_data_all)
+    if vpc_username:
+        username = vpc_username
+    if script_config["Local"]['static_profiles'].get('instance_username', False):
+        username = instance_bastion
+        
     vpc_bastion = vpc_data(instance['VpcId'], "iTerm_bastion", vpc_data_all)
     if vpc_bastion:
         bastion = vpc_bastion
@@ -177,7 +184,7 @@ def fetchEC2Instance(instance, client, groups, instances, instance_source, reser
                      'instance_use_ip_public': instance_use_ip_public,
                      'instance_use_bastion': instance_use_bastion, 'ip_public': public_ip,
                      'dynamic_profile_parent_name': dynamic_profile_parent_name, 'iterm_tags': iterm_tags,
-                     'InstanceType': instance['InstanceType']}
+                     'InstanceType': instance['InstanceType'], 'username': username}
     return (ip + "\t" + instance['Placement']['AvailabilityZone'] + "\t" + instance_source + "." + name + "\t\t associated bastion: \"" + bastion + "\"")
 
 
@@ -262,15 +269,15 @@ def updateTerm(instances,groups,instance_source):
             ip_for_connection = instances[instance]['ip_public']
         else:
             ip_for_connection = instance
-        
+                
+        connection_command = "ssh {}".format(ip_for_connection)
 
         if (instances[instance].get('bastion','') and instances[instance].get('instance_use_ip_public', 'no') != "yes") or instances[instance].get('instance_use_bastion', 'no') == "yes":
-            connection_command="ssh "  + ip_for_connection + " -J " + instances[instance]['bastion'] + " -oStrictHostKeyChecking=no -oUpdateHostKeys=yes -oServerAliveInterval=30 -oAddKeysToAgent=no"
-        else:
-            connection_command="ssh "  + ip_for_connection + " -oStrictHostKeyChecking=no -oUpdateHostKeys=yes -oServerAliveInterval=30 -oAddKeysToAgent=no"
+            connection_command="{} -J {}".format(connection_command,instances[instance]['bastion'])
+
+        connection_command = "{} {}".format(connection_command, script_config["Local"]['ssh_base_string'])
         
         badge = shortName + '\n' + instances[instance]['InstanceType'] + '\n' + ip_for_connection
-        
         profile = {"Name":name,
                     "Guid":name,
                     "Badge Text":badge,
@@ -376,10 +383,10 @@ if __name__ == '__main__':
     update_statics()
 
     # DO profiles iterator
-    if script_config['DO'].get('profiles', False):
-        for profile in script_config['DO']['profiles']:
-            print("Working on " + profile['name'])
-            getDOInstances(profile)
+    # if script_config['DO'].get('profiles', False):
+    #     for profile in script_config['DO']['profiles']:
+    #         print("Working on " + profile['name'])
+    #         getDOInstances(profile)
 
     # AWS profiles iterator
     if script_config['AWS'].get('profiles', False):
