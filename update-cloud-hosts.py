@@ -42,15 +42,14 @@ def getDOInstances(profile):
     for drop in my_droplets:
         dynamic_profile_parent_name=''
         bastion=''
-        vpc_bastion=''
-        instance_bastion=''
-        instance_use_ip_public=''
-        instance_use_bastion=''
         iterm_tags = []
         bastion=get_tag_value(drop.tags, 'iTerm_bastion')
         drop_use_ip_public=get_tag_value(drop.tags, 'iTerm_use_ip_public')
         instance_use_bastion=get_tag_value(drop.tags, 'iTerm_use_bastion')
         or_host_name=get_tag_value(drop.tags, 'iTerm_host_name')
+        # TODO: settingResolver, to support DO
+        con_username = get_tag_value(drop.tags, 'iTerm_con_username')
+        con_port = get_tag_value(drop.tags, 'iTerm_con_port')
 
         if or_host_name:
             drop_name = or_host_name
@@ -74,10 +73,21 @@ def getDOInstances(profile):
                     iterm_tags.append(tag)
         
         iterm_tags += ip,drop.name,drop.size['slug']
-        instances[ip] = {'name':instance_source + '.' + drop_name, 'group': drop_name,'index':groups[drop.name], 'dynamic_profile_parent_name': dynamic_profile_parent_name, 'iterm_tags': iterm_tags, 'InstanceType': drop.size['slug']}
+        instances[ip] = {'name':instance_source + '.' + drop_name, 'group': drop_name,'index':groups[drop.name], 'dynamic_profile_parent_name': dynamic_profile_parent_name, 'iterm_tags': iterm_tags, 'InstanceType': drop.size['slug'], 'con_username': con_username, 'con_port': con_port, 'id': drop.id}
         print(profile['name'] + ": " + ip + "\t\t" + instance_source + '.' + drop_name + "\t\t associated bastion: \"" + bastion + "\"")
     
     updateTerm(instances,groups,instance_source)
+
+def settingResolver(setting,instance,vpc_data_all):
+    setting_value = ''
+    setting_value = get_tag_value(instance.get('Tags', ''), setting)
+    if not setting_value:
+        setting_value = vpc_data(instance['VpcId'], setting, vpc_data_all)
+        if not setting_value:
+            setting_value = profile.get(setting, '')
+            if not setting:
+                setting_value = script_config["Local"].get(setting, '')
+    return setting_value
 
 
 def tagSplitter(flat_tags):
@@ -113,39 +123,28 @@ def vpc_data(vpcid, q_tag, response_vpc):
 
 
 def fetchEC2Instance(instance, client, groups, instances, instance_source, reservation, vpc_data_all):
-    instance_dynamic_profile_parent_name = ''
-    dynamic_profile_parent_name = ''
-    bastion = ''
-    con_username = False
     con_port = ''
-    instance_con_port = False
-    instance_con_username = ''
-    instance_bastion = ''
     instance_use_ip_public = ''
-    instance_use_bastion = ''
     instance_vpc_flat_tags = ''
     instance_flat_tags = ''
-    instance_flat_sgs = ''
     iterm_tags = []
 
+    instance_use_bastion = settingResolver('iTerm_con_username', instance, vpc_data_all)
+    con_username = settingResolver('iTerm_con_username', instance, vpc_data_all)
+    con_port = settingResolver('iTerm_con_port', instance, vpc_data_all)
+    bastion = settingResolver('iTerm_bastion', instance, vpc_data_all)
+    dynamic_profile_parent_name = settingResolver('iTerm_dynamic_profile_parent_name', instance, vpc_data_all)
+    instance_flat_sgs = get_tag_value(instance['NetworkInterfaces'][0]['Groups'],'flat',"sg")
+    instance_vpc_flat_tags = vpc_data(instance['VpcId'], "flat", vpc_data_all)
+    
     if 'Tags' in instance:
         name = get_tag_value(instance['Tags'], 'Name')
-        instance_bastion = get_tag_value(instance['Tags'], 'iTerm_bastion')
-        instance_con_username = get_tag_value(instance['Tags'], 'iTerm_con_username')
-        instance_use_ip_public = get_tag_value(instance['Tags'], 'iTerm_use_ip_public')
-        instance_use_bastion = get_tag_value(instance['Tags'], 'iTerm_use_bastion')
-        instance_dynamic_profile_parent_name = get_tag_value(instance['Tags'],
-                                                             'iTerm_dynamic_profile_parent_name')
-        instance_vpc_flat_tags = vpc_data(instance['VpcId'], "flat", vpc_data_all)
         instance_flat_tags = get_tag_value(instance['Tags'], 'flat')
-        instance_flat_tags = get_tag_value(instance['Tags'], 'flat')
-        instance_flat_sgs = get_tag_value(instance['NetworkInterfaces'][0]['Groups'],'flat',"sg")
     else:
         name = instance['InstanceId']
 
-    vpc_use_ip_public = vpc_data(instance['VpcId'], "iTerm_use_ip_public", vpc_data_all)
-    if (vpc_use_ip_public == True or script_config['AWS'][
-        'use_ip_public'] == True) and 'PublicIpAddress' in instance:
+    use_ip_public = settingResolver('iTerm_use_ip_public', instance, vpc_data_all)
+    if use_ip_public == 'yes' and 'PublicIpAddress' in instance:
         ip = instance['PublicIpAddress']
     else:
         ip = instance['NetworkInterfaces'][0]['PrivateIpAddress']
@@ -154,40 +153,6 @@ def fetchEC2Instance(instance, client, groups, instances, instance_source, reser
         groups[name] = groups[name] + 1
     else:
         groups[name] = 1
-
-     
-    if instance_con_username:
-        con_username = instance_con_username
-    else:
-        if script_config["Local"].get('con_username', ''):
-            con_username = script_config["Local"].get('con_username')
-        
-        vpc_username = vpc_data(instance['VpcId'], "iTerm_con_username", vpc_data_all)
-        if vpc_username:
-            con_username = vpc_username
-    
-    if instance_con_port:
-        con_port = instance_con_port
-    else:
-        if script_config["Local"].get('con_port', ''):
-            con_port = script_config["Local"].get('con_port')
-        
-        vpc_port = vpc_data(instance['VpcId'], "iTerm_con_port", vpc_data_all)
-        if vpc_port:
-            con_port = vpc_port
-    
-        
-    vpc_bastion = vpc_data(instance['VpcId'], "iTerm_bastion", vpc_data_all)
-    if vpc_bastion:
-        bastion = vpc_bastion
-    if instance_bastion:
-        bastion = instance_bastion
-
-    vpc_dynamic_profile_parent_name = vpc_data(instance['VpcId'], "iTerm_dynamic_profile_parent_name", vpc_data_all)
-    if vpc_dynamic_profile_parent_name:
-        dynamic_profile_parent_name = vpc_dynamic_profile_parent_name
-    if instance_dynamic_profile_parent_name:
-        dynamic_profile_parent_name = instance_dynamic_profile_parent_name
 
     if 'PublicIpAddress' in instance:
         public_ip = instance['PublicIpAddress']
@@ -213,7 +178,7 @@ def fetchEC2Instance(instance, client, groups, instances, instance_source, reser
                      'instance_use_ip_public': instance_use_ip_public,
                      'instance_use_bastion': instance_use_bastion, 'ip_public': public_ip,
                      'dynamic_profile_parent_name': dynamic_profile_parent_name, 'iterm_tags': iterm_tags,
-                     'InstanceType': instance['InstanceType'], 'con_username': con_username, 'con_port': con_port}
+                     'InstanceType': instance['InstanceType'], 'con_username': con_username, 'con_port': con_port, 'id': instance['InstanceId']}
     return (ip + "\t" + instance['Placement']['AvailabilityZone'] + "\t" + instance_source + "." + name + "\t\t associated bastion: \"" + bastion + "\"")
 
 
@@ -292,7 +257,6 @@ def updateTerm(instances,groups,instance_source):
         if groups.get(group, 0) > 1:
             tags + groups
 
-        name = instances[instance]['name']
 
         if instances[instance].get('instance_use_ip_public', 'no') == "yes":
             ip_for_connection = instances[instance]['ip_public']
@@ -309,10 +273,9 @@ def updateTerm(instances,groups,instance_source):
         if instances[instance]['con_username']:
             connection_command = "{} -l {}".format(connection_command, instances[instance]['con_username'])
         
-        badge = shortName + '\n' + instances[instance]['InstanceType'] + '\n' + ip_for_connection
-        profile = {"Name":name,
-                    "Guid":name,
-                    "Badge Text":badge,
+        profile = {"Name":instances[instance]['name'],
+                    "Guid":instances[instance]['id'],
+                    "Badge Text":shortName + '\n' + instances[instance]['InstanceType'] + '\n' + ip_for_connection,
                     "Tags":tags,
                     "Dynamic Profile Parent Name": instances[instance].get('dynamic_profile_parent_name', ''),
                     "Custom Command" : "Yes",
@@ -415,10 +378,10 @@ if __name__ == '__main__':
     update_statics()
 
     # DO profiles iterator
-    # if script_config['DO'].get('profiles', False):
-    #     for profile in script_config['DO']['profiles']:
-    #         print("Working on " + profile['name'])
-    #         getDOInstances(profile)
+    if script_config['DO'].get('profiles', False):
+        for profile in script_config['DO']['profiles']:
+            print("Working on " + profile['name'])
+            getDOInstances(profile)
 
     # AWS profiles iterator
     if script_config['AWS'].get('profiles', False):
