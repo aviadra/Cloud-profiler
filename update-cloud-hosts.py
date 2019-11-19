@@ -25,31 +25,21 @@ def getDOInstances(profile):
     manager = digitalocean.Manager(token=profile['token'])
     my_droplets = manager.get_all_droplets()
     
-    def get_tag_value(tags,q_tag):
-            q_tag_value='' 
-            tag_key=''
-            tag_value=''
-            for tag in tags:
-                if ':' in tag and 'iTerm' in tag:
-                    tag_key,tag_value = tag.split(':')
-                    if tag_key == q_tag:
-                        q_tag_value = tag_value.replace('_', ' ')
-                        q_tag_value = tag_value.replace('-', '.')
-                        break
-            return q_tag_value
+    
                        
 
     for drop in my_droplets:
         dynamic_profile_parent_name=''
         bastion=''
         iterm_tags = []
-        bastion=get_tag_value(drop.tags, 'iTerm_bastion')
-        drop_use_ip_public=get_tag_value(drop.tags, 'iTerm_use_ip_public')
-        instance_use_bastion=get_tag_value(drop.tags, 'iTerm_use_bastion')
-        or_host_name=get_tag_value(drop.tags, 'iTerm_host_name')
-        # TODO: settingResolver, to support DO
-        con_username = get_tag_value(drop.tags, 'iTerm_con_username')
-        con_port = get_tag_value(drop.tags, 'iTerm_con_port')
+        instance_use_bastion = settingResolver('iTerm_use_bastion',drop, {}, "DO")
+        or_host_name=settingResolver('iTerm_host_name',drop,{},"DO")
+        drop_use_ip_public = settingResolver('iTerm_use_ip_public',drop,{},"DO")
+        drop_use_ip_public = settingResolver('iTerm_bastion',drop,{},"DO")
+        con_username = settingResolver('iTerm_con_username',drop,{},"DO")
+        con_port = settingResolver('iTerm_con_port',drop,{},"DO")
+        ssh_key = settingResolver('iTerm_ssh_key',drop,{}, "DO")
+        use_shared_key = settingResolver('iTerm_use_shared_key',drop,{},"DO")
 
         if or_host_name:
             drop_name = or_host_name
@@ -66,23 +56,29 @@ def getDOInstances(profile):
         else:
             groups[drop.name] = 1
 
-        dynamic_profile_parent_name = get_tag_value(drop.tags, 'iTerm_dynamic_profile_parent_name')
+        dynamic_profile_parent_name = settingResolver('iTerm_dynamic_profile_parent_name',drop,{},"DO")
         if drop.tags:
             for tag in drop.tags:
                 if tag:
                     iterm_tags.append(tag)
         
         iterm_tags += ip,drop.name,drop.size['slug']
-        instances[ip] = {'name':instance_source + '.' + drop_name, 'group': drop_name,'index':groups[drop.name], 'dynamic_profile_parent_name': dynamic_profile_parent_name, 'iterm_tags': iterm_tags, 'InstanceType': drop.size['slug'], 'con_username': con_username, 'con_port': con_port, 'id': drop.id}
+        instances[ip] = {'name':instance_source + '.' + drop_name, 'group': drop_name,'index':groups[drop.name], 'dynamic_profile_parent_name': dynamic_profile_parent_name, 'iterm_tags': iterm_tags, 'InstanceType': drop.size['slug'], 'con_username': con_username, 'con_port': con_port, 'id': drop.id, 'ssh_key': ssh_key, 'use_shared_key': use_shared_key, 'instance_use_bastion': instance_use_bastion}
         print(profile['name'] + ": " + ip + "\t\t" + instance_source + '.' + drop_name + "\t\t associated bastion: \"" + bastion + "\"")
     
     updateTerm(instances,groups,instance_source)
 
 def settingResolver(setting,instance,vpc_data_all,caller_type='AWS'):
     setting_value = ''
-    setting_value = get_tag_value(instance.get('Tags', ''), setting)
+    if caller_type == 'AWS':
+        setting_value = get_tag_value(instance.get('Tags', ''), setting)
+    if caller_type == 'DO':
+        setting_value = get_DO_tag_value(instance.tags, setting)
     if not setting_value:
-        setting_value = vpc_data(instance['VpcId'], setting, vpc_data_all)
+        if caller_type == 'AWS':
+            setting_value = vpc_data(instance['VpcId'], setting, vpc_data_all)
+        if caller_type == 'DO':
+            pass
         if not setting_value:
             setting = setting.rpartition('iTerm_')[2] # Strip iTerm prefix because settings are now read from conf files
             setting_value = profile.get(setting, '')
@@ -98,6 +94,20 @@ def tagSplitter(flat_tags):
             if tag:
                 return tag
 
+
+def get_DO_tag_value(tags,q_tag):
+            q_tag_value='' 
+            tag_key=''
+            tag_value=''
+            for tag in tags:
+                if ':' in tag and 'iTerm' in tag:
+                    tag_key,tag_value = tag.split(':')
+                    if tag_key == q_tag:
+                        q_tag_value = tag_value.replace('_', ' ')
+                        q_tag_value = tag_value.replace('-', '.')
+                        break
+            return q_tag_value
+            
 def get_tag_value(tags, q_tag, sg=False):
     q_tag_value = ''
     for tag in tags:
@@ -132,7 +142,9 @@ def fetchEC2Instance(instance, client, groups, instances, instance_source, reser
     instance_flat_tags = ''
     iterm_tags = []
 
-    instance_use_bastion = settingResolver('iTerm_con_username', instance, vpc_data_all)
+    instance_use_bastion = settingResolver('iTerm_use_bastion', instance, vpc_data_all)
+    ssh_key = settingResolver('iTerm_ssh_key', instance, vpc_data_all)
+    use_shared_key = settingResolver('iTerm_use_shared_key', instance, vpc_data_all)
     con_username = settingResolver('iTerm_con_username', instance, vpc_data_all)
     con_port = settingResolver('iTerm_con_port', instance, vpc_data_all)
     bastion = settingResolver('iTerm_bastion', instance, vpc_data_all)
@@ -140,6 +152,9 @@ def fetchEC2Instance(instance, client, groups, instances, instance_source, reser
     instance_flat_sgs = get_tag_value(instance['NetworkInterfaces'][0]['Groups'],'flat',"sg")
     instance_vpc_flat_tags = vpc_data(instance['VpcId'], "flat", vpc_data_all)
     
+    if not ssh_key:
+        ssh_key = instance.get('KeyName', '')
+
     if 'Tags' in instance:
         name = get_tag_value(instance['Tags'], 'Name')
         instance_flat_tags = get_tag_value(instance['Tags'], 'flat')
@@ -183,7 +198,7 @@ def fetchEC2Instance(instance, client, groups, instances, instance_source, reser
                      'instance_use_ip_public': instance_use_ip_public,
                      'instance_use_bastion': instance_use_bastion, 'ip_public': public_ip,
                      'dynamic_profile_parent_name': dynamic_profile_parent_name, 'iterm_tags': iterm_tags,
-                     'InstanceType': instance['InstanceType'], 'con_username': con_username, 'con_port': con_port, 'id': instance['InstanceId']}
+                     'InstanceType': instance['InstanceType'], 'con_username': con_username, 'con_port': con_port, 'id': instance['InstanceId'], 'ssh_key': ssh_key, 'use_shared_key': use_shared_key}
     return (ip + "\t" + instance['Placement']['AvailabilityZone'] + "\t" + instance_source + "." + name + "\t\t associated bastion: \"" + bastion + "\"")
 
 
@@ -280,10 +295,12 @@ def updateTerm(instances,groups,instance_source):
         
         if instances[instance]['con_port']:
             connection_command = "{} -p {}".format(connection_command, instances[instance]['con_port'])
-        
+
+        if instances[instance]['ssh_key'] and instances[instance]['use_shared_key']:
+            connection_command = "{} -i {}/{}".format(connection_command,script_config["Local"].get('ssh_keys_path', '.'), instances[instance]['ssh_key'])
 
         profile = {"Name":instances[instance]['name'],
-                    "Guid":instances[instance]['id'],
+                    "Guid":str(instances[instance]['id']),
                     "Badge Text":shortName + '\n' + instances[instance]['InstanceType'] + '\n' + ip_for_connection,
                     "Tags":tags,
                     "Dynamic Profile Parent Name": instances[instance].get('dynamic_profile_parent_name', ''),

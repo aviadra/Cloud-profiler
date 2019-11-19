@@ -3,6 +3,8 @@ Local:
   ssh_base_string: "-oStrictHostKeyChecking=no -oUpdateHostKeys=yes -oServerAliveInterval=30 -oAddKeysToAgent=no"
   con_username: ''
   bastion: ''
+  ssh_keys_path: "~/.ssh"
+  use_shared_key: False
   
 AWS:
   aws_credentials_file: "~/.aws/credentials"
