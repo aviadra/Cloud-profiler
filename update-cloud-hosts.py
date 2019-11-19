@@ -175,6 +175,8 @@ def fetchEC2Instance(instance, client, groups, instances, instance_source, reser
     iterm_tags.append(instance['InstanceId'])
     iterm_tags.append(instance['Placement']['AvailabilityZone'])
     iterm_tags.append(instance['InstanceType'])
+    if instance['PublicDnsName']:
+        iterm_tags.append(instance['PublicDnsName'])
 
     instances[ip] = {'name': instance_source + '.' + name, 'index': groups[name], 'group': name,
                      'bastion': bastion, 'vpc': reservation['Instances'][0]['VpcId'],
