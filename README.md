@@ -2,12 +2,11 @@
 
 The purpose of this script, is to connect to cloud providers and generate iTerm profiles for quick SSHing.
 Currently, AWS and Digital Ocean are supported.
-This project, is a fork of [gmartinerro](https://gist.github.com/gmartinerro/40831c8874ebb32bc17711af95e1416b), which gave me a good starting point. With that said, this version doesn't change the hosts file, so that it can be ran without sudo.
+This project, is a fork of [gmartinerro](https://gist.github.com/gmartinerro/40831c8874ebb32bc17711af95e1416b), which gave me a good starting point. With that said, this version doesn't change the hosts file, so that it can be run without sudo.
 
 This project has some assumptions:
 - The script runs on MacOS (tested only on Catalina and Mojave).
 - You have [iTerm](https://iterm2.com/) installed.
-- You're SSHing to the machines with your own user + key.
 - Your system has python3 installed.
 
 # How to use
@@ -51,7 +50,7 @@ These are settings for your AWS account/s.
 `profiles` - This is an array of hashes that represents AWS profiles. The structure is: a hyphen to separate the hashes in the array. Each hash has the following keys: "name", "aws_access_key_id and "aws_secret_access_key". See the example in the "repo settings file". 
 Note: The example is deliberately commented out, so that if you don't configure it the script will not encounter errors).
 
-## DO
+## DO (Digital Ocean)
 `profiles` - This is an array of hashes that represents DO profiles. The structure is: a hyphen to separate the hashes in the array. Each hash has the following keys: "name" and "token". See the example in the "repo settings file".
 Note: The example is deliberately commented out, so that if you don't configure it the script will not encounter errors).
 
@@ -60,14 +59,14 @@ The script can change the end result of the connections/profiles it creates, due
 These range from wether to use the public IP for the connection, to should a bastion be used or what the address of it should be.
 
 ## Precedence
-The script tries to "resolve" the directives from several data sources. The further away the setting originates from, the less precedence it has.
+The script tries to "resolve" the directives from several data sources. The further away from the instance the setting originates from, the less precedence it has.
 The precedence of directives, is:
 1. On the instance it self as Tag
 2. On the instance's VPC as Tag
 3. Within the configuration files:
-- At the "profile" level.
-- At the Cloud provider level.
-- On the "Local" level.
+  3.1 At the "profile" level.
+  3.2 At the Cloud provider level.
+  3.3 On the "Local" level.
 
 ### Tags
 When setting the directives with tags, they have to be prefixed with "iTerm_".
@@ -85,7 +84,7 @@ Possible directives are:
 
 `iTerm_con_port` - The port to add to the connection, to override the system default one.
 
-`iTerm_use_shared_key` - Toggle the use of the shared key that was used to create the instance. While this is not recommended, this is where you usually start. The default to to use the shared key.
+`iTerm_use_shared_key` - Toggle the use of the shared key that was used to create the instance. While this is not recommended, this is where you usually start. The default is to not use the shared key.
 
 `iTerm_ssh_key` - The name of the key to use. if this is not defined and the "use_shared_key" is set, the key name on the instance is used.
 
