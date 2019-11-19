@@ -1,8 +1,15 @@
 Local:
   static_profiles: "./iTerm2-static-profiles"
-
+  ssh_base_string: "-oStrictHostKeyChecking=no -oUpdateHostKeys=yes -oServerAliveInterval=30 -oAddKeysToAgent=no"
+  con_username: ''
+  bastion: ''
+  ssh_keys_path: "~/.ssh"
+  use_shared_key: False
+  
 AWS:
   aws_credentials_file: "~/.aws/credentials"
+  con_username: ''
+  con_port: 22
   use_ip_public: False
   skip_stopped: True
   exclude_accounts: []
@@ -14,6 +21,7 @@ AWS:
   #     name: "name_of_profile"
   #     aws_access_key_id: "your_id"
   #     aws_secret_access_key: "your_key"
+  #     con_username: ''
 
 DO:
   profiles:
