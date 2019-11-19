@@ -84,8 +84,9 @@ def settingResolver(setting,instance,vpc_data_all):
     if not setting_value:
         setting_value = vpc_data(instance['VpcId'], setting, vpc_data_all)
         if not setting_value:
+            setting = setting.rpartition('iTerm_')[2]
             setting_value = profile.get(setting, '')
-            if not setting:
+            if not setting_value:
                 setting_value = script_config["Local"].get(setting, '')
     return setting_value
 
@@ -273,6 +274,10 @@ def updateTerm(instances,groups,instance_source):
         if instances[instance]['con_username']:
             connection_command = "{} -l {}".format(connection_command, instances[instance]['con_username'])
         
+        if instances[instance]['con_port']:
+            connection_command = "{} -p {}".format(connection_command, instances[instance]['con_port'])
+        
+
         profile = {"Name":instances[instance]['name'],
                     "Guid":instances[instance]['id'],
                     "Badge Text":shortName + '\n' + instances[instance]['InstanceType'] + '\n' + ip_for_connection,
@@ -377,11 +382,6 @@ if __name__ == '__main__':
     # Static profiles iterator
     update_statics()
 
-    # DO profiles iterator
-    if script_config['DO'].get('profiles', False):
-        for profile in script_config['DO']['profiles']:
-            print("Working on " + profile['name'])
-            getDOInstances(profile)
 
     # AWS profiles iterator
     if script_config['AWS'].get('profiles', False):
@@ -397,4 +397,11 @@ if __name__ == '__main__':
                 if i not in script_config['AWS']['exclude_accounts']:
                     print('Working on AWS profile from credentials file: ' + i) 
                     getEC2Instances(i)
+    
+    # DO profiles iterator
+    if script_config['DO'].get('profiles', False):
+        for profile in script_config['DO']['profiles']:
+            print("Working on " + profile['name'])
+            getDOInstances(profile)
+    
     print("\nWe wish you calm clouds and a serene path...\n")
