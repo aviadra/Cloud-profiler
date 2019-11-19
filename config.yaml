@@ -24,6 +24,7 @@ AWS:
   #     con_username: ''
 
 DO:
+  skip_stopped: True
   profiles:
   #   -
   #     name: "name_of_profile"
