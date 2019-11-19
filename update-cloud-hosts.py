@@ -25,9 +25,6 @@ def getDOInstances(profile):
     manager = digitalocean.Manager(token=profile['token'])
     my_droplets = manager.get_all_droplets()
     
-    
-                       
-
     for drop in my_droplets:
         dynamic_profile_parent_name=''
         bastion=''
