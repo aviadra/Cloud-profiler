@@ -23,7 +23,7 @@ This project has some assumptions:
 - You should see the dynamic profiles populated in iTerm (cmd + O)
 
 # Configuration files (Optional)
-There is a YAML configuration file within the repo that gives the default values for the script behaver.
+There is a YAML configuration file within the repo that gives the default values for the script behavior.
 On the first run of the script, a personal configuration file is create in `~/.iTerm-cloud-profile-generator/config.yaml`. So you don't have to fork the repo in order to have your own settings. Settings in the personal file will take precedence over the default ones from the repo file.
 Possible options within the configuration files are noted below.
 
@@ -61,17 +61,19 @@ These range from wether to use the public IP for the connection, to should a bas
 ## Precedence
 The script tries to "resolve" the directives from several data sources. The further away from the instance the setting originates from, the less precedence it has.
 The precedence of directives, is:
-1. On the instance it self as Tag
-2. On the instance's VPC as Tag
-3. Within the configuration files:
-  3.1 At the "profile" level.
-  3.2 At the Cloud provider level.
-  3.3 On the "Local" level.
+1. On the instance it self as Tags.
+2. On the instance's VPC as Tags.
+3. At the "profile" level in config files.
+4. At the Cloud provider level (e.g AWS, DO), in the config files.
+5. On the "Local" level in the configuration files.
+
+Note: The further away from the machine a setting is set, it’s scope will be more far reaching.. For example, setting the "con_username" setting at the "Local" level in the configuration file, while it has the lowest precedence and will be overwritten by any other config level or tag, it will essentially be set for all machines for all providers, unless noted otherwise at a higher precedence level (but for only that specific subset of machines....)
 
 ### Tags
 When setting the directives with tags, they have to be prefixed with "iTerm_".
 
 Possible directives are:
+
 `iTerm_dynamic_profile_parent_name` - Sets the profile to inherit colors and other settings from.
 
 `iTerm_bastion` - The address of the Bastion to be used to reach this VM.
