@@ -78,16 +78,18 @@ def getDOInstances(profile):
     
     updateTerm(instances,groups,instance_source)
 
-def settingResolver(setting,instance,vpc_data_all):
+def settingResolver(setting,instance,vpc_data_all,caller_type='AWS'):
     setting_value = ''
     setting_value = get_tag_value(instance.get('Tags', ''), setting)
     if not setting_value:
         setting_value = vpc_data(instance['VpcId'], setting, vpc_data_all)
         if not setting_value:
-            setting = setting.rpartition('iTerm_')[2]
+            setting = setting.rpartition('iTerm_')[2] # Strip iTerm prefix because settings are now read from conf files
             setting_value = profile.get(setting, '')
             if not setting_value:
-                setting_value = script_config["Local"].get(setting, '')
+                setting_value = script_config[caller_type].get(setting, '')
+                if not setting_value:
+                    setting_value = script_config["Local"].get(setting, '')
     return setting_value
 
 
