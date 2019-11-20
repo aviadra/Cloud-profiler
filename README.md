@@ -28,16 +28,18 @@ On the first run of the script, a personal configuration file is create in `~/.i
 Possible options within the configuration files are noted below.
 
 ## Local options
-These are settings that are local to your Mac or you want to set globally for all clouds. You can set here most of the sames directives as in the "tags" section, except the below ones (they don't make sense anywhere else):
+These are settings that are local to your Mac or you want to set globally for all clouds. You can set here most of the same directives as in the "tags" section, except the below ones (they don't make sense anywhere else):
 
 `static_profiles` - Set the location of the "static profiles" on your computer. The default, is to point to where the repo is.
 
-`ssh_keys_path` - Set the location to get the "shared keys" from.
+`ssh_keys_path` - Set the location to get the "shared keys" from. The default is "~/.ssh"
 
 ## AWS options
 These are settings for your AWS account/s. 
 
-`aws_credentials_file` - The script knows how to yank profiles from a standard awscli configuration. This directive sets the location to get the credentials which holds the keys. The default is "~/.aws/credentials"
+`use_awscli_profiles` - The script knows how to yank profiles from a standard awscli configuration. This directive toggeles this behavior. The default behavior is to not use awscli profiles, with the value of "False".
+
+`aws_credentials_file` - This directive sets the location of the "credentials" file, when using the awscli configurations. The "credentials" file is where the profile names and credentials are derived from for the connections. The default is "~/.aws/credentials"
 
 `use_ip_public` - Toggles if the IPs for the connection should be the internal ones (with Bastion) or external ones. The default is to use internal ones with the value of "False".
 
@@ -60,14 +62,14 @@ These range from wether to use the public IP for the connection, to should a bas
 
 ## Precedence
 The script tries to "resolve" the directives from several data sources. The further away from the instance the setting originates from, the less precedence it has.
+With that said, the further away from the machine a setting is set, it’s scope will be more far reaching. For example, setting the "con_username" setting at the "Local" level in the configuration file, while it has the lowest precedence and will be overwritten by any other config level or tag, it will essentially be set for all machines for all providers, unless noted otherwise at a higher precedence level.
+
 The precedence of directives, is:
-1. On the instance it self as Tags.
+1. On the instance itself as Tags.
 2. On the instance's VPC as Tags.
 3. At the "profile" level in config files.
 4. At the Cloud provider level (e.g AWS, DO), in the config files.
 5. On the "Local" level in the configuration files.
-
-Note: The further away from the machine a setting is set, it’s scope will be more far reaching.. For example, setting the "con_username" setting at the "Local" level in the configuration file, while it has the lowest precedence and will be overwritten by any other config level or tag, it will essentially be set for all machines for all providers, unless noted otherwise at a higher precedence level (but for only that specific subset of machines....)
 
 ### Tags
 When setting the directives with tags, they have to be prefixed with "iTerm_".
@@ -82,15 +84,13 @@ Possible directives are:
 
 `iTerm_use_ip_public` - Denote that this instance profile, should use the instance public IP for the connection. Setting this tag, also sets the profile to not use a bastion, unless the "iTerm_bastion_use" tag is set.
 
-`iTerm_con_username` - The username to add to the connection, to override the system default one.
+`iTerm_con_username` - The username to add to the connection.
 
-`iTerm_con_port` - The port to add to the connection, to override the system default one.
+`iTerm_con_port` - The port to add to the connection.
 
-`iTerm_use_shared_key` - Toggle the use of the shared key that was used to create the instance. While this is not recommended, this is where you usually start. The default is to not use the shared key.
+`iTerm_use_shared_key` - Toggle the use of the shared key that was used to create the instance. While this is not recommended, this is where you usually start. The default is to not use the shared key with the value of "False".
 
-`iTerm_ssh_key` - The name of the key to use. if this is not defined and the "use_shared_key" is set, the key name on the instance is used.
-
-
+`iTerm_ssh_key` - The name of the key to use. If this is not defined, and the "use_shared_key" is set, the key name on the instance is used.
 
 # Cloud side setup
 In general there really isn't anything you "need" to do on the clouds side. With that said, there are Things you can/should set on the cloud side to make the setup more specific.
