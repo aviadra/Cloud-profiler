@@ -26,7 +26,7 @@ def getDOInstances(profile):
     my_droplets = manager.get_all_droplets()
     
     for drop in my_droplets:
-        if settingResolver('iTerm_skip_stopped',drop, {}, "DO") == True:
+        if settingResolver('iTerm_skip_stopped',drop, {}, "DO") == True and drop.status != 'active':
             continue    
         dynamic_profile_parent_name=''
         bastion=''
