@@ -284,7 +284,7 @@ def updateTerm(instances,groups,instance_source):
                 
         connection_command = "ssh {}".format(ip_for_connection)
 
-        if (instances[instance].get('bastion','') and instances[instance].get('instance_use_ip_public', 'no') != "yes") or instances[instance].get('instance_use_bastion', 'no') == "yes":
+        if (instances[instance].get('bastion','') and instances[instance].get('instance_use_ip_public', 'no') != "no") and instances[instance].get('instance_use_bastion', 'no') != "no":
             connection_command="{} -J {}".format(connection_command,instances[instance]['bastion'])
 
         connection_command = "{} {}".format(connection_command, script_config["Local"]['ssh_base_string'])
