@@ -78,7 +78,7 @@ Possible directives are:
 
 `iTerm_dynamic_profile_parent_name` - Sets the profile to inherit colors and other settings from.
 
-`iTerm_bastion` - The address of the Bastion to be used to reach this VM.
+`iTerm_bastion` - The address of the Bastion to be used to reach this VM. When setting the value of this setting to "no", the bastion will not be used.
 
 `iTerm_bastion_use` - When using "iTerm_ip_public", the bastion is not used. unless this tag is set with the value of "yes".
 
