@@ -229,10 +229,13 @@ def fetchEC2Region(region, profile_name, instances, groups, instance_source):
     if response.get('Reservations',False):
         for reservation in response['Reservations']:
             for instance in reservation['Instances']:
-                with concurrent.futures.ThreadPoolExecutor() as executor:
-                    future = executor.submit(fetchEC2Instance, instance, client, groups, instances, instance_source, reservation, vpc_data_all)
-                    return_value = future.result()
-                    print(profile_name + ": " + return_value)
+                if script_config["Local"].get('parallel_exec', True):
+                    with concurrent.futures.ThreadPoolExecutor() as executor:
+                        future = executor.submit(fetchEC2Instance, instance, client, groups, instances, instance_source, reservation, vpc_data_all)
+                        return_value = future.result()
+                        print(profile_name + ": " + return_value)
+                else:
+                    print(fetchEC2Instance(instance, client, groups, instances, instance_source, reservation, vpc_data_all))
     else:
         print(profile_name + ": \"" + region + "\" No instances found")
 
@@ -252,9 +255,12 @@ def getEC2Instances(profile):
     client = boto3.client('ec2')
     ec2_regions = [region['RegionName'] for region in client.describe_regions()['Regions']]
 
-
-    with concurrent.futures.ThreadPoolExecutor() as executor:
-        [executor.submit(fetchEC2Region, region , profile_name, instances, groups, instance_source) for region in ec2_regions]
+    if script_config["Local"].get('parallel_exec', True):
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            [executor.submit(fetchEC2Region, region , profile_name, instances, groups, instance_source) for region in ec2_regions]
+    else:
+        for region in ec2_regions:
+            fetchEC2Region(region , profile_name, instances, groups, instance_source)
 
     for ip in instances:
         instance = instances[ip]
