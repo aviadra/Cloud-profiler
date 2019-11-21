@@ -10,6 +10,7 @@ AWS:
   aws_credentials_file: "~/.aws/credentials"
   con_username: ''
   con_port: 22
+  con_port_windows: 3389
   use_ip_public: False
   skip_stopped: True
   exclude_accounts: []
