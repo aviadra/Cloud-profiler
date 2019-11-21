@@ -319,15 +319,17 @@ def updateTerm(instances,groups,instance_source):
             
             if instances[instance].get('platform', '') == 'windows':
                 connection_command = "function random_unused_port {{ local port=$( echo $((2000 + ${{RANDOM}} % 65000))); (echo " \
-                               ">/dev/tcp/127.0.0.1/$port) &> /dev/null ; if [[ $? != 0 ]] ; then export " \
-                               "RANDOM_PORT=$port; else random_unused_port ;fi }};random_unused_port ;ssh -f -o " \
-                               "ExitOnForwardFailure=yes -L ${{RANDOM_PORT}}:{0}:{1} {2} sleep 10 ; open " \
-                               "'rdp://full%20address=s:127.0.0.1:'\"${{RANDOM_PORT}}\"'" \
-                               "&audiomode=i:2&disable%20themes=i:0&screen%20mode%20id=i:1&use%20multimon" \
-                               ":i:0&prompt%20for%20credentials%20on%20client:i:1&username:s:{3}" \
-                               "&disable%20full%20window%20drag=i:1&session%20bpp:i:15&compression:i:1" \
-                               "&bitmapcachepersistenable:i:1&connection%20type:i:1&desktopwidth=i:1024&desktopheight=i" \
-                               ":768'".format(ip_for_connection,
+                                ">/dev/tcp/127.0.0.1/$port) &> /dev/null ; if [[ $? != 0 ]] ; then export " \
+                                "RANDOM_PORT=$port; else random_unused_port ;fi }}; " \
+                                "if [[ -n ${{RANDOM_PORT+x}} && -n \"$( ps aux | grep \"ssh -f\" | grep -v grep | awk \'{{print $2}}\' )\" ]]; " \
+                                " then kill -9 $( ps aux | grep \"ssh -f\" | grep -v grep | awk \'{{print $2}}\' ) ; else random_unused_port; fi ;ssh -f -o " \
+                                "ExitOnForwardFailure=yes -L ${{RANDOM_PORT}}:{0}:{1} {2} sleep 10 ; open " \
+                                "'rdp://full%20address=s:127.0.0.1:'\"${{RANDOM_PORT}}\"'" \
+                                "&audiomode=i:2&disable%20themes=i:0&screen%20mode%20id=i:1&use%20multimon" \
+                                ":i:0&prompt%20for%20credentials%20on%20client:i:1&username:s:{3}" \
+                                "&disable%20full%20window%20drag=i:1&session%20bpp:i:15&compression:i:1" \
+                                "&bitmapcachepersistenable:i:1&connection%20type:i:1&desktopwidth=i:1024&desktopheight=i" \
+                                ":768'".format(ip_for_connection,
                                             instances[instance].get('con_port_windows', 3389),
                                             instances[instance]['bastion'],
                                             instances[instance].get('con_username', '')
