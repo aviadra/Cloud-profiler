@@ -177,7 +177,6 @@ def fetchEC2Instance(instance, client, groups, instances, instance_source, reser
     else:
         public_ip = ''
     
-    
     if instance_flat_tags:
         iterm_tags.append(tagSplitter(instance_flat_tags))
     if instance_vpc_flat_tags:
@@ -197,7 +196,11 @@ def fetchEC2Instance(instance, client, groups, instances, instance_source, reser
                      'instance_use_ip_public': instance_use_ip_public,
                      'instance_use_bastion': instance_use_bastion, 'ip_public': public_ip,
                      'dynamic_profile_parent_name': dynamic_profile_parent_name, 'iterm_tags': iterm_tags,
-                     'InstanceType': instance['InstanceType'], 'con_username': con_username, 'con_port': con_port, 'id': instance['InstanceId'], 'ssh_key': ssh_key, 'use_shared_key': use_shared_key}
+                     'InstanceType': instance['InstanceType'], 'con_username': con_username, 'con_port': con_port,
+                     'id': instance['InstanceId'],
+                     'ssh_key': ssh_key,
+                     'use_shared_key': use_shared_key,
+                     'platform': instance.get('Platform', '')}
     return (ip + "\t" + instance['Placement']['AvailabilityZone'] + "\t" + instance_source + "." + name + "\t\t associated bastion: \"" + bastion + "\"")
 
 
@@ -287,22 +290,49 @@ def updateTerm(instances,groups,instance_source):
             ip_for_connection = instances[instance]['ip_public']
         else:
             ip_for_connection = instance
-                
-        connection_command = "ssh {}".format(ip_for_connection)
+
+        if instances[instance].get('platform', '') == 'windows':
+            connection_command = "open 'rdp://full%20address=s:{0}:{1}" \
+                               "&audiomode=i:2&disable%20themes=i:0&screen%20mode%20id=i:1&use%20multimon" \
+                               ":i:0&prompt%20for%20credentials%20on%20client:i:1&username:s:{2}" \
+                               "&disable%20full%20window%20drag=i:1&session%20bpp:i:15&compression:i:1" \
+                               "&bitmapcachepersistenable:i:1&connection%20type:i:1&desktopwidth=i:1024&desktopheight=i" \
+                               ":768'".format(
+                    ip_for_connection,
+                    instances[instance].get('con_port_windows', 3389),
+                    instances[instance].get('con_username', ''))
+        else:
+            connection_command = "ssh {}".format(ip_for_connection)
 
         if (instances[instance].get('bastion','') and instances[instance].get('instance_use_ip_public', 'no') != "no") and instances[instance].get('instance_use_bastion', 'no') != "no":
-            connection_command="{} -J {}".format(connection_command,instances[instance]['bastion'])
+            if instances[instance].get('platform', '') == 'windows':
+                connection_command = "function random_unused_port {{ local port=$( echo $((2000 + ${{RANDOM}} % 65000))); (echo " \
+                               ">/dev/tcp/127.0.0.1/$port) &> /dev/null ; if [[ $? != 0 ]] ; then export " \
+                               "RANDOM_PORT=$port; else random_unused_port ;fi }};random_unused_port ;ssh -f -o " \
+                               "ExitOnForwardFailure=yes -L ${{RANDOM_PORT}}:{0}:{1} {2} sleep 10 ; open " \
+                               "'rdp://full%20address=s:127.0.0.1:'\"${{RANDOM_PORT}}\"'" \
+                               "&audiomode=i:2&disable%20themes=i:0&screen%20mode%20id=i:1&use%20multimon" \
+                               ":i:0&prompt%20for%20credentials%20on%20client:i:1&username:s:{3}" \
+                               "&disable%20full%20window%20drag=i:1&session%20bpp:i:15&compression:i:1" \
+                               "&bitmapcachepersistenable:i:1&connection%20type:i:1&desktopwidth=i:1024&desktopheight=i" \
+                               ":768'".format(ip_for_connection,
+                                            instances[instance].get('con_port_windows', 3389),
+                                            instances[instance]['bastion'],
+                                            instances[instance].get('con_username', '')
+                                            )
+            else:
+                connection_command = "{} -J {}".format(connection_command,instances[instance]['bastion'])
 
-        connection_command = "{} {}".format(connection_command, script_config["Local"]['ssh_base_string'])
+                connection_command = "{} {}".format(connection_command, script_config["Local"]['ssh_base_string'])
 
-        if instances[instance]['con_username']:
-            connection_command = "{} -l {}".format(connection_command, instances[instance]['con_username'])
-        
-        if instances[instance]['con_port']:
-            connection_command = "{} -p {}".format(connection_command, instances[instance]['con_port'])
+                if instances[instance]['con_username']:
+                    connection_command = "{} -l {}".format(connection_command, instances[instance]['con_username'])
+            
+                if instances[instance]['con_port']:
+                    connection_command = "{} -p {}".format(connection_command, instances[instance]['con_port'])
 
-        if instances[instance]['ssh_key'] and instances[instance]['use_shared_key']:
-            connection_command = "{} -i {}/{}".format(connection_command,script_config["Local"].get('ssh_keys_path', '.'), instances[instance]['ssh_key'])
+                if instances[instance]['ssh_key'] and instances[instance]['use_shared_key']:
+                    connection_command = "{} -i {}/{}".format(connection_command,script_config["Local"].get('ssh_keys_path', '.'), instances[instance]['ssh_key'])
 
         profile = {"Name":instances[instance]['name'],
                     "Guid":str(instances[instance]['id']),
