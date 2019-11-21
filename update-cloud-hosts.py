@@ -29,12 +29,11 @@ def getDOInstances(profile):
         if settingResolver('iTerm_skip_stopped',drop, {}, "DO") == True and drop.status != 'active':
             continue    
         dynamic_profile_parent_name=''
-        bastion=''
         iterm_tags = []
         instance_use_bastion = settingResolver('iTerm_use_bastion',drop, {}, "DO")
         or_host_name=settingResolver('iTerm_host_name',drop,{},"DO")
         drop_use_ip_public = settingResolver('iTerm_use_ip_public',drop,{},"DO")
-        drop_use_ip_public = settingResolver('iTerm_bastion',drop,{},"DO")
+        bastion = settingResolver('iTerm_bastion',drop,{},"DO")
         con_username = settingResolver('iTerm_con_username',drop,{},"DO")
         con_port = settingResolver('iTerm_con_port',drop,{},"DO")
         ssh_key = settingResolver('iTerm_ssh_key',drop,{}, "DO")
@@ -62,7 +61,18 @@ def getDOInstances(profile):
                     iterm_tags.append(tag)
         
         iterm_tags += ip,drop.name,drop.size['slug']
-        instances[ip] = {'name':instance_source + '.' + drop_name, 'group': drop_name,'index':groups[drop.name], 'dynamic_profile_parent_name': dynamic_profile_parent_name, 'iterm_tags': iterm_tags, 'InstanceType': drop.size['slug'], 'con_username': con_username, 'con_port': con_port, 'id': drop.id, 'ssh_key': ssh_key, 'use_shared_key': use_shared_key, 'instance_use_bastion': instance_use_bastion}
+        instances[ip] = {'name':instance_source + '.' + drop_name,
+                        'group': drop_name,
+                        'index':groups[drop.name],
+                        'dynamic_profile_parent_name': dynamic_profile_parent_name,
+                        'iterm_tags': iterm_tags, 'InstanceType': drop.size['slug'],
+                        'con_username': con_username,
+                        'con_port': con_port,
+                        'id': drop.id,
+                        'ssh_key': ssh_key,
+                        'use_shared_key': use_shared_key,
+                        'instance_use_bastion': instance_use_bastion,
+                        'bastion': bastion}
         print(profile['name'] + ": " + ip + "\t\t" + instance_source + '.' + drop_name + "\t\t associated bastion: \"" + bastion + "\"")
     
     updateTerm(instances,groups,instance_source)
