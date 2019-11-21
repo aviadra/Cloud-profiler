@@ -135,13 +135,12 @@ def vpc_data(vpcid, q_tag, response_vpc):
 
 
 def fetchEC2Instance(instance, client, groups, instances, instance_source, reservation, vpc_data_all):
-    con_port = ''
-    instance_use_ip_public = ''
     instance_vpc_flat_tags = ''
     instance_flat_tags = ''
     iterm_tags = []
 
     instance_use_bastion = settingResolver('iTerm_use_bastion', instance, vpc_data_all)
+    instance_use_ip_public = settingResolver('iTerm_use_ip_public', instance, vpc_data_all)
     ssh_key = settingResolver('iTerm_ssh_key', instance, vpc_data_all)
     use_shared_key = settingResolver('iTerm_use_shared_key', instance, vpc_data_all)
     con_username = settingResolver('iTerm_con_username', instance, vpc_data_all)
@@ -304,7 +303,10 @@ def updateTerm(instances,groups,instance_source):
         else:
             connection_command = "ssh {}".format(ip_for_connection)
 
-        if (instances[instance].get('bastion','') and instances[instance].get('instance_use_ip_public', 'no') != "no") and instances[instance].get('instance_use_bastion', 'no') != "no":
+        if (instances[instance].get('bastion','yes') != "no" and instances[instance].get('instance_use_bastion', 'yes') != "no") \
+            or (instances[instance].get('instance_use_ip_public', '') == "yes" and instances[instance].get('instance_use_bastion', '') == "yes") \
+            or instances[instance].get('instance_use_bastion', '') == "yes":
+            
             if instances[instance].get('platform', '') == 'windows':
                 connection_command = "function random_unused_port {{ local port=$( echo $((2000 + ${{RANDOM}} % 65000))); (echo " \
                                ">/dev/tcp/127.0.0.1/$port) &> /dev/null ; if [[ $? != 0 ]] ; then export " \
