@@ -23,7 +23,7 @@ This project has some assumptions:
 - You should see the dynamic profiles populated in iTerm (cmd + O)
 
 # RDP support (optional)
-The RDP support is based on your MAC's ability to open rdp URIs. That is iTerm will issue something like "open rdp://address-of-instance". For example a compatible program is Microsoft Remote Desktop 8/10 available on the app store.
+The RDP support is based on your MAC's ability to open rdp URIs. That is iTerm will issue something like "open rdp://address-of-instance". Compatible programs are Microsoft Remote Desktop 8/10 available on the app store.
 
 # Configuration files (Optional)
 There is a YAML configuration file within the repo that gives the default values for the script behavior.
