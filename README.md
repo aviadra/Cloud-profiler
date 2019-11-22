@@ -22,6 +22,9 @@ This project has some assumptions:
 `python3 ./iTerm-cloud-profile-generator/update-cloud-hosts.py`
 - You should see the dynamic profiles populated in iTerm (cmd + O)
 
+# RDP support (optional)
+The RDP support is based on your MAC's ability to open rdp URIs. That is iTerm will issue something like "open rdp://address-of-instance". For example a compatible program is Microsoft Remote Desktop 8/10 available on the app store.
+
 # Configuration files (Optional)
 There is a YAML configuration file within the repo that gives the default values for the script behavior.
 On the first run of the script, a personal configuration file is create in `~/.iTerm-cloud-profile-generator/config.yaml`. So you don't have to fork the repo in order to have your own settings. Settings in the personal file will take precedence over the default ones from the repo file.
