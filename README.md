@@ -29,6 +29,7 @@ The RDP support is based on your MAC's ability to open rdp URIs. That is iTerm w
 There is a YAML configuration file within the repo that gives the default values for the script behavior.
 On the first run of the script, a personal configuration file is create in `~/.iTerm-cloud-profile-generator/config.yaml`. So you don't have to fork the repo in order to have your own settings. Settings in the personal file will take precedence over the default ones from the repo file.
 Possible options within the configuration files are noted below.
+Note: For convenience, the following values are accepted for "True": 'True' and 'yes', and for "False: 'False' and 'no'.
 
 ## Local options
 These are settings that are local to your Mac or you want to set globally for all clouds. You can set here most of the same directives as in the "tags" section, except the below ones (they don't make sense anywhere else):
