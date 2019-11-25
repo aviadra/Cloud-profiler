@@ -23,6 +23,8 @@ from Crypto.PublicKey import RSA
 # index         => Index of this instance in the group
 
 def decrypt(ciphertext, keyfile):
+    if not os.path.exists(os.path.expanduser(keyfile)):
+        return False
     input = open(os.path.expanduser(keyfile))
     key = RSA.importKey(input.read())
     print(key)
@@ -348,7 +350,7 @@ def updateTerm(instances,groups,instance_source):
         connection_command = "ssh {}".format(ip_for_connection)
         
         if instances[instance]['bastion'] != False \
-            and ( (instances[instance]['instance_use_ip_public'] == True and instances[instance]['instance_use_bastion'] == True) \
+            or ( (instances[instance]['instance_use_ip_public'] == True and instances[instance]['instance_use_bastion'] == True) \
             or instances[instance]['instance_use_bastion'] == True):
             
             connection_command = "{} -J {}".format(connection_command,instances[instance]['bastion'])
