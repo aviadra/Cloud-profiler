@@ -23,11 +23,10 @@ from Crypto.PublicKey import RSA
 # index         => Index of this instance in the group
 
 def decrypt(ciphertext, keyfile):
-    if not os.path.exists(os.path.expanduser(keyfile)):
+    if not os.path.isfile(os.path.expanduser(keyfile)):
         return False
     input = open(os.path.expanduser(keyfile))
     key = RSA.importKey(input.read())
-    print(key)
     input.close()
     cipher = PKCS1_v1_5.new(key)
     plaintext = cipher.decrypt(ciphertext, None).decode('utf-8')
