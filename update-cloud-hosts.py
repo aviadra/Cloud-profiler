@@ -319,10 +319,33 @@ def getEC2Instances(profile):
             print("Profile \"{0}\" is set to use STS, but either role_arn, or role_session_name are missing, so it was skipped.".format(profile_name))
             return
         
-        assumed_role_object=sts_client.assume_role(
-        RoleArn=profile["role_arn"],
-        RoleSessionName=profile["role_session_name"]
-        )
+        if profile.get("mfa_serial_number", False):
+            mfa_TOTP = input("Enter your MFA code: ")
+            # TODO: timeout on user input
+            try:
+                assumed_role_object=sts_client.assume_role(
+                                    RoleArn=profile["role_arn"],
+                                    RoleSessionName=profile["role_session_name"],
+                                    DurationSeconds=3600,
+                                    SerialNumber=profile["mfa_serial_number"],
+                                    TokenCode=mfa_TOTP
+                )
+            except:
+                print("Sorry, was unable to \"login\" to {} using STS.".format(profile_name))
+                return
+        else:
+            try:
+                assumed_role_object=sts_client.assume_role(
+                                    RoleArn=profile["role_arn"],
+                                    RoleSessionName=profile["role_session_name"]
+                )
+            except:
+                print("Was unable to assume role. Maybe you need MFA?")
+                return
+        
+#TODO: role_session_name to be system username
+            
+
         credentials=assumed_role_object['Credentials']
         client = boto3.client('ec2',
                                 aws_access_key_id=credentials['AccessKeyId'],
