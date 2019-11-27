@@ -251,12 +251,19 @@ def fetchEC2Instance(instance, client, groups, instances, instance_source, reser
     return (ip + "\t" + instance['Placement']['AvailabilityZone'] + "\t" + instance_source + "." + name + "\t\t associated bastion: \"" + str(bastion) + "\"")
 
 
-def fetchEC2Region(region, profile_name, instances, groups, instance_source):
+def fetchEC2Region(region, profile_name, instances, groups, instance_source, use_sts = False, credentials = False):
     if region in script_config['AWS']['exclude_regions']:
         print(profile_name + ": region " + "\"" + region + "\" is in excluded list")
         return
 
-    client = boto3.client('ec2', region_name=region)
+    if use_sts and credentials:
+        client = boto3.client('ec2',
+                            aws_access_key_id=credentials['AccessKeyId'],
+                            aws_secret_access_key=credentials['SecretAccessKey'],
+                            aws_session_token=credentials['SessionToken'],
+                            region_name=region)
+    else:
+        client = boto3.client('ec2', region_name=region)
 
     if script_config['AWS'].get('skip_stopped', True) == False or script_config['Local'].get('skip_stopped', True) == False or profile.get('skip_stopped', True) == False:
         search_states = ['running', 'pending', 'shutting-down', 'terminated', 'stopping', 'stopped']
@@ -291,6 +298,7 @@ def fetchEC2Region(region, profile_name, instances, groups, instance_source):
 def getEC2Instances(profile):
     groups = {}
     instances = {}
+    credentials = False
     global instance_counter
 
     if isinstance(profile,dict):
@@ -304,15 +312,36 @@ def getEC2Instances(profile):
 
     instance_counter[instance_source] = 0
 
-    client = boto3.client('ec2')
-    ec2_regions = [region['RegionName'] for region in client.describe_regions()['Regions']]
+    if profile.get("use_sts", False):
+        if profile.get("role_arn", False) and profile.get("role_session_name", False):
+            sts_client = boto3.client('sts')
+        else:
+            print("Profile \"{0}\" is set to use STS, but either role_arn, or role_session_name are missing, so it was skipped.".format(profile_name))
+            return
+        
+        assumed_role_object=sts_client.assume_role(
+        RoleArn=profile["role_arn"],
+        RoleSessionName=profile["role_session_name"]
+        )
+        credentials=assumed_role_object['Credentials']
+        client = boto3.client('ec2',
+                                aws_access_key_id=credentials['AccessKeyId'],
+                                aws_secret_access_key=credentials['SecretAccessKey'],
+                                aws_session_token=credentials['SessionToken'])
+    else:
+        client = boto3.client('ec2')
+    try:
+        ec2_regions = [region['RegionName'] for region in client.describe_regions()['Regions']]
+    except:
+        print("Was unable to retrive information for \"regions\" in account \"{0}\", so it was skipped.".format(profile_name))
+        return
 
     if script_config["Local"].get('parallel_exec', True):
         with concurrent.futures.ThreadPoolExecutor() as executor:
-            [executor.submit(fetchEC2Region, region , profile_name, instances, groups, instance_source) for region in ec2_regions]
+            [executor.submit(fetchEC2Region, region , profile_name, instances, groups, instance_source, client) for region in ec2_regions]
     else:
         for region in ec2_regions:
-            fetchEC2Region(region , profile_name, instances, groups, instance_source)
+            fetchEC2Region(region , profile_name, instances, groups, instance_source,profile.get("use_sts", False), credentials)
 
     for ip in instances:
         instance = instances[ip]
