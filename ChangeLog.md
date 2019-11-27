@@ -1,6 +1,11 @@
 # Change Log
 
-## V1.1
+## v1.1.1
+Fixed decryption key detection and added a more descriptive message on why the password could not be decrypted.
+Added to Readme, the minimal set of permissions required for AWS.
+Fixed "skip stopped" instances logic, and now supporting setting in config files as the "Local" level.
+
+## v1.1
 Moved DO section to be below generic functions.
 Added function to decrypt password for a windows instance copied from [tinkerbotfoo](https://gist.github.com/tinkerbotfoo/337df5bd1faff777fb52).
 Changed settingResolver to return True or False answers only, adjusted "generic tag extracting" funcs to match, and aligned all "if"s.

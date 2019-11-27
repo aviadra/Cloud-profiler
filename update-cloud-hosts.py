@@ -24,13 +24,13 @@ from Crypto.PublicKey import RSA
 
 def decrypt(ciphertext, keyfile):
     if not os.path.isfile(os.path.expanduser(keyfile)):
-        return False
+        return [False, "Decryption key not found at {0}.".format(keyfile)]
     input = open(os.path.expanduser(keyfile))
     key = RSA.importKey(input.read())
     input.close()
     cipher = PKCS1_v1_5.new(key)
     plaintext = cipher.decrypt(ciphertext, None).decode('utf-8')
-    return plaintext
+    return [True, plaintext]
 
 def settingResolver(setting,instance,vpc_data_all,caller_type='AWS', setting_value = False):
     if caller_type == 'AWS':
@@ -119,6 +119,7 @@ def getDOInstances(profile):
         if settingResolver('iTerm_skip_stopped',drop, {}, "DO", True) == True and drop.status != 'active':
             continue
         
+        password = [False, ""]
         iterm_tags = []
         instance_use_ip_public = settingResolver('iTerm_use_ip_public',drop, {}, "DO", False)
         instance_use_bastion = settingResolver('iTerm_use_bastion',drop, {}, "DO", False)
@@ -166,7 +167,8 @@ def getDOInstances(profile):
                         'instance_use_bastion': instance_use_bastion,
                         'bastion': bastion,
                         'instance_use_ip_public': instance_use_ip_public,
-                        'ip_public': public_ip,}
+                        'ip_public': public_ip,
+                        'password': password}
         print(profile['name'] + ": " + ip + "\t\t" + instance_source + '.' + drop_name + "\t\t associated bastion: \"" + str(bastion) + "\"")
     
     updateTerm(instances,groups,instance_source)
@@ -175,7 +177,7 @@ def fetchEC2Instance(instance, client, groups, instances, instance_source, reser
     instance_vpc_flat_tags = ''
     instance_flat_tags = ''
     iterm_tags = []
-    password = ''
+    password = [False, ""]
 
     instance_use_bastion = settingResolver('iTerm_use_bastion', instance, vpc_data_all,'AWS', False)
     instance_use_ip_public = settingResolver('iTerm_use_ip_public', instance, vpc_data_all,'AWS', False)
@@ -256,10 +258,10 @@ def fetchEC2Region(region, profile_name, instances, groups, instance_source):
 
     client = boto3.client('ec2', region_name=region)
 
-    if script_config['AWS']['skip_stopped'] == True and profile.get('skip_stopped', False) == True:
-        search_states = ['running']
-    else:
+    if script_config['AWS'].get('skip_stopped', True) == False or script_config['Local'].get('skip_stopped', True) == False or profile.get('skip_stopped', True) == False:
         search_states = ['running', 'pending', 'shutting-down', 'terminated', 'stopping', 'stopped']
+    else:
+        search_states = ['running']
 
     response = client.describe_instances(
         Filters=[{
@@ -333,7 +335,7 @@ def updateTerm(instances,groups,instance_source):
         for tag in instances[instance]['iterm_tags']:
             tags.append(tag)
         if groups.get(group, 0) > 1:
-            tags + groups
+            tags.append(group)
 
 
         if instances[instance].get('instance_use_ip_public', False) == True or not instances[instance]['bastion']:
@@ -380,12 +382,12 @@ def updateTerm(instances,groups,instance_source):
                                                         con_username
                                                         )
 
-        if instances[instance].get('password', False) and instances[instance].get('platform', '') == 'windows':
+        if instances[instance]['password'][0] and instances[instance].get('platform', '') == 'windows':
                 connection_command =    'echo \"\\nThe Windows password on record is:\\n{0}\\n\\n\" ;echo -n \'{0}\' | pbcopy; \
                                         echo \"\\nIt has been sent to your clipboard for easy pasting\\n\\n\";{1}' \
                                         .format(instances[instance]['password'].rstrip(),connection_command)
         elif instances[instance].get('platform', '') == 'windows':
-                connection_command =    'echo \"\\nThe Windows password could not be found...\\n\\n\";\n{0}'.format(connection_command)
+                connection_command =    'echo \"\\nThe Windows password could not be decrypted...\\nThe only hint we have is:{1}\\n\\n\";\n{0}'.format(connection_command,str(instances[instance]['password'][1]))
 
         if instances[instance].get('platform', '') != 'windows':
             connection_command = "{} {}".format(connection_command, script_config["Local"]['ssh_base_string'])
