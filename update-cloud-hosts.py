@@ -338,10 +338,10 @@ def getEC2Instances(profile):
 
     if script_config["Local"].get('parallel_exec', True):
         with concurrent.futures.ThreadPoolExecutor() as executor:
-            [executor.submit(fetchEC2Region, region , profile_name, instances, groups, instance_source, client) for region in ec2_regions]
+            [executor.submit(fetchEC2Region, region , profile_name, instances, groups, instance_source, profile.get("use_sts", False), credentials) for region in ec2_regions]
     else:
         for region in ec2_regions:
-            fetchEC2Region(region , profile_name, instances, groups, instance_source,profile.get("use_sts", False), credentials)
+            fetchEC2Region(region , profile_name, instances, groups, instance_source, profile.get("use_sts", False), credentials)
 
     for ip in instances:
         instance = instances[ip]
