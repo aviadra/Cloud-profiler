@@ -295,7 +295,7 @@ def fetchEC2Region(region, profile_name, instances, groups, instance_source, use
     else:
         print(profile_name + ": \"" + region + "\" No instances found")
 
-def getEC2Instances(profile):
+def getEC2Instances(profile, role_arn = False):
     groups = {}
     instances = {}
     credentials = False
@@ -310,21 +310,14 @@ def getEC2Instances(profile):
         boto3.setup_default_session(profile_name=profile,region_name="eu-central-1")
         profile_name = profile
 
-    instance_counter[instance_source] = 0
-
-    if profile.get("use_sts", False):
-        if profile.get("role_arn", False) and profile.get("role_session_name", False):
-            sts_client = boto3.client('sts')
-        else:
-            print("Profile \"{0}\" is set to use STS, but either role_arn, or role_session_name are missing, so it was skipped.".format(profile_name))
-            return
-        
+    if role_arn:
+        sts_client = boto3.client('sts')
         if profile.get("mfa_serial_number", False):
             mfa_TOTP = input("Enter your MFA code: ")
             # TODO: timeout on user input
             try:
                 assumed_role_object=sts_client.assume_role(
-                                    RoleArn=profile["role_arn"],
+                                    RoleArn=profile["role_arns"][role_arn],
                                     RoleSessionName=profile["role_session_name"],
                                     DurationSeconds=3600,
                                     SerialNumber=profile["mfa_serial_number"],
@@ -336,16 +329,13 @@ def getEC2Instances(profile):
         else:
             try:
                 assumed_role_object=sts_client.assume_role(
-                                    RoleArn=profile["role_arn"],
+                                    RoleArn=profile["role_arns"][role_arn],
                                     RoleSessionName=profile["role_session_name"]
                 )
             except:
                 print("Was unable to assume role. Maybe you need MFA?")
                 return
-        
 #TODO: role_session_name to be system username
-            
-
         credentials=assumed_role_object['Credentials']
         client = boto3.client('ec2',
                                 aws_access_key_id=credentials['AccessKeyId'],
@@ -353,6 +343,9 @@ def getEC2Instances(profile):
                                 aws_session_token=credentials['SessionToken'])
     else:
         client = boto3.client('ec2')
+    #TODO: instance source to reflect name within role_arn
+    instance_counter[instance_source] = 0
+    
     try:
         ec2_regions = [region['RegionName'] for region in client.describe_regions()['Regions']]
     except:
@@ -568,7 +561,13 @@ if __name__ == '__main__':
     if script_config['AWS'].get('profiles', False):
         for profile in script_config['AWS']['profiles']:
             print("Working on " + profile['name'])
-            getEC2Instances(profile)
+            if isinstance(profile.get("role_arns", False),dict):
+                for role_arn in profile["role_arns"]:
+                    getEC2Instances(profile, role_arn)
+            else:
+                getEC2Instances(profile)
+    else:
+        print("Profile \"{0}\" is set to use STS, but role_arns structure is missing or incorrect, so it was skipped.".format(profile_name))
             
     # AWS profiles iterator from config file
     if script_config['AWS'].get('use_awscli_profiles', False):
