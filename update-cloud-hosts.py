@@ -11,6 +11,8 @@ import digitalocean
 import shutil
 import concurrent.futures
 import base64
+from inputimeout import inputimeout, TimeoutOccurred
+
 
 
 from Crypto.Cipher import PKCS1_v1_5
@@ -251,12 +253,12 @@ def fetchEC2Instance(instance, client, groups, instances, instance_source, reser
     return (ip + "\t" + instance['Placement']['AvailabilityZone'] + "\t" + instance_source + "." + name + "\t\t associated bastion: \"" + str(bastion) + "\"")
 
 
-def fetchEC2Region(region, profile_name, instances, groups, instance_source, use_sts = False, credentials = False):
+def fetchEC2Region(region, profile_name, instances, groups, instance_source, credentials = False):
     if region in script_config['AWS']['exclude_regions']:
         print(profile_name + ": region " + "\"" + region + "\" is in excluded list")
         return
 
-    if use_sts and credentials:
+    if credentials:
         client = boto3.client('ec2',
                             aws_access_key_id=credentials['AccessKeyId'],
                             aws_secret_access_key=credentials['SecretAccessKey'],
@@ -295,6 +297,29 @@ def fetchEC2Region(region, profile_name, instances, groups, instance_source, use
     else:
         print(profile_name + ": \"" + region + "\" No instances found")
 
+def get_MFA_func():
+    try:
+        retry = 3
+        while retry > 0:
+            mfa_TOTP = inputimeout(prompt="Note: The MFA code must be uniq for each account," \
+                                    " so wait until it rotates before entering it for each account...\n" \
+                                    "Enter your MFA code for \"{0}\", so you can assume the role \"{1}\" in \"{2}\": " 
+                                    .format(profile['name'],
+                                            profile["role_arns"][role_arn].rpartition('/')[2], role_arn),
+                                            timeout=30
+                                    )
+            if (not mfa_TOTP.isnumeric() or len(mfa_TOTP) != 6) and retry > 1:
+                print("Sorry, MFA can only be 6 numbers.\nPlease try again.")
+            elif retry == 1:
+                print("Maximum amount of failed attempts reached, so skipping {}.".format(role_arn))
+                return
+            else:
+                return mfa_TOTP
+            retry -= 1
+    except TimeoutOccurred:
+        print("Input not supplied within allowed amount of time, skipping {}.".format(role_arn))
+        return False
+
 def getEC2Instances(profile, role_arn = False):
     groups = {}
     instances = {}
@@ -311,31 +336,42 @@ def getEC2Instances(profile, role_arn = False):
         profile_name = profile
 
     if role_arn:
+        instance_source = "{0}.{1}".format(instance_source, role_arn)
+        role_session_name = "{0}:{1}@{2}".format(
+                                                os.path.basename(__file__).rpartition('.')[0],
+                                                getpass.getuser(),
+                                                os.uname()[1])
         sts_client = boto3.client('sts')
         if profile.get("mfa_serial_number", False):
-            mfa_TOTP = input("Enter your MFA code: ")
-            # TODO: timeout on user input
-            try:
-                assumed_role_object=sts_client.assume_role(
-                                    RoleArn=profile["role_arns"][role_arn],
-                                    RoleSessionName=profile["role_session_name"],
-                                    DurationSeconds=3600,
-                                    SerialNumber=profile["mfa_serial_number"],
-                                    TokenCode=mfa_TOTP
-                )
-            except:
-                print("Sorry, was unable to \"login\" to {} using STS.".format(profile_name))
-                return
+            retry = 3
+            while retry > 0:
+                try:
+                    assumed_role_object=sts_client.assume_role(
+                                        RoleArn=profile["role_arns"][role_arn],
+                                        RoleSessionName=role_session_name,
+                                        DurationSeconds=3600,
+                                        SerialNumber=profile["mfa_serial_number"],
+                                        TokenCode=get_MFA_func()
+                    )
+                    if assumed_role_object['ResponseMetadata']['HTTPStatusCode'] == 200:
+                        break
+                except:
+                    retry -= 1
+                    if retry == 0:
+                        print("Sorry, was unable to \"login\" to {} using STS + MFA.".format(profile_name))
+                        return
+                    else:
+                        pass
         else:
             try:
                 assumed_role_object=sts_client.assume_role(
                                     RoleArn=profile["role_arns"][role_arn],
-                                    RoleSessionName=profile["role_session_name"]
+                                    RoleSessionName=role_session_name
                 )
             except:
                 print("Was unable to assume role. Maybe you need MFA?")
                 return
-#TODO: role_session_name to be system username
+
         credentials=assumed_role_object['Credentials']
         client = boto3.client('ec2',
                                 aws_access_key_id=credentials['AccessKeyId'],
@@ -343,7 +379,6 @@ def getEC2Instances(profile, role_arn = False):
                                 aws_session_token=credentials['SessionToken'])
     else:
         client = boto3.client('ec2')
-    #TODO: instance source to reflect name within role_arn
     instance_counter[instance_source] = 0
     
     try:
@@ -354,10 +389,10 @@ def getEC2Instances(profile, role_arn = False):
 
     if script_config["Local"].get('parallel_exec', True):
         with concurrent.futures.ThreadPoolExecutor() as executor:
-            [executor.submit(fetchEC2Region, region , profile_name, instances, groups, instance_source, profile.get("use_sts", False), credentials) for region in ec2_regions]
+            [executor.submit(fetchEC2Region, region , profile_name, instances, groups, instance_source, credentials) for region in ec2_regions]
     else:
         for region in ec2_regions:
-            fetchEC2Region(region , profile_name, instances, groups, instance_source, profile.get("use_sts", False), credentials)
+            fetchEC2Region(region , profile_name, instances, groups, instance_source, credentials)
 
     for ip in instances:
         instance = instances[ip]
@@ -452,7 +487,7 @@ def updateTerm(instances,groups,instance_source):
             dynamic_profile_parent_name = instances[instance]['dynamic_profile_parent_name']
             
         profile = {"Name":instances[instance]['name'],
-                    "Guid":str(instances[instance]['id']),
+                    "Guid":"{0}-{1}".format(instance_source,str(instances[instance]['id'])),
                     "Badge Text":shortName + '\n' + instances[instance]['InstanceType'] + '\n' + ip_for_connection,
                     "Tags":tags,
                     "Dynamic Profile Parent Name": dynamic_profile_parent_name,
@@ -566,8 +601,6 @@ if __name__ == '__main__':
                     getEC2Instances(profile, role_arn)
             else:
                 getEC2Instances(profile)
-    else:
-        print("Profile \"{0}\" is set to use STS, but role_arns structure is missing or incorrect, so it was skipped.".format(profile_name))
             
     # AWS profiles iterator from config file
     if script_config['AWS'].get('use_awscli_profiles', False):
