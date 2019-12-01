@@ -23,6 +23,15 @@ AWS:
   #     aws_access_key_id: "your_id"
   #     aws_secret_access_key: "your_key"
   #     con_username: ''
+  # -
+  #     name: "sts_using_profile"
+  #     aws_access_key_id: "your_id"
+  #     aws_secret_access_key: "your_key"
+  #     mfa_serial_number: "arn:aws:iam::123456789012:mfa/your_aws_user_on_sts_account" #if required
+  #     role_arns: {
+  #       dev: "arn:aws:iam::111111111111:role/iTerm_RO_from_TGT",
+  #       prod: "arn:aws:iam::999999999999:role/iTerm_RO_from_TGT",
+  #     }
 
 DO:
   skip_stopped: True

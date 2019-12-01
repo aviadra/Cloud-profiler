@@ -1,5 +1,13 @@
 # Change Log
 
+## v1.2
+Now supporting AWS STS configurations.
+Changed session name to indicate that it was created by the script with which user and on what machine (for easy blaming via logs :)
+Added the source of the instance to the Guid, to deliberately show duplicate configurations.
+Removed "tagSplitter" for a better solution that doesn't cutoff tags.
+Now handling SG tags for multiple network interfaces on instance.
+Now giving a message when IP could not be found.
+
 ## v1.1.1
 Fixed decryption key detection and added a more descriptive message on why the password could not be decrypted.
 Added to Readme, the minimal set of permissions required for AWS.
