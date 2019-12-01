@@ -59,11 +59,12 @@ Note: The example is deliberately commented out, so that if you don't configure 
 
 #### STS support
 It is possible to define a profile that uses the [AWS Security Token Service(STS)](https://docs.aws.amazon.com/IAM/latest/UserGuide/tutorial_cross-account-with-roles.html), to "login" to roles in other AWS accounts you have access to.
-The way to define this, is to set the directive under the STS account profile. That is, you define a profile with secret and key, so the script can login to it normally, then the script will itterate over the "role_arns" array of hashes, to look for resources in other accounts.
+The way to define this, is to set the directive under the STS account profile. That is, you define a profile with secret and key, so the script can login to it normally, then the script will iterate over the "role_arns" array of hashes, to look for resources in other accounts.
 See the example configuration in the repo configuration file
+
 `role_arns` - This is an array of hashes (key + value) of roles to assume in other accounts, to look for resources. The "key" of a hash will be used as part of the name of the "instance source" visible in the resulting profiles. The "value" of a hash is the ARN of the AWS role in another account that has access to resources.
 
-`mfa_serial_number` - Identifies your hardware or virtual MFA device. This can be defined, if the role on the remote account requires MFA authentication. Note that this will prompt for each ARN in the "role_arns" array, as One Time Passwords(OTP) must be uniq for every login. [Citation needed](https://en.wikipedia.org/wiki/Wikipedia:Citation_needed). See example configuration in repo configuration file.
+`mfa_serial_number` - Identifies your hardware or virtual MFA device. This can be defined, if the role on the remote account requires MFA authentication. Note that this will prompt for each ARN in the "role_arns" array, as One Time Passwords(OTP) must be uniq for every login ([citation needed](https://en.wikipedia.org/wiki/Wikipedia:Citation_needed)). See example configuration in repo configuration file.
 
 ## DO (Digital Ocean)
 `profiles` - This is an array of hashes that represents DO profiles. The structure is: a hyphen to separate the hashes in the array. Each hash has the following keys: "name" and "token". See the example in the "repo settings file".
