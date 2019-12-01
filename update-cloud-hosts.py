@@ -161,7 +161,7 @@ def getDOInstances(profile):
                         'instance_use_ip_public': instance_use_ip_public,
                         'ip_public': public_ip,
                         'password': password}
-        print(profile['name'] + ": " + ip + "\t\t" + instance_source + '.' + drop_name + "\t\t associated bastion: \"" + str(bastion) + "\"")
+        print(instance_source + ": " + ip + "\t\t" + instance_source + '.' + drop_name + "\t\t associated bastion: \"" + str(bastion) + "\"")
     
     updateTerm(instances,groups,instance_source)
 
@@ -260,7 +260,7 @@ def fetchEC2Instance(instance, client, groups, instances, instance_source, reser
 
 def fetchEC2Region(region, profile_name, instances, groups, instance_source, credentials = False):
     if region in script_config['AWS']['exclude_regions']:
-        print(profile_name + ": region " + "\"" + region + "\" is in excluded list")
+        print(instance_source + ": region " + "\"" + region + "\" is in excluded list")
         return
 
     if credentials:
@@ -296,11 +296,11 @@ def fetchEC2Region(region, profile_name, instances, groups, instance_source, cre
                     with concurrent.futures.ThreadPoolExecutor() as executor:
                         future = executor.submit(fetchEC2Instance, instance, client, groups, instances, instance_source, reservation, vpc_data_all)
                         return_value = future.result()
-                        print(profile_name + ": " + return_value)
+                        print(instance_source + ": " + return_value)
                 else:
                     print(fetchEC2Instance(instance, client, groups, instances, instance_source, reservation, vpc_data_all))
     else:
-        print(profile_name + ": \"" + region + "\" No instances found")
+        print(instance_source + ": \"" + region + "\" No instances found")
 
 def get_MFA_func():
     try:
@@ -475,7 +475,7 @@ def updateTerm(instances,groups,instance_source):
         if instances[instance]['password'][0] and instances[instance].get('platform', '') == 'windows':
                 connection_command =    'echo \"\\nThe Windows password on record is:\\n{0}\\n\\n\" ;echo -n \'{0}\' | pbcopy; \
                                         echo \"\\nIt has been sent to your clipboard for easy pasting\\n\\n\";{1}' \
-                                        .format(instances[instance]['password'].rstrip(),connection_command)
+                                        .format(instances[instance]['password'][1].rstrip(),connection_command)
         elif instances[instance].get('platform', '') == 'windows':
                 connection_command =    'echo \"\\nThe Windows password could not be decrypted...\\nThe only hint we have is:{1}\\n\\n\";\n{0}'.format(connection_command,str(instances[instance]['password'][1]))
 
