@@ -40,7 +40,7 @@ def settingResolver(setting,instance,vpc_data_all,caller_type='AWS', setting_val
     if caller_type == 'DO':
         setting_value = get_DO_tag_value(instance.tags, setting, setting_value)
     if setting_value == False:
-        if caller_type == 'AWS':
+        if caller_type == 'AWS' and instance['State']['Name'] != "terminated":
             setting_value = vpc_data(instance['VpcId'], setting, vpc_data_all)
         if caller_type == 'DO':
             pass
@@ -52,13 +52,6 @@ def settingResolver(setting,instance,vpc_data_all,caller_type='AWS', setting_val
                 if setting_value == False:
                     setting_value = script_config["Local"].get(setting, False)
     return setting_value
-
-
-def tagSplitter(flat_tags):
-    for tag in flat_tags.split(','):
-            if tag:
-                return tag
-
 
 def get_DO_tag_value(tags,q_tag, q_tag_value):
             tag_key=''
@@ -189,9 +182,11 @@ def fetchEC2Instance(instance, client, groups, instances, instance_source, reser
     con_port = settingResolver('iTerm_con_port', instance, vpc_data_all,'AWS', 22)
     bastion = settingResolver('iTerm_bastion', instance, vpc_data_all,'AWS', False)
     dynamic_profile_parent_name = settingResolver('iTerm_dynamic_profile_parent_name', instance, vpc_data_all,'AWS', False)
-    instance_flat_sgs = get_tag_value(instance['NetworkInterfaces'][0]['Groups'],'flat',"sg")
-    instance_vpc_flat_tags = vpc_data(instance['VpcId'], "flat", vpc_data_all)
+    instance_vpc_flat_tags = vpc_data(instance.get('VpcId', ''), "flat", vpc_data_all)
     use_ip_public = settingResolver('iTerm_use_ip_public', instance, vpc_data_all,'AWS', False)
+    instance_flat_sgs = ''
+    for interface in instance.get('NetworkInterfaces',[]):
+        instance_flat_sgs += (get_tag_value(interface['Groups'],'flat',"sg"))
     
     if not ssh_key:
         ssh_key = instance.get('KeyName', '')
@@ -205,7 +200,10 @@ def fetchEC2Instance(instance, client, groups, instances, instance_source, reser
     if use_ip_public == True and 'PublicIpAddress' in instance:
         ip = instance['PublicIpAddress']
     else:
-        ip = instance['NetworkInterfaces'][0]['PrivateIpAddress']
+        try:
+            ip = instance['NetworkInterfaces'][0]['PrivateIpAddress']
+        except IndexError:
+            ip = "No IP found at scan time ¯\_(ツ)_/¯, probably a terminated instance. (Sorry)#"
 
     if name in groups:
         groups[name] = groups[name] + 1
@@ -219,18 +217,28 @@ def fetchEC2Instance(instance, client, groups, instances, instance_source, reser
         public_ip = ''
     
     if instance_flat_tags:
-        iterm_tags.append(tagSplitter(instance_flat_tags))
+        iterm_tags.append(instance_flat_tags)
     if instance_vpc_flat_tags:
-        iterm_tags.append(tagSplitter(instance_vpc_flat_tags))
+        iterm_tags.append(instance_vpc_flat_tags)
     if instance_flat_sgs:
-        iterm_tags.append(tagSplitter(instance_flat_sgs))
+        iterm_tags.append(instance_flat_sgs)
 
-    iterm_tags.append(instance['VpcId'])
+    iterm_tags.append(instance.get('VpcId',''))
     iterm_tags.append(instance['InstanceId'])
     iterm_tags.append(instance['Placement']['AvailabilityZone'])
     iterm_tags.append(instance['InstanceType'])
     if instance['PublicDnsName']:
         iterm_tags.append(instance['PublicDnsName'])
+    
+    iterm_tags_fin = []
+    for tag in iterm_tags:
+        if ',' in tag:
+            for shard in tag.split(','):
+                if shard.strip():
+                    iterm_tags_fin.append(shard)
+        else:
+            iterm_tags_fin.append(tag)
+    
     
     if instance.get('Platform', '') == 'windows':
         response =  client.get_password_data(
@@ -240,11 +248,11 @@ def fetchEC2Instance(instance, client, groups, instances, instance_source, reser
         password = decrypt(data, os.path.join(script_config["Local"].get('ssh_keys_path', '.'),ssh_key))
     
     instances[ip] = {'name': instance_source + '.' + name, 'index': groups[name], 'group': name,
-                     'bastion': bastion, 'vpc': reservation['Instances'][0]['VpcId'],
+                     'bastion': bastion, 'vpc': instance.get('VpcId', ""),
                      'instance_use_ip_public': instance_use_ip_public,
                      'instance_use_bastion': instance_use_bastion,
                      'ip_public': public_ip,
-                     'dynamic_profile_parent_name': dynamic_profile_parent_name, 'iterm_tags': iterm_tags,
+                     'dynamic_profile_parent_name': dynamic_profile_parent_name, 'iterm_tags': iterm_tags_fin,
                      'InstanceType': instance['InstanceType'], 'con_username': con_username, 'con_port': con_port,
                      'id': instance['InstanceId'],
                      'ssh_key': ssh_key,
@@ -337,7 +345,7 @@ def getEC2Instances(profile, role_arn = False):
 
     if role_arn:
         instance_source = "{0}.{1}".format(instance_source, role_arn)
-        role_session_name = "{0}:{1}@{2}".format(
+        role_session_name = "{0}.{1}@{2}".format(
                                                 os.path.basename(__file__).rpartition('.')[0],
                                                 getpass.getuser(),
                                                 os.uname()[1])
@@ -411,6 +419,8 @@ def updateTerm(instances,groups,instance_source):
         shortName = instances[instance]['name'][4:]
         group = instances[instance]['group']
 
+        connection_command = "ssh "
+
         tags = ["Account: " + instance_source, instance]
         for tag in instances[instance]['iterm_tags']:
             tags.append(tag)
@@ -418,7 +428,10 @@ def updateTerm(instances,groups,instance_source):
             tags.append(group)
 
 
-        if instances[instance].get('instance_use_ip_public', False) == True or not instances[instance]['bastion']:
+        if "Sorry" in instance:
+            connection_command = "echo"
+            ip_for_connection = instance
+        elif instances[instance].get('instance_use_ip_public', False) == True or not instances[instance]['bastion']:
             ip_for_connection = instances[instance]['ip_public']
         else:
             ip_for_connection = instance
@@ -428,7 +441,7 @@ def updateTerm(instances,groups,instance_source):
             if not instances[instance]['con_username']:
                 con_username = "Administrator"
 
-        connection_command = "ssh {}".format(ip_for_connection)
+        connection_command = "{0} {1}".format(connection_command, ip_for_connection)
         
         if instances[instance]['bastion'] != False \
             or ( (instances[instance]['instance_use_ip_public'] == True and instances[instance]['instance_use_bastion'] == True) \
