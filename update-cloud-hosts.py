@@ -189,7 +189,7 @@ def fetchEC2Instance(instance, client, groups, instances, instance_source, reser
         ssh_key = instance.get('KeyName', '')
 
     if 'Tags' in instance:
-        name = get_tag_value(instance['Tags'], 'Name')
+        name = get_tag_value(instance['Tags'], "Name" ,False, instance['InstanceId'])
         instance_flat_tags = get_tag_value(instance['Tags'], 'flat')
     else:
         name = instance['InstanceId']
