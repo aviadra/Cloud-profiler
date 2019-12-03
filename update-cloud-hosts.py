@@ -173,7 +173,7 @@ def fetchEC2Instance(instance, client, groups, instances, instance_source, reser
 
     instance_use_bastion = settingResolver('iTerm_use_bastion', instance, vpc_data_all,'AWS', False)
     instance_use_ip_public = settingResolver('iTerm_use_ip_public', instance, vpc_data_all,'AWS', False)
-    ssh_key = settingResolver('iTerm_ssh_key', instance, vpc_data_all,'AWS', False)
+    ssh_key = settingResolver('iTerm_ssh_key', instance, vpc_data_all,'AWS', instance.get('KeyName',False))
     use_shared_key = settingResolver('iTerm_use_shared_key', instance, vpc_data_all,'AWS', False)
     con_username = settingResolver('iTerm_con_username', instance, vpc_data_all,'AWS', False)
     con_port = settingResolver('iTerm_con_port', instance, vpc_data_all,'AWS', 22)
