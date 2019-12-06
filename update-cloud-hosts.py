@@ -14,6 +14,8 @@ import base64
 from inputimeout import inputimeout, TimeoutOccurred
 from Crypto.Cipher import PKCS1_v1_5
 from Crypto.PublicKey import RSA
+from pathlib import Path
+import platform
 
 
 # Outputs to stdout the list of instances containing the following fields:
@@ -345,7 +347,7 @@ def getEC2Instances(profile, role_arn = False):
         role_session_name = "{0}.{1}@{2}".format(
                                                 os.path.basename(__file__).rpartition('.')[0],
                                                 getpass.getuser(),
-                                                os.uname()[1])
+                                                platform.uname()[1])
         sts_client = boto3.client('sts')
         if profile.get("mfa_serial_number", False):
             retry = 3
@@ -508,14 +510,13 @@ def updateTerm(instances,groups,instance_source):
         profiles.append(profile)
 
     profiles = {"Profiles":(profiles)}
-    handle = open(os.path.expanduser("~/Library/Application Support/iTerm2/DynamicProfiles/" + instance_source),'wt')
+    handle = open(os.path.expanduser(os.path.join(OutputDir,instance_source)),'wt')
     handle.write(json.dumps(profiles,sort_keys=True,indent=4, separators=(',', ': ')))
     handle.close()
 
 def update_statics():
     profiles =[]
-    
-    app_static_profile_handle = open(os.path.expanduser("~/Library/Application Support/iTerm2/DynamicProfiles/statics"),"wt")
+    app_static_profile_handle = open(os.path.expanduser(os.path.join(OutputDir, "statics")),"wt")
     path_to_static_profiles = os.path.expanduser(script_config["Local"]['static_profiles'])
     
     for root, dirs, files in os.walk(path_to_static_profiles, topdown=False):
@@ -579,6 +580,14 @@ if __name__ == '__main__':
     with open(os.path.join(script_dir,'config.yaml')) as conf_file:
         script_config_repo = yaml.full_load(conf_file)
 
+    if platform.system() == 'Windows':
+        print("windows")
+    else:
+        OutputDir = "~/Library/Application Support/iTerm2/DynamicProfiles/"
+    
+    if not os.path.isdir(os.path.expanduser(OutputDir)):
+        os.makedirs(os.path.expanduser(OutputDir))
+    
     # From user home direcotry
     script_config = {}
     script_config_user = {}

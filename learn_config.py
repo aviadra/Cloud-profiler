@@ -1,10 +1,29 @@
-import concurrent.futures
+import platform
+import sys
 
-def foo(bar):
-    print('hello {}'.format(bar))
-    return 'foo'
+def linux_distribution():
+  try:
+    return platform.linux_distribution()
+  except:
+    return "N/A"
 
-with concurrent.futures.ThreadPoolExecutor() as executor:
-    future = executor.submit(foo, 'world!')
-    return_value = future.result()
-    print(return_value)
+print("""Python version: %s
+dist: %s
+linux_distribution: %s
+system: %s
+machine: %s
+platform: %s
+uname: %s
+version: %s
+mac_ver: %s
+""" % (
+sys.version.split('\n'),
+str(platform.dist()),
+linux_distribution(),
+platform.system(),
+platform.machine(),
+platform.platform(),
+platform.uname(),
+platform.version(),
+platform.mac_ver(),
+))
