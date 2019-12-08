@@ -116,7 +116,6 @@ def getDOInstances(profile):
         instance_use_ip_public = settingResolver('iTerm_use_ip_public',drop, {}, "DO", False)
         instance_use_bastion = settingResolver('iTerm_use_bastion',drop, {}, "DO", False)
         or_host_name=settingResolver('iTerm_host_name',drop,{},"DO", False)
-        drop_use_ip_public = settingResolver('iTerm_use_ip_public',drop,{},"DO", True)
         bastion = settingResolver('iTerm_bastion',drop,{},"DO", False)
         con_username = settingResolver('iTerm_con_username',drop,{},"DO", False)
         con_port = settingResolver('iTerm_con_port',drop,{},"DO", 22)
@@ -130,7 +129,7 @@ def getDOInstances(profile):
         else:
             drop_name = drop.name
 
-        if drop_use_ip_public:
+        if instance_use_ip_public:
             ip = drop.ip_address
         else:
             ip = drop.private_ip_address
@@ -180,7 +179,6 @@ def fetchEC2Instance(instance, client, groups, instances, instance_source, reser
     bastion = settingResolver('iTerm_bastion', instance, vpc_data_all,'AWS', False)
     dynamic_profile_parent_name = settingResolver('iTerm_dynamic_profile_parent_name', instance, vpc_data_all,'AWS', False)
     instance_vpc_flat_tags = vpc_data(instance.get('VpcId', ''), "flat", vpc_data_all)
-    use_ip_public = settingResolver('iTerm_use_ip_public', instance, vpc_data_all,'AWS', False)
     instance_flat_sgs = ''
     for interface in instance.get('NetworkInterfaces',[]):
         instance_flat_sgs += (get_tag_value(interface['Groups'],'flat',"sg"))
@@ -194,7 +192,7 @@ def fetchEC2Instance(instance, client, groups, instances, instance_source, reser
     else:
         name = instance['InstanceId']
 
-    if use_ip_public == True and 'PublicIpAddress' in instance:
+    if instance_use_ip_public == True and 'PublicIpAddress' in instance:
         ip = instance['PublicIpAddress']
     else:
         try:
