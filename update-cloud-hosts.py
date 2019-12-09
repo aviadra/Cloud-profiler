@@ -164,10 +164,7 @@ def getDOInstances(profile):
                         'password': password}
         print(instance_source + ": " + ip + "\t\t" + instance_source + '.' + drop_name + "\t\t associated bastion: \"" + str(bastion) + "\"")
     
-    
-    # updateTerm(instances,groups,instance_source)
-    iterm_obj = {"instance_source": instance_source, "groups": groups, "instances":instances}
-    iTerm_objects_list.append(iterm_obj)
+    iTerm_objects_list.append({"instance_source": instance_source, "groups": groups, "instances":instances})
 
 def fetchEC2Instance(instance, client, groups, instances, instance_source, reservation, vpc_data_all):
     instance_vpc_flat_tags = ''
@@ -406,9 +403,7 @@ def getEC2Instances(profile, role_arn = False):
         instance = instances[ip]
         instance['name'] = instance['name'] + str(instance['index']) if groups[instance['group']] > 1 else instance['name']
     
-    # updateTerm(instances,groups,instance_source)
-    iterm_obj = {"instance_source": instance_source, "groups": groups, "instances":instances}
-    iTerm_objects_list.append(iterm_obj)
+    iTerm_objects_list.append({"instance_source": instance_source, "groups": groups, "instances":instances})
 
 
 def updateTerm(dict_list):
@@ -592,7 +587,7 @@ if __name__ == '__main__':
     
     if not os.path.isdir(os.path.expanduser(OutputDir)):
         os.makedirs(os.path.expanduser(OutputDir))
-    print(os.path.expanduser(OutputDir))
+
     # From user home direcotry
     script_config = {}
     script_config_user = {}
