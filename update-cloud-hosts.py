@@ -410,6 +410,31 @@ def getEC2Instances(profile, role_arn = False):
 
 def updateMoba(dict_list):
     global instance_counter
+    
+
+    bookmark_counter = 0
+    region_list = []
+    instance_by_region = {}
+
+    for d in dict_list:
+        print(d['instance_source'])
+        for instances in d['instances'].items():
+            for instance in instances:
+                if not isinstance(instance, str):
+                    print(instance.get('region',''))
+                    if not instance['region'] in region_list:
+                        region_list.append(instance['region'])
+                    if not 'instance_by_region' in d:
+                        d['instance_by_region'] = {}
+                    if not instance['region'] in d['instance_by_region']:
+                        instance_by_region[instance['region']] = []
+                        d['instance_by_region'][instance['region']] = []
+                    instance_by_region[instance['region']].append(instance)
+                    d['instance_by_region'][instance['region']].append(instance)
+
+
+
+
 
     for profile_dict in dict_list:
         profiles = []
@@ -471,7 +496,7 @@ def updateMoba(dict_list):
 
             profiles.append(profile)
 
-        profiles = {"Profiles":(profiles)}
+        profiles = {"Boo":(profiles)}
         handle = open(os.path.expanduser(os.path.join(OutputDir,profile_dict["instance_source"])),'wt')
         handle.write(json.dumps(profiles,sort_keys=True,indent=4, separators=(',', ': ')))
         handle.close()
