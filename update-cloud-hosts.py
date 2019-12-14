@@ -417,12 +417,11 @@ def updateMoba(dict_list):
     for d in dict_list:
         if not 'instance_by_region' in d:
             d['instance_by_region'] = {}
-        for instances in d['instances'].items():
-            for instance in instances:
-                if not isinstance(instance, str):
-                    if not instance['region'] in d['instance_by_region']:
-                        d['instance_by_region'][instance['region']] = []
-                    d['instance_by_region'][instance['region']].append(instance)
+        for key,instance in d['instances'].items():
+            if not instance['region'] in d['instance_by_region']:
+                d['instance_by_region'][instance['region']] = []
+            instance['ip'] = key
+            d['instance_by_region'][instance['region']].append(instance)
     del d
 
 
@@ -453,7 +452,7 @@ def updateMoba(dict_list):
                 elif instance.get('instance_use_ip_public', False) == True or not instance['bastion']:
                     ip_for_connection = instance['ip_public']
                 else:
-                    ip_for_connection = instance
+                    ip_for_connection = instance['ip']
 
                 
                 if instance.get('platform', '') == 'windows':
@@ -469,7 +468,7 @@ def updateMoba(dict_list):
                     or instance['instance_use_bastion'] == True):
                     
                     #######################
-                    bastion_for_profile = instance['instance_use_bastion']
+                    bastion_for_profile = instance['bastion']
                 else:
                     bastion_for_profile = ''
 
@@ -477,10 +476,10 @@ def updateMoba(dict_list):
                 #         connection_command = "{} -i {}/{}".format(connection_command,script_config["Local"].get('ssh_keys_path', '.'), profile_dict["instances"][instance]['ssh_key'])
                 tags = ','.join(tags)
                 bastion_port = '' #TODO get this from instance
-                profile =   '\n{0}= #109#0%{1}%{2}%{3}%%-1%-1%%{4}%{5}%%0%-1%0%%%' \
-                            '-1%0%0%0%%1080%%0%0%1#MobaFont%10%0%0%0%15%236,' \
-                            '236,236%30,30,30%180,180,192%0%-1%0%%xterm%-1%' \
-                            '-1%_Std_Colors_0_%80%24%0%1%-1%<none>%%0#0#{6} #-1\n'.format(shortName, #0
+                profile =   "\n{0}= #109#0%{1}%{2}%{3}%%-1%-1%%{4}%{5}%%0%-1%0%%%" \
+                            "-1%0%0%0%%1080%%0%0%1#MobaFont%10%0%0%0%15%236," \
+                            "236,236%30,30,30%180,180,192%0%-1%0%%xterm%-1%" \
+                            "-1%_Std_Colors_0_%80%24%0%1%-1%<none>%%0#0# #-1 {6} \n".format(shortName, #0
                                                                                     ip_for_connection, #1
                                                                                     instance['con_port'], #2
                                                                                     con_username, #3
@@ -493,7 +492,7 @@ def updateMoba(dict_list):
                 profiles += profile
             bookmark_counter += 1
 
-    handle = open(os.path.expanduser(os.path.join(OutputDir,'sesstions.ini')),'wt')
+    handle = open(os.path.expanduser(os.path.join(OutputDir,'Cloud-profiler-Moba.mxtsessions')),'wt')
     handle.write(profiles)
     handle.close()
 
