@@ -412,7 +412,7 @@ def updateMoba(dict_list):
     global instance_counter
     
 
-    bookmark_counter = 0
+    bookmark_counter = 1
 
     for d in dict_list:
         if not 'instance_by_region' in d:
@@ -491,7 +491,7 @@ def updateMoba(dict_list):
 
                 
                 profiles += profile
-                bookmark_counter += 1
+            bookmark_counter += 1
 
     handle = open(os.path.expanduser(os.path.join(OutputDir,'sesstions.ini')),'wt')
     handle.write(profiles)
@@ -734,7 +734,6 @@ if __name__ == '__main__':
     else:
         updateTerm(cloud_instances_obj_list)
 
-    updateMoba(cloud_instances_obj_list)
 
     print("\nCreated profiles {}\nTotal: {}".format(json.dumps(instance_counter,sort_keys=True,indent=4, separators=(',', ': ')),sum(instance_counter.values())))
     print("\nWe wish you calm clouds and a serene path...\n")
