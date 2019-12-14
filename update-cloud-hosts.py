@@ -413,93 +413,89 @@ def updateMoba(dict_list):
     
 
     bookmark_counter = 0
-    region_list = []
-    instance_by_region = {}
 
     for d in dict_list:
-        print(d['instance_source'])
+        if not 'instance_by_region' in d:
+            d['instance_by_region'] = {}
         for instances in d['instances'].items():
             for instance in instances:
                 if not isinstance(instance, str):
-                    print(instance.get('region',''))
-                    if not instance['region'] in region_list:
-                        region_list.append(instance['region'])
-                    if not 'instance_by_region' in d:
-                        d['instance_by_region'] = {}
                     if not instance['region'] in d['instance_by_region']:
-                        instance_by_region[instance['region']] = []
                         d['instance_by_region'][instance['region']] = []
-                    instance_by_region[instance['region']].append(instance)
                     d['instance_by_region'][instance['region']].append(instance)
+    del d
 
 
-
-
-
+    profiles = "[Bookmarks]\nSubRep=\nImgNum=42"
+    
     for profile_dict in dict_list:
-        profiles = []
-        for instance in profile_dict['instances']:
-            instance_counter[profile_dict['instance_source']] += 1
-            shortName = profile_dict['instances'][instance]['name'].rpartition('.')[2]
-            group = profile_dict["instances"][instance]['group']
+        for region in profile_dict['instance_by_region']:
+            profiles +=  '''\n[Bookmarks_{0}]\nSubRep={1}\nImgNum=41\n'''.format(bookmark_counter,
+                                                                        profile_dict['instance_source'] + '\\' + region
+                                                                        )
+            for instance in profile_dict['instance_by_region'][region]:
+                instance_counter[profile_dict['instance_source']] += 1
+                shortName = instance['name'].rpartition('.')[2]
+                group = instance['group']
 
-            connection_command = "{}= ".format(shortName)
+                connection_command = "{}= ".format(shortName)
 
-            tags = ["Account: " + profile_dict["instance_source"], instance]
-            for tag in profile_dict["instances"][instance]['iterm_tags']:
-                tags.append(tag)
-            if profile_dict["groups"].get(group, 0) > 1:
-                tags.append(group)
+                tags = ["Account: " + profile_dict["instance_source"], str(instance['id'])]
+                for tag in instance['iterm_tags']:
+                    tags.append(tag)
+                if profile_dict["groups"].get(group, 0) > 1:
+                    tags.append(group)
 
 
-            if "Sorry" in instance:
-                connection_command = "echo"
-                ip_for_connection = instance
-            elif profile_dict["instances"][instance].get('instance_use_ip_public', False) == True or not profile_dict["instances"][instance]['bastion']:
-                ip_for_connection = profile_dict["instances"][instance]['ip_public']
-            else:
-                ip_for_connection = instance
+                if "Sorry" in instance:
+                    connection_command = "echo"
+                    ip_for_connection = instance
+                elif instance.get('instance_use_ip_public', False) == True or not instance['bastion']:
+                    ip_for_connection = instance['ip_public']
+                else:
+                    ip_for_connection = instance
 
-            
-            if profile_dict["instances"][instance].get('platform', '') == 'windows':
-                if not profile_dict["instances"][instance]['con_username']:
-                    con_username = "Administrator"
-            else:
-                con_username = ''
-
-            connection_command = "{0}#109#0%{1}".format(connection_command, ip_for_connection)
-            
-            if profile_dict["instances"][instance]['bastion'] != False \
-                or ( (profile_dict["instances"][instance]['instance_use_ip_public'] == True and profile_dict["instances"][instance]['instance_use_bastion'] == True) \
-                or profile_dict["instances"][instance]['instance_use_bastion'] == True):
                 
-                #######################
-                bastion_for_profile = profile_dict["instances"][instance]['instance_use_bastion']
-            else:
-                bastion_for_profile = ''
+                if instance.get('platform', '') == 'windows':
+                    if not instance['con_username']:
+                        con_username = "Administrator"
+                else:
+                    con_username = ''
 
-            #     if profile_dict["instances"][instance]['ssh_key'] and profile_dict["instances"][instance]['use_shared_key']:
-            #         connection_command = "{} -i {}/{}".format(connection_command,script_config["Local"].get('ssh_keys_path', '.'), profile_dict["instances"][instance]['ssh_key'])
-            tags = ','.join(tags)
-            bastion_port = '' #TODO get this from instance
-            profile =   '{0}= #109#0%{1}%{2}%{3}%%-1%-1%%{4}%{5}%%0%-1%0%%%' \
-                        '-1%0%0%0%%1080%%0%0%1#MobaFont%10%0%0%0%15%236,' \
-                        '236,236%30,30,30%180,180,192%0%-1%0%%xterm%-1%' \
-                        '-1%_Std_Colors_0_%80%24%0%1%-1%<none>%%0#0#{6} #-1'.format(shortName, #0
-                                                                                ip_for_connection, #1
-                                                                                profile_dict["instances"][instance]['con_port'], #2
-                                                                                con_username, #3
-                                                                                bastion_for_profile, #4
-                                                                                bastion_port, #5
-                                                                                tags #6
-                                                                                )
+                connection_command = "{0}#109#0%{1}".format(connection_command, ip_for_connection)
+                
+                if instance['bastion'] != False \
+                    or ( (instance['instance_use_ip_public'] == True and instance['instance_use_bastion'] == True) \
+                    or instance['instance_use_bastion'] == True):
+                    
+                    #######################
+                    bastion_for_profile = instance['instance_use_bastion']
+                else:
+                    bastion_for_profile = ''
 
-            profiles.append(profile)
+                #     if profile_dict["instances"][instance]['ssh_key'] and profile_dict["instances"][instance]['use_shared_key']:
+                #         connection_command = "{} -i {}/{}".format(connection_command,script_config["Local"].get('ssh_keys_path', '.'), profile_dict["instances"][instance]['ssh_key'])
+                tags = ','.join(tags)
+                bastion_port = '' #TODO get this from instance
+                profile =   '\n{0}= #109#0%{1}%{2}%{3}%%-1%-1%%{4}%{5}%%0%-1%0%%%' \
+                            '-1%0%0%0%%1080%%0%0%1#MobaFont%10%0%0%0%15%236,' \
+                            '236,236%30,30,30%180,180,192%0%-1%0%%xterm%-1%' \
+                            '-1%_Std_Colors_0_%80%24%0%1%-1%<none>%%0#0#{6} #-1\n'.format(shortName, #0
+                                                                                    ip_for_connection, #1
+                                                                                    instance['con_port'], #2
+                                                                                    con_username, #3
+                                                                                    bastion_for_profile, #4
+                                                                                    bastion_port, #5
+                                                                                    tags #6
+                                                                                    )
 
-        profiles = {"Boo":(profiles)}
-        handle = open(os.path.expanduser(os.path.join(OutputDir,profile_dict["instance_source"])),'wt')
-        handle.write(json.dumps(profiles,sort_keys=True,indent=4, separators=(',', ': ')))
-        handle.close()
+                
+                profiles += profile
+                bookmark_counter += 1
+
+    handle = open(os.path.expanduser(os.path.join(OutputDir,'sesstions.ini')),'wt')
+    handle.write(profiles)
+    handle.close()
 
 
 
