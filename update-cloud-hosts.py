@@ -458,10 +458,11 @@ def updateMoba(dict_list):
                 if instance.get('platform', '') == 'windows':
                     if not instance['con_username']:
                         con_username = "Administrator"
+                    connection_type = "#91#4%"
                 else:
                     con_username = ''
+                    connection_type = "#109#0%"
 
-                connection_command = "{0}#109#0%{1}".format(connection_command, ip_for_connection)
                 
                 if instance['bastion'] != False \
                     or ( (instance['instance_use_ip_public'] == True and instance['instance_use_bastion'] == True) \
@@ -476,16 +477,17 @@ def updateMoba(dict_list):
                 #         connection_command = "{} -i {}/{}".format(connection_command,script_config["Local"].get('ssh_keys_path', '.'), profile_dict["instances"][instance]['ssh_key'])
                 tags = ','.join(tags)
                 bastion_port = '' #TODO get this from instance
-                profile =   "\n{0}= #109#0%{1}%{2}%{3}%%-1%-1%%{4}%{5}%%0%-1%0%%%" \
+                profile =   "\n{0}= {1}{2}%{3}%{4}%%-1%-1%%{5}%{6}%%0%-1%0%%%" \
                             "-1%0%0%0%%1080%%0%0%1#MobaFont%10%0%0%0%15%236," \
                             "236,236%30,30,30%180,180,192%0%-1%0%%xterm%-1%" \
-                            "-1%_Std_Colors_0_%80%24%0%1%-1%<none>%%0#0# #-1 {6} \n".format(shortName, #0
-                                                                                    ip_for_connection, #1
-                                                                                    instance['con_port'], #2
-                                                                                    con_username, #3
-                                                                                    bastion_for_profile, #4
-                                                                                    bastion_port, #5
-                                                                                    tags #6
+                            "-1%_Std_Colors_0_%80%24%0%1%-1%<none>%%0#0# {7}\n".format(shortName, #0
+                                                                                    connection_type, #1
+                                                                                    ip_for_connection, #2
+                                                                                    instance['con_port'], #3
+                                                                                    con_username, #4
+                                                                                    bastion_for_profile, #5
+                                                                                    bastion_port, #6
+                                                                                    tags #7
                                                                                     )
 
                 
