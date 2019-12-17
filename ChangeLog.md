@@ -1,5 +1,10 @@
 # Change Log
 
+## v1.3
+Now supporting running on windows and creating "MobaXterm" profiles (test on v12.4)
+Moved to use PEP 498 with f strings
+
+
 ## v1.2
 Now supporting AWS STS configurations.
 Changed session name to indicate that it was created by the script with which user and on what machine (for easy blaming via logs :)

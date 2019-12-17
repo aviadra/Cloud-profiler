@@ -127,6 +127,8 @@ For example:
 `iTerm_bastion_use:yes`
 `iTerm_bastion:1-1-1-1`
 
+# MobaXterm setup
+The way to get the profiles into Moba is not as automatic as it is for
 
 # iTerm setup
 Again, in general you don't need to change anything in your iTerm configuration. With that said, it is recommended that you create in your iTerm, the profiles you're going to reference when using the "iTerm_dynamic_profile_parent_name" tag. if you don't, nothing major will happen, iTerm will simply use the default profile and throw some errors to the Mac's console log.
