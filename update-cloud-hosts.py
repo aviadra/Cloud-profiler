@@ -454,15 +454,21 @@ def updateMoba(dict_list):
                 else:
                     ip_for_connection = instance['ip']
 
+
+                if instance['con_username']:
+                    con_username = instance['con_username']
+                    con_toggle_bit = '0%0%'
+                else:
+                    con_toggle_bit = '-1%0%'
+                    con_username = ''
                 
                 if instance.get('platform', '') == 'windows':
                     if not instance['con_username']:
                         con_username = "Administrator"
                     connection_type = "#91#4%"
                 else:
-                    con_username = ''
                     connection_type = "#109#0%"
-
+                
                 
                 if instance['bastion'] != False \
                     or ( (instance['instance_use_ip_public'] == True and instance['instance_use_bastion'] == True) \
@@ -473,21 +479,25 @@ def updateMoba(dict_list):
                 else:
                     bastion_for_profile = ''
 
-                #     if profile_dict["instances"][instance]['ssh_key'] and profile_dict["instances"][instance]['use_shared_key']:
-                #         connection_command = "{} -i {}/{}".format(connection_command,script_config["Local"].get('ssh_keys_path', '.'), profile_dict["instances"][instance]['ssh_key'])
+                if instance['ssh_key'] and instance['use_shared_key']:
+                    sharead_key_path = os.path.join(connection_command,os.path.expanduser(script_config["Local"].get('ssh_keys_path', '.')), instance['ssh_key'])
+                else:
+                        sharead_key_path = ''
                 tags = ','.join(tags)
                 bastion_port = '' #TODO get this from instance
-                profile =   "\n{0}= {1}{2}%{3}%{4}%%-1%-1%%{5}%{6}%%0%-1%0%%%" \
+                profile =   "\n{0}= {1}{2}%{3}%{4}%%-1%-1%%{5}%{6}%%0%{7}{8}%%" \
                             "-1%0%0%0%%1080%%0%0%1#MobaFont%10%0%0%0%15%236," \
                             "236,236%30,30,30%180,180,192%0%-1%0%%xterm%-1%" \
-                            "-1%_Std_Colors_0_%80%24%0%1%-1%<none>%%0#0# {7}\n".format(shortName, #0
+                            "-1%_Std_Colors_0_%80%24%0%1%-1%<none>%%0#0# {9}\n".format(shortName, #0
                                                                                     connection_type, #1
                                                                                     ip_for_connection, #2
                                                                                     instance['con_port'], #3
                                                                                     con_username, #4
                                                                                     bastion_for_profile, #5
                                                                                     bastion_port, #6
-                                                                                    tags #7
+                                                                                    con_toggle_bit, #7
+                                                                                    sharead_key_path, #8
+                                                                                    tags #9
                                                                                     )
 
                 
