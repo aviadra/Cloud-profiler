@@ -1,10 +1,26 @@
-import concurrent.futures
+[Bookmarks]
+SubRep=
+ImgNum=42
+11111= #109#0%11111%22%%%-1%-1%%%22%%0%-1%0%%%-1%0%0%0%%1080%%0%0%1#MobaFont%10%0%0%0%15%236,236,236%30,30,30%180,180,192%0%-1%0%%xterm%-1%-1%_Std_Colors_0_%80%24%0%1%-1%<none>%%0#0# #-1
+rdp-host1 (adm)= #91#4%rdp-host1%3389%adm%0%-1%-1%-1%-1%0%0%-1%%%22%%0%0%%-1%%-1%-1%0%-1#MobaFont%10%0%0%0%15%236,236,236%30,30,30%180,180,192%0%-1%0%%xterm%-1%-1%_Std_Colors_0_%80%24%0%1%-1%<none>%%0#0#jenkins, 5.5.5.5 #-1
 
-def foo(bar):
-    print('hello {}'.format(bar))
-    return 'foo'
+[Bookmarks_1]
+SubRep=AWS
+ImgNum=41
+aws-host (ec2-user)= #109#0%aws-host%22%ec2-user%%-1%-1%%bastion1%22%aviad%0%0%0%%%-1%0%0%0%%1080%%0%0%1#MobaFont%10%0%0%0%15%236,236,236%30,30,30%180,180,192%0%-1%0%%xterm%-1%-1%_Std_Colors_0_%80%24%0%1%-1%<none>%%0#0# #-1
 
-with concurrent.futures.ThreadPoolExecutor() as executor:
-    future = executor.submit(foo, 'world!')
-    return_value = future.result()
-    print(return_value)
+[Bookmarks_2]
+SubRep=AWS\Ireland
+ImgNum=41
+jenkins= #109#0%jenkins%22%%%-1%-1%%%22%%0%-1%0%%%-1%0%0%0%%1080%%0%0%1#MobaFont%10%0%0%0%15%236,236,236%30,30,30%180,180,192%0%-1%0%%xterm%-1%-1%_Std_Colors_0_%80%24%0%1%-1%<none>%%0#0# #-1
+
+[Bookmarks_3]
+SubRep=DO
+ImgNum=41
+
+[Bookmarks_4]
+SubRep=PuTTY sessions
+ImgNum=63
+pihole=#109#0%192.168.12.254%22%pi%%-1%-1%%%22%%0%0%0%%%-1%0%0%0%%1080%%0%0%1#MobaFont%10%0%0%0%15%236,236,236%30,30,30%180,180,192%0%-1%0%%xterm%-1%-1%_Std_Colors_0_%80%24%0%1%-1%<none>%%0#0# #-1
+router=#109#0%192.168.12.250%22%% %-1%-1% %%22%%0%-1%Interactive shell%
+
