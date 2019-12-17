@@ -1,5 +1,9 @@
 # Change Log
 
+## v1.3.1
+Changed repo/project name from "iTerm-cloud-profile-generator" to "Cloud profiler"
+
+
 ## v1.3
 Now supporting running on windows and creating "MobaXterm" profiles (test on v12.4)
 Moved to use PEP 498 with f strings
