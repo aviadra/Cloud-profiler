@@ -1,4 +1,4 @@
-# iTerm-cloud-profile-generator
+# Cloud profiler
 
 The purpose of this script is to connect to cloud providers and generate profiles for quick SSHing.
 As of v1.3, both iTerm for MacOS and MobaXterm for Windows are supported
