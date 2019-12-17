@@ -125,11 +125,13 @@ Other than that, the tags are the same as for AWS.
 For example:
 
 `iTerm_host_name:Incredible_name1`
+
 `iTerm_bastion_use:yes`
+
 `iTerm_bastion:1-1-1-1`
 
 # MobaXterm setup
-The way to get the profiles into Moba is not as automatic as it is for iTerm. With that said, the script will generate a "sessions" file, that you can import manually into Moba, or you can use the (shared sessions feature)[https://mobaxterm.mobatek.net/documentation.html#3_1_6].
+The way to get the profiles into Moba is not as automatic as it is for iTerm. With that said, the script will generate a "sessions" file, that you can import manually into Moba, or you can use the [shared sessions feature](https://mobaxterm.mobatek.net/documentation.html#3_1_6).
 The default location of the generated configuration file is "~/Cloud Profiler/Cloud-profiler-Moba.mxtsessions".
 
 # iTerm setup
