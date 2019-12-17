@@ -671,7 +671,7 @@ if __name__ == '__main__':
         script_config_repo = yaml.full_load(conf_file)
 
     if platform.system() == 'Windows':
-        OutputDir = "~/iTerm2/DynamicProfiles"
+        OutputDir = "~/Cloud Profiler/"
 
     else:
         OutputDir = "~/Library/Application Support/iTerm2/DynamicProfiles/"
