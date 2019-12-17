@@ -163,7 +163,7 @@ def getDOInstances(profile):
                         'ip_public': public_ip,
                         'password': password,
                         'region': drop.region['name']}
-        print(instance_source + ": " + ip + "\t\t" + instance_source + '.' + drop_name + "\t\t associated bastion: \"" + str(bastion) + "\"")
+        print(f'instance_source: {ip}\t\t{instance_source}. {drop_name}\t\tassociated bastion: "{str(bastion)}"')
     
     cloud_instances_obj_list.append({"instance_source": instance_source, "groups": groups, "instances":instances})
 
@@ -262,7 +262,7 @@ def fetchEC2Instance(instance, client, groups, instances, instance_source, reser
 
 def fetchEC2Region(region, profile_name, instances, groups, instance_source, credentials = False):
     if region in script_config['AWS']['exclude_regions']:
-        print(instance_source + ": region " + "\"" + region + "\" is in excluded list")
+        print(f'{instance_source}: region "{region}", is in excluded list')
         return
 
     if credentials:
@@ -298,11 +298,11 @@ def fetchEC2Region(region, profile_name, instances, groups, instance_source, cre
                     with concurrent.futures.ThreadPoolExecutor() as executor:
                         future = executor.submit(fetchEC2Instance, instance, client, groups, instances, instance_source, reservation, vpc_data_all)
                         return_value = future.result()
-                        print(instance_source + ": " + return_value)
+                        print(f'{instance_source}: {return_value}')
                 else:
                     print(fetchEC2Instance(instance, client, groups, instances, instance_source, reservation, vpc_data_all))
     else:
-        print(instance_source + ": \"" + region + "\" No instances found")
+        print(f'{instance_source}: No instances found in {region}')
 
 def get_MFA_func():
     try:
@@ -316,15 +316,15 @@ def get_MFA_func():
                                             timeout=30
                                     )
             if (not mfa_TOTP.isnumeric() or len(mfa_TOTP) != 6) and retry > 1:
-                print("Sorry, MFA can only be 6 numbers.\nPlease try again.")
+                print(f"Sorry, MFA can only be 6 numbers.\nPlease try again.")
             elif retry == 1:
-                print("Maximum amount of failed attempts reached, so skipping {}.".format(role_arn))
+                print(f"Maximum amount of failed attempts reached, so skipping {role_arn}.")
                 return
             else:
                 return mfa_TOTP
             retry -= 1
     except TimeoutOccurred:
-        print("Input not supplied within allowed amount of time, skipping {}.".format(role_arn))
+        print(f"Input not supplied within allowed amount of time, skipping {role_arn}.")
         return False
 
 def getEC2Instances(profile, role_arn = False):
@@ -365,7 +365,7 @@ def getEC2Instances(profile, role_arn = False):
                 except:
                     retry -= 1
                     if retry == 0:
-                        print("Sorry, was unable to \"login\" to {} using STS + MFA.".format(profile_name))
+                        print(f'Sorry, was unable to "login" to {profile_name} using STS + MFA.')
                         return
                     else:
                         pass
@@ -376,7 +376,7 @@ def getEC2Instances(profile, role_arn = False):
                                     RoleSessionName=role_session_name
                 )
             except:
-                print("Was unable to assume role. Maybe you need MFA?")
+                print(f"Was unable to assume role. Maybe you need MFA?")
                 return
 
         credentials=assumed_role_object['Credentials']
@@ -391,7 +391,7 @@ def getEC2Instances(profile, role_arn = False):
     try:
         ec2_regions = [region['RegionName'] for region in client.describe_regions()['Regions']]
     except:
-        print("Was unable to retrive information for \"regions\" in account \"{0}\", so it was skipped.".format(profile_name))
+        print(f'Was unable to retrive information for "regions" in account "{profile_name}", so it was skipped.')
         return
 
     if script_config["Local"].get('parallel_exec', True):
@@ -410,8 +410,6 @@ def getEC2Instances(profile, role_arn = False):
 
 def updateMoba(dict_list):
     global instance_counter
-    
-
     bookmark_counter = 1
 
     for d in dict_list:
@@ -469,12 +467,10 @@ def updateMoba(dict_list):
                 else:
                     connection_type = "#109#0%"
                 
-                
                 if instance['bastion'] != False \
                     or ( (instance['instance_use_ip_public'] == True and instance['instance_use_bastion'] == True) \
                     or instance['instance_use_bastion'] == True):
                     
-                    #######################
                     bastion_for_profile = instance['bastion']
                 else:
                     bastion_for_profile = ''
@@ -485,22 +481,14 @@ def updateMoba(dict_list):
                         sharead_key_path = ''
                 tags = ','.join(tags)
                 bastion_port = '' #TODO get this from instance
-                profile =   "\n{0}= {1}{2}%{3}%{4}%%-1%-1%%{5}%{6}%%0%{7}{8}%%" \
-                            "-1%0%0%0%%1080%%0%0%1#MobaFont%10%0%0%0%15%236," \
-                            "236,236%30,30,30%180,180,192%0%-1%0%%xterm%-1%" \
-                            "-1%_Std_Colors_0_%80%24%0%1%-1%<none>%%0#0# {9}\n".format(shortName, #0
-                                                                                    connection_type, #1
-                                                                                    ip_for_connection, #2
-                                                                                    instance['con_port'], #3
-                                                                                    con_username, #4
-                                                                                    bastion_for_profile, #5
-                                                                                    bastion_port, #6
-                                                                                    con_toggle_bit, #7
-                                                                                    sharead_key_path, #8
-                                                                                    tags #9
-                                                                                    )
-
-                
+                profile =   (
+                        f"\n{shortName}= {connection_type}{ip_for_connection}%{instance['con_port']}%"
+                        f"{con_username}%%-1%-1%%{bastion_for_profile}%{bastion_port}%%0%"
+                        f"{con_toggle_bit}{sharead_key_path}%%"
+                        f"-1%0%0%0%%1080%%0%0%1#MobaFont%10%0%0%0%15%236,"
+                        f"236,236%30,30,30%180,180,192%0%-1%0%%xterm%-1%"
+                        f"-1%_Std_Colors_0_%80%24%0%1%-1%<none>%%0#0# {tags}\n"
+                )
                 profiles += profile
             bookmark_counter += 1
 
@@ -624,9 +612,9 @@ def update_statics():
     for root, dirs, files in os.walk(path_to_static_profiles, topdown=False):
         for name in files:
             if name == '.DS_Store':
-                print("Static profiles, skipping \".DS_Store\"")
+                print(f'Static profiles, skipping ".DS_Store"')
                 continue
-            print("Working on static profile: "+ name)
+            print(f'Working on static profile: {name}')
             static_profile_handle=open(os.path.join(root, name))
             profiles.append(json.load(static_profile_handle))
 
@@ -683,7 +671,6 @@ if __name__ == '__main__':
         script_config_repo = yaml.full_load(conf_file)
 
     if platform.system() == 'Windows':
-        print("windows")
         OutputDir = "~/iTerm2/DynamicProfiles"
 
     else:
@@ -718,7 +705,7 @@ if __name__ == '__main__':
     # AWS profiles iterator
     if script_config['AWS'].get('profiles', False):
         for profile in script_config['AWS']['profiles']:
-            print("Working on " + profile['name'])
+            print(f"Working on {profile['name']}")
             if isinstance(profile.get("role_arns", False),dict):
                 for role_arn in profile["role_arns"]:
                     getEC2Instances(profile, role_arn)
@@ -731,13 +718,13 @@ if __name__ == '__main__':
             config.read(os.path.expanduser(script_config['AWS']['aws_credentials_file']))
             for i in config.sections():
                 if i not in script_config['AWS']['exclude_accounts']:
-                    print('Working on AWS profile from credentials file: ' + i) 
+                    print(f'Working on AWS profile from credentials file: {i}')
                     getEC2Instances(i)
     
     # DO profiles iterator
     if script_config['DO'].get('profiles', False):
         for profile in script_config['DO']['profiles']:
-            print("Working on " + profile['name'])
+            print(f"Working on {profile['name']}")
             getDOInstances(profile)
     
     if platform.system() == 'Windows':
@@ -746,5 +733,5 @@ if __name__ == '__main__':
         updateTerm(cloud_instances_obj_list)
 
 
-    print("\nCreated profiles {}\nTotal: {}".format(json.dumps(instance_counter,sort_keys=True,indent=4, separators=(',', ': ')),sum(instance_counter.values())))
-    print("\nWe wish you calm clouds and a serene path...\n")
+    print(f"\nCreated profiles {json.dumps(instance_counter,sort_keys=True,indent=4, separators=(',', ': '))}\nTotal: {sum(instance_counter.values())}")
+    print(f"\nWe wish you calm clouds and a serene path...\n")
