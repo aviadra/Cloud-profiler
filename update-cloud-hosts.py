@@ -44,7 +44,10 @@ def settingResolver(setting,instance,vpc_data_all,caller_type='AWS', setting_val
         if caller_type == 'DO':
             pass
         if setting_value == False:
-            setting = setting.rpartition('iTerm_')[2] # Strip iTerm prefix because settings are now read from conf files
+            if 'iTerm_' in setting:
+                setting = setting.rpartition('iTerm_')[2] # Strip iTerm prefix because settings are now read from conf files
+            if 'Cloud_Profiler_' in setting:
+                setting = setting.rpartition('Cloud_Profiler_')[2] # Strip iTerm prefix because settings are now read from conf files
             setting_value = profile.get(setting, False)
             if setting_value == False:
                 setting_value = script_config[caller_type].get(setting, False)
@@ -56,7 +59,7 @@ def get_DO_tag_value(tags,q_tag, q_tag_value):
             tag_key=''
             tag_value=''
             for tag in tags:
-                if ':' in tag and 'iTerm' in tag:
+                if ':' in tag and ('iTerm' in tag or 'Cloud_Profiler' in tags):
                     tag_key,tag_value = tag.split(':')
                     if tag_key == q_tag:
                         q_tag_value = tag_value.replace('_', ' ')
@@ -91,7 +94,7 @@ def vpc_data(vpcid, q_tag, response_vpc):
         if vpc.get('Tags', False):
             if q_tag == "flat":
                 for tag in vpc.get('Tags'):
-                    if "iTerm" in tag['Key']:
+                    if "iTerm" in tag['Key'] or 'Cloud_Profiler' in tag['Key']:
                         if not q_tag_value:
                             q_tag_value = ''
                         q_tag_value += "VPC." + tag['Key'] + ': ' + tag['Value'] + ","
@@ -110,20 +113,23 @@ def getDOInstances(profile):
     my_droplets = manager.get_all_droplets()
 
     for drop in my_droplets:
-        if settingResolver('iTerm_skip_stopped',drop, {}, "DO", True) == True and drop.status != 'active':
+        if (script_config['DO'].get('skip_stopped', True) == True \
+            and script_config['Local'].get('skip_stopped', True) == True \
+            and profile.get('skip_stopped', True) == True) \
+            and drop.status != 'active':
             continue
         
         password = [False, ""]
         iterm_tags = []
-        instance_use_ip_public = settingResolver('iTerm_use_ip_public',drop, {}, "DO", False)
-        instance_use_bastion = settingResolver('iTerm_use_bastion',drop, {}, "DO", False)
-        or_host_name=settingResolver('iTerm_host_name',drop,{},"DO", False)
-        bastion = settingResolver('iTerm_bastion',drop,{},"DO", False)
-        con_username = settingResolver('iTerm_con_username',drop,{},"DO", False)
-        con_port = settingResolver('iTerm_con_port',drop,{},"DO", 22)
-        ssh_key = settingResolver('iTerm_ssh_key',drop,{}, "DO", False)
-        use_shared_key = settingResolver('iTerm_use_shared_key',drop,{},"DO", False)
-        dynamic_profile_parent_name = settingResolver('iTerm_dynamic_profile_parent_name',drop,{},"DO")
+        instance_use_ip_public = settingResolver('use_ip_public',drop, {}, "DO", False)
+        instance_use_bastion = settingResolver('use_bastion',drop, {}, "DO", False)
+        or_host_name=settingResolver('host_name',drop,{},"DO", False)
+        bastion = settingResolver('bastion',drop,{},"DO", False)
+        con_username = settingResolver('con_username',drop,{},"DO", False)
+        con_port = settingResolver('con_port',drop,{},"DO", 22)
+        ssh_key = settingResolver('ssh_key',drop,{}, "DO", False)
+        use_shared_key = settingResolver('use_shared_key',drop,{},"DO", False)
+        dynamic_profile_parent_name = settingResolver('dynamic_profile_parent_name',drop,{},"DO")
         public_ip = drop.ip_address
 
         if or_host_name:
@@ -173,14 +179,14 @@ def fetchEC2Instance(instance, client, groups, instances, instance_source, reser
     iterm_tags = []
     password = [False, ""]
 
-    instance_use_bastion = settingResolver('iTerm_use_bastion', instance, vpc_data_all,'AWS', False)
-    instance_use_ip_public = settingResolver('iTerm_use_ip_public', instance, vpc_data_all,'AWS', False)
-    ssh_key = settingResolver('iTerm_ssh_key', instance, vpc_data_all,'AWS', instance.get('KeyName',False))
-    use_shared_key = settingResolver('iTerm_use_shared_key', instance, vpc_data_all,'AWS', False)
-    con_username = settingResolver('iTerm_con_username', instance, vpc_data_all,'AWS', False)
-    con_port = settingResolver('iTerm_con_port', instance, vpc_data_all,'AWS', 22)
-    bastion = settingResolver('iTerm_bastion', instance, vpc_data_all,'AWS', False)
-    dynamic_profile_parent_name = settingResolver('iTerm_dynamic_profile_parent_name', instance, vpc_data_all,'AWS', False)
+    instance_use_bastion = settingResolver('use_bastion', instance, vpc_data_all,'AWS', False)
+    instance_use_ip_public = settingResolver('use_ip_public', instance, vpc_data_all,'AWS', False)
+    ssh_key = settingResolver('ssh_key', instance, vpc_data_all,'AWS', instance.get('KeyName',False))
+    use_shared_key = settingResolver('use_shared_key', instance, vpc_data_all,'AWS', False)
+    con_username = settingResolver('con_username', instance, vpc_data_all,'AWS', False)
+    con_port = settingResolver('con_port', instance, vpc_data_all,'AWS', 22)
+    bastion = settingResolver('bastion', instance, vpc_data_all,'AWS', False)
+    dynamic_profile_parent_name = settingResolver('dynamic_profile_parent_name', instance, vpc_data_all,'AWS', False)
     instance_vpc_flat_tags = vpc_data(instance.get('VpcId', ''), "flat", vpc_data_all)
     instance_flat_sgs = ''
     for interface in instance.get('NetworkInterfaces',[]):
