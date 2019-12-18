@@ -87,25 +87,27 @@ The precedence of directives, is:
 5. On the "Local" level in the configuration files.
 
 ### Tags
-When setting the directives with tags, they have to be prefixed with "iTerm_".
+Directives can be set with tags on the instances. You can either use them as is, for example as they appear in the config files, or prefix them with either "Cloud_Profiler" or "iTerm_" (the latter is kept for compatibility and may be deprecated in a future release).
+It is recommended to use the "Cloud_Profiler" prefix, as it just gives context to the person seeing the tags on the instance.
+For example, `Cloud_Profiler_profile_parent_name` (the preferred method), `iTerm_profile_parent_name` (may be deprecated in a future release), and even just `profile_parent_name` are all acceptable forms of tagging.
 
 Possible directives are:
 
-`iTerm_dynamic_profile_parent_name` - Sets the profile to inherit colors and other settings from.
+`profile_parent_name` - Sets the profile to inherit colors and other settings from.
 
-`iTerm_bastion` - The address of the Bastion to be used to reach this VM. When setting the value of this setting to "no", the bastion will not be used.
+`bastion` - The address of the Bastion to be used to reach this VM. When setting the value of this setting to "no", the bastion will not be used.
 
-`iTerm_bastion_use` - When using "iTerm_ip_public", the bastion is not used. unless this tag is set with the value of "yes".
+`bastion_use` - When using "iTerm_ip_public", the bastion is not used. unless this tag is set with the value of "yes".
 
-`iTerm_use_ip_public` - Denote that this instance profile, should use the instance public IP for the connection. Setting this tag, also sets the profile to not use a bastion, unless the "iTerm_bastion_use" tag is set.
+`use_ip_public` - Denote that this instance profile, should use the instance public IP for the connection. Setting this tag, also sets the profile to not use a bastion, unless the "iTerm_bastion_use" tag is set.
 
-`iTerm_con_username` - The username to add to the connection.
+`con_username` - The username to add to the connection.
 
-`iTerm_con_port` - The port to add to the connection.
+`con_port` - The port to add to the connection.
 
-`iTerm_use_shared_key` - Toggle the use of the shared key that was used to create the instance. While this is not recommended, this is where you usually start. The default is to not use the shared key with the value of "False".
+`use_shared_key` - Toggle the use of the shared key that was used to create the instance. While this is not recommended, this is where you usually start. The default is to not use the shared key with the value of "False".
 
-`iTerm_ssh_key` - The name of the key to use. If this is not defined, and the "use_shared_key" is set, the key name on the instance is used.
+`ssh_key` - The name of the key to use. If this is not defined, and the "use_shared_key" is set, the key name on the instance is used.
 
 # Cloud side setup
 In general, there really isn't anything you "need" to do on the clouds side. With that said, there are Things you can/should set on the cloud side to make the setup more specific.
@@ -124,11 +126,11 @@ Other than that, the tags are the same as for AWS.
 
 For example:
 
-`iTerm_host_name:Incredible_name1`
+`host_name:Incredible_name1`
 
-`iTerm_bastion_use:yes`
+`bastion_use:yes`
 
-`iTerm_bastion:1-1-1-1`
+`bastion:1-1-1-1`
 
 # MobaXterm setup
 The way to get the profiles into Moba is not as automatic as it is for iTerm. With that said, the script will generate a "sessions" file, that you can import manually into Moba, or you can use the [shared sessions feature](https://mobaxterm.mobatek.net/documentation.html#3_1_6).

@@ -69,6 +69,10 @@ def get_DO_tag_value(tags,q_tag, q_tag_value):
             
 def get_tag_value(tags, q_tag, sg=False, q_tag_value = False):
     for tag in tags:
+        if 'iTerm_' in tag.get('Key', ''):
+            tag['Key'] = tag['Key'].rpartition('iTerm_')[2]
+        if 'Cloud_Profiler_' in tag.get('Key', ''):
+            tag['Key'] = tag['Key'].rpartition('Cloud_Profiler_')[2]
         if q_tag == 'flat' and not sg:
             if not q_tag_value:
                 q_tag_value = ''

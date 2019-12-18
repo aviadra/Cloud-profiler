@@ -1,7 +1,8 @@
 # Change Log
 
 ## v1.4
-Changed the names of tags to set on the cloud providor. 
+Changed the names of tags one sets on instances to "Cloud_Provider".
+
 
 ## v1.3.1
 Changed repo/project name from "iTerm-cloud-profile-generator" to "Cloud profiler"
