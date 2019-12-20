@@ -2,6 +2,7 @@
 
 ## v1.4
 Changed the names of tags one sets on instances to "Cloud_Provider".
+PEP 498 the last of the "formats" have been removed.
 
 
 ## v1.3.1
