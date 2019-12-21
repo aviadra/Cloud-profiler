@@ -84,9 +84,9 @@ def get_tag_value(tags, q_tag, sg=False, q_tag_value = False):
         else:
             if tag['Key'] == q_tag:
                 q_tag_value = tag['Value']
-                if tag['Value'] == 'True' or tag['Value'] == "yes" or tag['Value'] == "yep":
+                if tag['Value'] == 'True' or tag['Value'] == "yes" or tag['Value'] == "y":
                     q_tag_value = True
-                if tag['Value'] == 'no':
+                if tag['Value'] == 'False' or tag['Value'] == 'no' or tag['Value'] == "n":
                     q_tag_value = False
                 break
     return q_tag_value

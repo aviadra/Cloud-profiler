@@ -6,7 +6,7 @@ Currently the supported cloud providers, are AWS and Digital Ocean.
 This project is a fork of [gmartinerro](https://gist.github.com/gmartinerro/40831c8874ebb32bc17711af95e1416b), which gave me a good starting point. With that said, this version doesn't change the hosts file, so that it can be run without sudo.
 
 This project has some assumptions:
-- The script runs on either MacOS (tested only on Catalina and Mojave) or Windows (test on windows 10).
+- The script runs on either MacOS (tested only on Catalina and Mojave) or Windows (tested on windows 10).
 - You have [iTerm](https://iterm2.com/) installed when using a Mac.
 - Your system has python3 installed.
 
@@ -21,7 +21,7 @@ This project has some assumptions:
 - Using python3 run the script
 
 `python3 ./iTerm-cloud-profile-generator/update-cloud-hosts.py`
-- You should see the dynamic profiles populated in iTerm (cmd + O)
+- You should see the dynamic profiles populated in iTerm (cmd + O). Windows users, see instructions below.
 
 # RDP support for MacOS (optional)
 The RDP support is based on your MAC's ability to open rdp URIs. That is iTerm will issue something like "open rdp://address-of-instance". Compatible programs are Microsoft Remote Desktop 8/10 available on the app store.
@@ -30,7 +30,7 @@ The RDP support is based on your MAC's ability to open rdp URIs. That is iTerm w
 There is a YAML configuration file within the repo that gives the default values for the script behavior.
 On the first run of the script, a personal configuration file is created in `~/.iTerm-cloud-profile-generator/config.yaml`. So, you don't have to fork the repo in order to have your own settings. Settings in the personal file will take precedence over the default ones from the repo file.
 Possible options within the configuration files are noted below.
-Note: For convenience, the following values are accepted for "True": 'True' and 'yes', and for "False: 'False' and 'no'.
+Note: For convenience, the following values are accepted for "True": 'True', 'yes' and 'y', and for "False: 'False', 'no' and 'n'.
 
 ## Local options
 These are settings that are local to your machine or you want to set globally for all clouds. You can set here most of the same directives as in the "tags" section, except the below ones (they don't make sense anywhere else):
