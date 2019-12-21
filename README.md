@@ -21,7 +21,7 @@ This project has some assumptions:
 - Using python3 run the script
 
 `python3 ./iTerm-cloud-profile-generator/update-cloud-hosts.py`
-- You should see the dynamic profiles populated in iTerm (cmd + O). Windows users, see instructions below.
+- You need to setup your access keys per the instructions below and then run again. Once that's done, you should see the dynamic profiles populated in iTerm (cmd + O). Windows users, see instructions below.
 
 # RDP support for MacOS (optional)
 The RDP support is based on your MAC's ability to open rdp URIs. That is iTerm will issue something like "open rdp://address-of-instance". Compatible programs are Microsoft Remote Desktop 8/10 available on the app store.
