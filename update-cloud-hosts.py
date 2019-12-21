@@ -168,7 +168,7 @@ def getDOInstances(profile):
                         'con_username': con_username,
                         'bastion_con_username': bastion_con_username,
                         'con_port': con_port,
-                        'con_port_bastion': bastion_con_port,
+                        'bastion_con_port': bastion_con_port,
                         'id': drop.id,
                         'ssh_key': ssh_key,
                         'use_shared_key': use_shared_key,
@@ -471,10 +471,8 @@ def updateMoba(dict_list):
 
                 if instance['con_username']:
                     con_username = instance['con_username']
-                    con_toggle_bit = '0%0%'
                 else:
-                    con_toggle_bit = '-1%0%'
-                    con_username = ''
+                    con_username = '<default>'
                 
                 if instance.get('platform', '') == 'windows':
                     if not instance['con_username']:
@@ -496,11 +494,18 @@ def updateMoba(dict_list):
                 else:
                         sharead_key_path = ''
                 tags = ','.join(tags)
-                bastion_port = '' #TODO get this from instance
+                if instance['bastion_con_port'] != 22:
+                    bastion_port = instance['bastion_con_port']
+                else:
+                    bastion_port = ''
+                if instance['bastion_con_username']:
+                    bastion_user = instance['bastion_con_username']
+                else:
+                    bastion_user = ''
                 profile =   (
                         f"\n{shortName}= {connection_type}{ip_for_connection}%{instance['con_port']}%"
-                        f"{con_username}%%-1%-1%%{bastion_for_profile}%{bastion_port}%%0%"
-                        f"{con_toggle_bit}{sharead_key_path}%%"
+                        f"{con_username}%%-1%-1%%{bastion_for_profile}%{bastion_port}%{bastion_user}%0%"
+                        f"0%0%{sharead_key_path}%%"
                         f"-1%0%0%0%%1080%%0%0%1#MobaFont%10%0%0%0%15%236,"
                         f"236,236%30,30,30%180,180,192%0%-1%0%%xterm%-1%"
                         f"-1%_Std_Colors_0_%80%24%0%1%-1%<none>%%0#0# {tags}\n"
@@ -575,7 +580,7 @@ def updateTerm(dict_list):
                                     f" then kill -9 $( ps aux | grep \"ssh -f\" | grep -v grep | awk \'{{print $2}}\' ) ; else random_unused_port; fi ;ssh -f -o " \
                                     f"ExitOnForwardFailure=yes -L ${{RANDOM_PORT}}:{ip_for_connection}:" \
                                     f"{profile_dict['instances'][instance].get('con_port_windows', 3389)} " \
-                                    f"{profile_dict['instances'][instance]['bastion']} sleep 10 ; open " \
+                                    f"{bastion_connection_command} sleep 10 ; open " \
                                     f"'rdp://full%20address=s:127.0.0.1:'\"${{RANDOM_PORT}}\"'" \
                                     f"&audiomode=i:2&disable%20themes=i:0&screen%20mode%20id=i:1&use%20multimon" \
                                     f":i:0&username:s:{con_username}" \
@@ -722,8 +727,6 @@ if __name__ == '__main__':
     username = getpass.getuser()
     config = configparser.ConfigParser()
 
-    # Static profiles iterator
-    update_statics()
 
 
     # AWS profiles iterator
@@ -755,6 +758,8 @@ if __name__ == '__main__':
         updateMoba(cloud_instances_obj_list)
     else:
         updateTerm(cloud_instances_obj_list)
+        # Static profiles iterator
+        update_statics()
 
 
     print(f"\nCreated profiles {json.dumps(instance_counter,sort_keys=True,indent=4, separators=(',', ': '))}\nTotal: {sum(instance_counter.values())}")
