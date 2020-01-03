@@ -1,5 +1,9 @@
 # Change Log
 
+## v1.4.1
+Changed bastion decision (again) so that it works as expected.
+Removed unnecessary space after the ssh command 
+
 ## v1.4
 Changed the names of tags one sets on instances to "Cloud_Provider".
 PEP 498 the last of the "formats" have been removed.
