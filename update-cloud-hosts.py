@@ -430,6 +430,7 @@ def updateMoba(dict_list):
     global instance_counter
     bookmark_counter = 1
 
+    d = ''
     for d in dict_list:
         if not 'instance_by_region' in d:
             d['instance_by_region'] = {}
