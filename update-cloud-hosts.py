@@ -630,13 +630,17 @@ def updateTerm(dict_list):
             profiles.append(profile)
 
         profiles = {"Profiles":(profiles)}
-        handle = open(os.path.expanduser(os.path.join(OutputDir,profile_dict["instance_source"])),'wt')
+        handle = open(os.path.expanduser(os.path.join(OutputDir,"." + profile_dict["instance_source"])),'wt')
         handle.write(json.dumps(profiles,sort_keys=True,indent=4, separators=(',', ': ')))
         handle.close()
+        head_tail = os.path.split(handle.name)
+        rename_tagret = head_tail[1][1:]
+        os.rename(handle.name,os.path.join(head_tail[0],rename_tagret))
+
 
 def update_statics():
     profiles =[]
-    app_static_profile_handle = open(os.path.expanduser(os.path.join(OutputDir, "statics")),"wt")
+    app_static_profile_handle = open(os.path.expanduser(os.path.join(OutputDir, ".statics")),"wt")
     path_to_static_profiles = os.path.expanduser(script_config["Local"]['static_profiles'])
     
     for root, dirs, files in os.walk(path_to_static_profiles, topdown=False):
@@ -651,6 +655,7 @@ def update_statics():
     
     profiles = {"Profiles":(profiles)} 
     app_static_profile_handle.write(json.dumps(profiles,sort_keys=True,indent=4, separators=(',', ': ')))
+    os.rename(app_static_profile_handle.name,os.path.expanduser(os.path.join(OutputDir, "statics")))
     app_static_profile_handle.close()
 
 

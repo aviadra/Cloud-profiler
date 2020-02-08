@@ -3,8 +3,9 @@ import time
 import progressbar
 
 if os.environ.get('CP_LoopInterval', False):
-    print(f"Clour Profiler Service - Found CP_LoopInterval set to: {os.environ['CP_LoopInterval']}, and using it as the refresh interval.")
-    LoopInt = int(os.environ['CP_LoopInterval'])
+    CP_LoopInterval = os.environ['CP_LoopInterval']
+    print(f"Clour Profiler Service - Found CP_LoopInterval set to: {CP_LoopInterval}, and using it as the refresh interval.")
+    LoopInt = int(CP_LoopInterval)
 else:
     LoopInt = 300 #Default value of 5 minutes
 
