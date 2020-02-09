@@ -18,27 +18,27 @@ As of v1.5, it is possible to run the script using a docker container. You can c
 
 `docker pull aviadra/cp`
 
-- Run as a service
-This is the recommended way of running the script. Running it with the below parameters will have docker ensure that it is always in the backround (unless specifically stopped), and the default refresh rate is 5 minutes.
+### Run as a service
+This is the recommended way of running the script. Running it with the below parameters will have docker ensure that it is always in the background (unless specifically stopped), and the default refresh rate is 5 minutes.
 
 `docker run --restart=always -d -e CP_Service=True -v ~/Library/Application\ Support/iTerm2/DynamicProfiles/:/root/Library/Application\ Support/iTerm2/DynamicProfiles/ -v ~/.iTerm-cloud-profile-generator/config.yaml:/root/.iTerm-cloud-profile-generator/config.yaml aviadra/cp`
 
-- Run ad-hoc
+### Run ad-hoc
 It is absolutely possible to run the script on a per-needed bases. To do so, simply issue the same command, only omitting the "-d", "-e CP_Service=True" and "--restart=always" parameters.
 
-`docker run -v ~/Library/Application\ Support/iTerm2/DynamicProfiles/:/root/Library/Application\ Support/iTerm2/DynamicProfiles/ -v ~/.iTerm-cloud-profile-generator/config.yaml:/root/.iTerm-cloud-profile-generator/config.yaml aviadra/cp`
+`docker run --rm -v ~/Library/Application\ Support/iTerm2/DynamicProfiles/:/root/Library/Application\ Support/iTerm2/DynamicProfiles/ -v ~/.iTerm-cloud-profile-generator/config.yaml:/root/.iTerm-cloud-profile-generator/config.yaml aviadra/cp`
+Note: While not required, I've added to the above the "[--rm](https://docs.docker.com/engine/reference/run/#clean-up---rm)" option just for tightness.
+
+You should be all set, just go to the Configuration section.
 
 # Environment variables
 It is possible to change the default behavior of the script with Environment variables. These can be passed to the container form, using the -e parameter (it can be specified multiple times if needed). Possible variables are:
 
-- CP_LoopInterval
-This changes the amount of time the script waits between refreshes. The default is 300 (5 minutes).
+- CP_LoopInterval - This changes the amount of time the script waits between refreshes. The default is 300 (5 minutes).
 
-- CP_Service
-Toggles “service” behavior (infinite loop), so one can choose to run the script in “ad-hoc” or as a service (as shown in the above instrauctions.
+- CP_Service - Toggles “service” behavior (infinite loop), so one can choose to run the script in “ad-hoc” or as a service (as shown in the above instructions.
 
-- OutputDir
-This changes the location, where the resulting profile files are created.
+- OutputDir - This changes the location, where the resulting profile files are created.
 
 ## System install (less recommended)
 - Install requirements using pip
@@ -53,10 +53,7 @@ This changes the location, where the resulting profile files are created.
 `python3 ./iTerm-cloud-profile-generator/update-cloud-hosts.py`
 - You need to setup your access keys per the instructions below and then run again. Once that's done, you should see the dynamic profiles populated in iTerm (cmd + O). Windows users, see instructions below.
 
-# RDP support for MacOS (optional)
-The RDP support is based on your MAC's ability to open rdp URIs. That is iTerm will issue something like "open rdp://address-of-instance". Compatible programs are Microsoft Remote Desktop 8/10 available on the app store.
-
-# Configuration files (Optional)
+# Configuration files
 There is a YAML configuration file within the repo that gives the default values for the script behavior.
 On the first run of the script, a personal configuration file is created in `~/.iTerm-cloud-profile-generator/config.yaml`. So, you don't have to fork the repo in order to have your own settings. Settings in the personal file will take precedence over the default ones from the repo file.
 Possible options within the configuration files are noted below.
@@ -169,8 +166,12 @@ The default location of the generated configuration file is "~/Cloud Profiler/Cl
 # iTerm setup
 Again, in general you don't need to change anything in your iTerm configuration. With that said, it is recommended that you create in your iTerm, the profiles you're going to reference when using the "iTerm_dynamic_profile_parent_name" tag. if you don't, nothing major will happen, iTerm will simply use the default profile and throw some errors to the Mac's console log.
 
+## RDP support for MacOS (optional)
+The RDP support is based on your MAC's ability to open rdp URIs. That is iTerm will issue something like "open rdp://address-of-instance". Compatible programs are Microsoft Remote Desktop 8/10 available on the app store.
+
+
 ## Static profiles
-The "Static profiles" feature of this script, allows you to centrally distribute profiles so that you can reference them with the "iTerm_dynamic_profile_parent_name" tag. For example, the two profiles in the repo, give the "Red Alert" and Dracula color schemas with my beloved keyboard shortcuts. They are installed for you in the dynamic profiles automatically, which makes it possible to reference them with the tag and get a clear distinction when you're on prod vs normal servers.
+The "Static profiles" feature of this script, allows you to centrally distribute profiles so that you can reference them with the "iTerm_dynamic_profile_parent_name" tag. For example, the two profiles in the repo, give the "Red Alert" and "Dracula" color schemas with my beloved keyboard shortcuts. They are installed for you in the dynamic profiles automatically, which makes it possible to reference them with the tag and get a clear distinction when you're on prod vs normal servers.
 The static profiles can also be used as a shim for the cases where you want to distribute profiles that don't come from AWS. For example, you have some VMs on a local ESX. You can create their profiles and save them in the "static" directory, and they will be distributed to the rest of the repo users
 
 The way to add/remove profiles, is to do so in the "iTerm2-static-profiles" directory within the repo. You get the profiles, by creating them the regular iTerm way (as explained below) and then using the "export to json" options at the bottom of the "profiles" tab in preferences.

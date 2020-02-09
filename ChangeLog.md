@@ -2,6 +2,9 @@
 
 ## v1.5
 Docker support :)
+Changed placement of the profiles to be atomic due to change in iTerm 3.8.8[#8679](https://gitlab.com/gnachman/iterm2/issues/8679).
+Windows bug "missing setting of d, before use" fix.
+
 
 ## v1.4.1
 Changed bastion decision (again) so that it works as expected.
