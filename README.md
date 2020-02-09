@@ -62,7 +62,7 @@ Possible options within the configuration files are noted below.
 Note: For convenience, the following values are accepted for "True": 'True', 'yes' and 'y', and for "False: 'False', 'no' and 'n'.
 
 ## Example configuration
-The below configuration, is what I actually use as my daily driver (keys have been omitted).
+While a valid sample configuration file is provided within the repo, the below configuration, is what I actually use as my daily driver (keys have been omitted).
 ```
 Local:
   static_profiles: "./iTerm2-static-profiles"
