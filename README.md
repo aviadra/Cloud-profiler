@@ -14,19 +14,21 @@ This project has some assumptions:
 
 ## Docker way (recommended)
 As of v1.5, it is possible to run the script using a docker container. You can choose to build it yourself or pull from docker hub. The instructions will focus on the latter.
-- Pull the container from docker hub
+
+#### Pull the container from docker hub
 
 `docker pull aviadra/cp`
 
-### Run as a service
-This is the recommended way of running the script. Running it with the below parameters will have docker ensure that it is always in the background (unless specifically stopped), and the default refresh rate is 5 minutes.
+#### Run as a service
+This is the recommended way of running the script. Running it with the below parameters will have docker ensure that it is always in the background (unless specifically stopped), and the default refresh rate is 5 minutes. The below also maps the configuration directory and iTerm profile directory into the container.
 
 `docker run --restart=always -d -e CP_Service=True -v ~/Library/Application\ Support/iTerm2/DynamicProfiles/:/root/Library/Application\ Support/iTerm2/DynamicProfiles/ -v ~/.iTerm-cloud-profile-generator/config.yaml:/root/.iTerm-cloud-profile-generator/config.yaml aviadra/cp`
 
-### Run ad-hoc
+#### Run ad-hoc
 It is absolutely possible to run the script on a per-needed bases. To do so, simply issue the same command, only omitting the "-d", "-e CP_Service=True" and "--restart=always" parameters.
 
 `docker run --rm -v ~/Library/Application\ Support/iTerm2/DynamicProfiles/:/root/Library/Application\ Support/iTerm2/DynamicProfiles/ -v ~/.iTerm-cloud-profile-generator/config.yaml:/root/.iTerm-cloud-profile-generator/config.yaml aviadra/cp`
+
 Note: While not required, I've added to the above the "[--rm](https://docs.docker.com/engine/reference/run/#clean-up---rm)" option just for tightness.
 
 You should be all set, just go to the Configuration section.
@@ -58,6 +60,46 @@ There is a YAML configuration file within the repo that gives the default values
 On the first run of the script, a personal configuration file is created in `~/.iTerm-cloud-profile-generator/config.yaml`. So, you don't have to fork the repo in order to have your own settings. Settings in the personal file will take precedence over the default ones from the repo file.
 Possible options within the configuration files are noted below.
 Note: For convenience, the following values are accepted for "True": 'True', 'yes' and 'y', and for "False: 'False', 'no' and 'n'.
+
+## Example configuration
+The below configuration, is what I actually use as my daily driver (keys have been omitted).
+```
+Local:
+  static_profiles: "./iTerm2-static-profiles"
+  ssh_base_string: "-oStrictHostKeyChecking=no -oUpdateHostKeys=yes -oServerAliveInterval=30 -oAddKeysToAgent=no"
+  con_username: ''
+  bastion: ''
+  ssh_keys_path: "~/.ssh"
+  use_shared_key: False
+  
+AWS:
+  exclude_regions: ["ap-southeast-1", "ap-southeast-2","sa-east-1","ap-northeast-1","ap-northeast-2","ap-south-1"]
+  aws_credentials_file: "~/.aws/credentials"
+  con_username: False
+  bastion_con_port: 22
+  use_ip_public: False
+  skip_stopped: True
+  exclude_accounts: []
+  use_awscli_profiles: False
+  update_hosts: False
+  profiles:
+    -
+      name: "CYE_TGT"
+      aws_access_key_id: "AKIAW*********"
+      aws_secret_access_key: "D5am******************"
+      role_arns: {
+        sts_oper: "arn:aws:iam::438**********:role/iTerm_RO_from_TGT",
+        sts_devops: "arn:aws:iam::168**********:role/iTerm_RO_from_TGT",
+        sts_haim: "arn:aws:iam::701**********:role/iTerm_RO_from_TGT",
+      }
+
+DO:
+  profiles:
+    -
+      name: "The one"
+      token: "secretspecialuniquesnowflake"
+      use_ip_public: True
+```
 
 ## Local options
 These are settings that are local to your machine or you want to set globally for all clouds. You can set here most of the same directives as in the "tags" section, except the below ones (they don't make sense anywhere else):
