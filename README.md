@@ -8,9 +8,39 @@ This project is a fork of [gmartinerro](https://gist.github.com/gmartinerro/4083
 This project has some assumptions:
 - The script runs on either MacOS (tested only on Catalina and Mojave) or Windows (tested on windows 10).
 - You have [iTerm](https://iterm2.com/) installed when using a Mac.
-- Your system has python3 installed.
+- Your system has Docker, or python3 installed (if using the "system install" method).
 
 # How to use
+
+## Docker way (recommended)
+As of v1.5, it is possible to run the script using a docker container. You can choose to build it yourself or pull from docker hub. The instructions will focus on the latter.
+- Pull the container from docker hub
+
+`docker pull aviadra/cp`
+
+- Run as a service
+This is the recommended way of running the script. Running it with the below parameters will have docker ensure that it is always in the backround (unless specifically stopped), and the default refresh rate is 5 minutes.
+
+`docker run --restart=always -d -e CP_Service=True -v ~/Library/Application\ Support/iTerm2/DynamicProfiles/:/root/Library/Application\ Support/iTerm2/DynamicProfiles/ -v ~/.iTerm-cloud-profile-generator/config.yaml:/root/.iTerm-cloud-profile-generator/config.yaml aviadra/cp`
+
+- Run ad-hoc
+It is absolutely possible to run the script on a per-needed bases. To do so, simply issue the same command, only omitting the "-d", "-e CP_Service=True" and "--restart=always" parameters.
+
+`docker run -v ~/Library/Application\ Support/iTerm2/DynamicProfiles/:/root/Library/Application\ Support/iTerm2/DynamicProfiles/ -v ~/.iTerm-cloud-profile-generator/config.yaml:/root/.iTerm-cloud-profile-generator/config.yaml aviadra/cp`
+
+# Environment variables
+It is possible to change the default behavior of the script with Environment variables. These can be passed to the container form, using the -e parameter (it can be specified multiple times if needed). Possible variables are:
+
+- CP_LoopInterval
+This changes the amount of time the script waits between refreshes. The default is 300 (5 minutes).
+
+- CP_Service
+Toggles “service” behavior (infinite loop), so one can choose to run the script in “ad-hoc” or as a service (as shown in the above instrauctions.
+
+- OutputDir
+This changes the location, where the resulting profile files are created.
+
+## System install (less recommended)
 - Install requirements using pip
 
 `pip3 install requirements.txt --user`

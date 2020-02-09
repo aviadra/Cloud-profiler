@@ -1,5 +1,8 @@
 # Change Log
 
+## v1.5
+Docker support :)
+
 ## v1.4.1
 Changed bastion decision (again) so that it works as expected.
 Removed unnecessary space after the ssh command 
