@@ -630,13 +630,17 @@ def updateTerm(dict_list):
             profiles.append(profile)
 
         profiles = {"Profiles":(profiles)}
-        handle = open(os.path.expanduser(os.path.join(OutputDir,profile_dict["instance_source"])),'wt')
+        handle = open(os.path.expanduser(os.path.join(OutputDir,"." + profile_dict["instance_source"])),'wt')
         handle.write(json.dumps(profiles,sort_keys=True,indent=4, separators=(',', ': ')))
         handle.close()
+        head_tail = os.path.split(handle.name)
+        rename_tagret = head_tail[1][1:]
+        os.rename(handle.name,os.path.join(head_tail[0],rename_tagret))
+
 
 def update_statics():
     profiles =[]
-    app_static_profile_handle = open(os.path.expanduser(os.path.join(OutputDir, "statics")),"wt")
+    app_static_profile_handle = open(os.path.expanduser(os.path.join(OutputDir, ".statics")),"wt")
     path_to_static_profiles = os.path.expanduser(script_config["Local"]['static_profiles'])
     
     for root, dirs, files in os.walk(path_to_static_profiles, topdown=False):
@@ -651,6 +655,7 @@ def update_statics():
     
     profiles = {"Profiles":(profiles)} 
     app_static_profile_handle.write(json.dumps(profiles,sort_keys=True,indent=4, separators=(',', ': ')))
+    os.rename(app_static_profile_handle.name,os.path.expanduser(os.path.join(OutputDir, "statics")))
     app_static_profile_handle.close()
 
 
@@ -699,12 +704,14 @@ if __name__ == '__main__':
     # From repo
     with open(os.path.join(script_dir,'config.yaml')) as conf_file:
         script_config_repo = yaml.full_load(conf_file)
-
-    if platform.system() == 'Windows':
+    
+    if os.environ.get('OutputDir', False):
+        OutputDir = os.environ['OutputDir']
+    elif platform.system() == 'Windows':
         OutputDir = "~/Cloud Profiler/"
-
     else:
         OutputDir = "~/Library/Application Support/iTerm2/DynamicProfiles/"
+    print(f"OutputDir to be used: {OutputDir}")
     
     if not os.path.isdir(os.path.expanduser(OutputDir)):
         os.makedirs(os.path.expanduser(OutputDir))
@@ -713,12 +720,14 @@ if __name__ == '__main__':
     script_config = {}
     script_config_user = {}
     if os.path.isfile(os.path.expanduser("~/.iTerm-cloud-profile-generator/config.yaml")):
+        print("Found conf file in place")
         with open(os.path.expanduser("~/.iTerm-cloud-profile-generator/config.yaml")) as conf_file:
             script_config_user = yaml.full_load(conf_file)
     else:
         if not os.path.isdir(os.path.expanduser("~/.iTerm-cloud-profile-generator/")):
             os.makedirs(os.path.expanduser("~/.iTerm-cloud-profile-generator/"))
         shutil.copy2(os.path.join(script_dir,'config.yaml'), os.path.expanduser("~/.iTerm-cloud-profile-generator/"))
+        print(f"Copy defualt config to home dir {os.path.expanduser('~/.iTerm-cloud-profile-generator/')}")
 
 
     for key in script_config_repo:
@@ -728,7 +737,8 @@ if __name__ == '__main__':
     username = getpass.getuser()
     config = configparser.ConfigParser()
 
-
+    # Static profiles iterator
+    update_statics()
 
     # AWS profiles iterator
     if script_config['AWS'].get('profiles', False):
@@ -759,9 +769,6 @@ if __name__ == '__main__':
         updateMoba(cloud_instances_obj_list)
     else:
         updateTerm(cloud_instances_obj_list)
-        # Static profiles iterator
-        update_statics()
-
 
     print(f"\nCreated profiles {json.dumps(instance_counter,sort_keys=True,indent=4, separators=(',', ': '))}\nTotal: {sum(instance_counter.values())}")
     print(f"\nWe wish you calm clouds and a serene path...\n")
