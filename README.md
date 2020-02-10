@@ -212,7 +212,7 @@ Note: The "Red Alert" profile, which I recommend for production servers is part 
 We wish you calm clouds and a serene path...
 
 
-# Appensix
+# Appendix
 These are things that have been written, but do not belong in the spotlight.
 
 # Environment variables
