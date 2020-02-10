@@ -25,35 +25,13 @@ This is the recommended way of running the script. Running it with the below par
 `docker run --restart=always -d -e CP_Service=True -v ~/Library/Application\ Support/iTerm2/DynamicProfiles/:/root/Library/Application\ Support/iTerm2/DynamicProfiles/ -v ~/.iTerm-cloud-profile-generator/config.yaml:/root/.iTerm-cloud-profile-generator/config.yaml aviadra/cp`
 
 #### Run ad-hoc
-It is absolutely possible to run the script on a per-needed bases. To do so, simply issue the same command, only omitting the "-d", "-e CP_Service=True" and "--restart=always" parameters.
+It is absolutely possible to run the script on a per-needed bases (a.k.a. "ad-hoc"). To do so, simply issue the same command, only omitting the "-d", "-e CP_Service=True" and "--restart=always" parameters.
 
 `docker run --rm -v ~/Library/Application\ Support/iTerm2/DynamicProfiles/:/root/Library/Application\ Support/iTerm2/DynamicProfiles/ -v ~/.iTerm-cloud-profile-generator/config.yaml:/root/.iTerm-cloud-profile-generator/config.yaml aviadra/cp`
 
 Note: While not required, I've added to the above the "[--rm](https://docs.docker.com/engine/reference/run/#clean-up---rm)" option just for tightness.
 
 You should be all set, just go to the Configuration section.
-
-# Environment variables
-It is possible to change the default behavior of the script with Environment variables. These can be passed to the container form, using the -e parameter (it can be specified multiple times if needed). Possible variables are:
-
-- CP_LoopInterval - This changes the amount of time the script waits between refreshes. The default is 300 (5 minutes).
-
-- CP_Service - Toggles “service” behavior (infinite loop), so one can choose to run the script in “ad-hoc” or as a service (as shown in the above instructions.
-
-- OutputDir - This changes the location, where the resulting profile files are created.
-
-## System install (less recommended)
-- Install requirements using pip
-
-`pip3 install requirements.txt --user`
-
-- Clone the repo
-
-`git clone https://github.com/aviadra/iTerm-cloud-profile-generator`
-- Using python3 run the script
-
-`python3 ./iTerm-cloud-profile-generator/update-cloud-hosts.py`
-- You need to setup your access keys per the instructions below and then run again. Once that's done, you should see the dynamic profiles populated in iTerm (cmd + O). Windows users, see instructions below.
 
 # Configuration files
 There is a YAML configuration file within the repo that gives the default values for the script behavior.
@@ -232,3 +210,29 @@ For example, to create "DRACULA" profile:
 Note: The "Red Alert" profile, which I recommend for production servers is part of the "Static profiles", so you can just use it by making it the value of the "iTerm_dynamic_profile_parent_name" tag.
 
 We wish you calm clouds and a serene path...
+
+
+# Appensix
+These are things that have been written, but do not belong in the spotlight.
+
+# Environment variables
+It is possible to change the default behavior of the scripts (service and updater) with environment variables. These can be set on the shell before running the script. When using docker, these can be passed to the container, using the -e parameter (it can be specified multiple times if needed). Possible variables are:
+
+- CP_LoopInterval - This changes the amount of time the script waits between refreshes. The default is 300 (5 minutes).
+
+- CP_Service - Toggles “service” behavior (infinite loop), so one can choose to run the script in “ad-hoc” or as a service (as shown in the above instructions.
+
+- OutputDir - This changes the location, where the resulting profile files are created.
+
+## System install (less recommended)
+- Install requirements using pip
+
+`pip3 install requirements.txt --user`
+
+- Clone the repo
+
+`git clone https://github.com/aviadra/iTerm-cloud-profile-generator`
+- Using python3 run the script
+
+`python3 ./iTerm-cloud-profile-generator/update-cloud-hosts.py`
+- You need to setup your access keys per the instructions below and then run again. Once that's done, you should see the dynamic profiles populated in iTerm (cmd + O). Windows users, see instructions below.

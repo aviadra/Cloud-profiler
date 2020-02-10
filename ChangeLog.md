@@ -1,5 +1,8 @@
 # Change Log
 
+## v1.5.1
+Changed Docker base to use "python:slim-buster". This reduced the image size from 1.13G to 392M. \m/ (>_<) \m/
+
 ## v1.5
 Docker support :)
 Changed placement of the profiles to be atomic due to change in iTerm 3.8.8[#8679](https://gitlab.com/gnachman/iterm2/issues/8679).
