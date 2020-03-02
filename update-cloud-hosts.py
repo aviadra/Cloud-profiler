@@ -656,7 +656,7 @@ def update_statics():
     profiles = {"Profiles":(profiles)} 
     app_static_profile_handle.write(json.dumps(profiles,sort_keys=True,indent=4, separators=(',', ': ')))
     app_static_profile_handle.close()
-    os.rename(app_static_profile_handle.name,os.path.expanduser(os.path.join(OutputDir, "statics")))
+    shutil.move(app_static_profile_handle.name,os.path.expanduser(os.path.join(OutputDir, "statics")))
 
 
 
