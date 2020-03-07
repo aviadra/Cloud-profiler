@@ -365,7 +365,7 @@ def getEC2Instances(profile, role_arn = False):
     if role_arn:
         instance_source = f"{instance_source}.{role_arn}"
         role_session_name = f"{os.path.basename(__file__).rpartition('.')[0]}."\
-                            f"{getpass.getuser()}@{platform.uname()[1]}"
+                            f"{getpass.getuser().replace(' ', '_')}@{platform.uname()[1]}"
         sts_client = boto3.client('sts')
         if profile.get("mfa_serial_number", False):
             retry = 3
@@ -708,7 +708,7 @@ if __name__ == '__main__':
     if os.environ.get('OutputDir', False):
         OutputDir = os.environ['OutputDir']
     elif platform.system() == 'Windows':
-        OutputDir = "~/Cloud Profiler/"
+        OutputDir = "~/Cloud_Profiler/"
     else:
         OutputDir = "~/Library/Application Support/iTerm2/DynamicProfiles/"
     print(f"OutputDir to be used: {OutputDir}")
@@ -765,7 +765,7 @@ if __name__ == '__main__':
             print(f"Working on {profile['name']}")
             getDOInstances(profile)
     
-    if platform.system() == 'Windows' or os.environ.get('windows', False):
+    if platform.system() == 'Windows' or os.environ.get('CP_windows', False):
         updateMoba(cloud_instances_obj_list)
     else:
         updateTerm(cloud_instances_obj_list)

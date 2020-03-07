@@ -20,7 +20,7 @@ Added setting Bastion username and port
 
 
 ## v1.3.1
-Changed repo/project name from "iTerm-cloud-profile-generator" to "Cloud profiler"
+Changed repo/project name from "iTerm-cloud-profile-generator" to "Cloud_Profiler"
 
 
 ## v1.3
