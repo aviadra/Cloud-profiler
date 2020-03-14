@@ -1,5 +1,12 @@
 # Change Log
 
+## v1.6
+Docker for windows support is now first class citizen.
+Moved to use multi-stage builds.
+Fixed STS issue when system user has spaces.
+STS assume role exception now gives the actual exception message from boto.
+Now syncing container time with NTP before running, due to Windows finicky behavior.
+
 ## v1.5.1
 Changed Docker base to use "python:slim-buster". This reduced the image size from 1.13G to 392M. \m/ (>_<) \m/
 
