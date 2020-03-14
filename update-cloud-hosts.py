@@ -365,7 +365,7 @@ def getEC2Instances(profile, role_arn = False):
     if role_arn:
         instance_source = f"{instance_source}.{role_arn}"
         role_session_name = f"{os.path.basename(__file__).rpartition('.')[0]}."\
-                            f"{sts_session_id}@{platform.uname()[1]}"
+                            f"{getpass.getuser().replace(' ','_')}@{platform.uname()[1]}"
         sts_client = boto3.client('sts')
         if profile.get("mfa_serial_number", False):
             retry = 3
