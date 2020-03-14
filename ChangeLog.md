@@ -1,5 +1,10 @@
 # Change Log
 
+## v1.6.1
+Bumped python base version to latest
+Removed install of time update as it seems to not work in a container
+Some README updates
+
 ## v1.6
 Docker for windows support is now first class citizen.
 Moved to use multi-stage builds.

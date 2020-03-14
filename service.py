@@ -14,9 +14,6 @@ else:
 #Convert count to minutes
 LoopInt = LoopInt
 
-#sync time
-subprocess.Popen(['/usr/sbin/ntpdate', '-s', 'time.nist.gov'])
-
 if os.environ.get('CP_Service', False):
     print(f"Cloud_Profiler Service - Running in Service mode.")
     while True:

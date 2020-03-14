@@ -15,10 +15,6 @@ This project has some assumptions:
 ## Docker way (recommended)
 As of v1.5, it is possible to run the script using a docker container. You can choose to build it yourself or pull from docker hub. The instructions will focus on the latter.
 
-#### Pull the container from docker hub
-
-`docker pull aviadra/cp`
-
 #### Run as a service
 This is the recommended way of running the script. Running it with the below parameters will have docker ensure that it is always in the background (unless specifically stopped), and the default refresh rate is 5 minutes. The below also maps the configuration directory and iTerm profile directory into the container.
 
@@ -26,7 +22,7 @@ This is the recommended way of running the script. Running it with the below par
 
 `docker run --init --restart=always -d -e CP_Service=True -v ~/Library/Application\ Support/iTerm2/DynamicProfiles/:/root/Library/Application\ Support/iTerm2/DynamicProfiles/ -v ~/.iTerm-cloud-profile-generator/config.yaml:/root/.iTerm-cloud-profile-generator/config.yaml aviadra/cp`
 
-##### On windoes
+##### On Windoes
 
 `docker run --init --restart=always -d -e CP_Windows=True -e CP_Service=True -v "%HOMEDRIVE%%HOMEPATH%"\Cloud_Profiler/:/root/Cloud_Profiler/ -v "%HOMEDRIVE%%HOMEPATH%"\.iTerm-cloud-profile-generator/config.yaml:/root/.iTerm-cloud-profile-generator/config.yaml aviadra/cp`
 
