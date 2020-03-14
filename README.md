@@ -71,7 +71,7 @@ AWS:
   update_hosts: False
   profiles:
     -
-      name: "CYE_TGT"
+      name: "Company_TGT"
       aws_access_key_id: "AKIAW*********"
       aws_secret_access_key: "D5am******************"
       role_arns: {
