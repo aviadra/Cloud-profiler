@@ -15,7 +15,7 @@ LoopInt = LoopInt
 if os.environ.get('CP_Service', False):
     print(f"Cloud_Profiler Service - Running in Service mode.")
     while True:
-        print("moo")
+        print("Start of loop")
         exec(open("update-cloud-hosts.py").read())
         print(f"Cloud_Profiler Service - Will now rest for {LoopInt} seconds, until the next refresh.")
         for i in progressbar.progressbar(range(LoopInt)):

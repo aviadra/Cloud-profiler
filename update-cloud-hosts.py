@@ -365,7 +365,7 @@ def getEC2Instances(profile, role_arn = False):
     if role_arn:
         instance_source = f"{instance_source}.{role_arn}"
         role_session_name = f"{os.path.basename(__file__).rpartition('.')[0]}."\
-                            f"{getpass.getuser().replace(' ', '_')}@{platform.uname()[1]}"
+                            f"{sts_session_id}@{platform.uname()[1]}"
         sts_client = boto3.client('sts')
         if profile.get("mfa_serial_number", False):
             retry = 3
@@ -393,8 +393,8 @@ def getEC2Instances(profile, role_arn = False):
                                     RoleArn=profile["role_arns"][role_arn],
                                     RoleSessionName=role_session_name
                 )
-            except:
-                print(f"Was unable to assume role. Maybe you need MFA?")
+            except Exception as e:
+                print(f"The exception was:\n{e}")
                 return
 
         credentials=assumed_role_object['Credentials']
