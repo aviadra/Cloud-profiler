@@ -514,7 +514,7 @@ def updateMoba(dict_list):
                 profiles += profile
             bookmark_counter += 1
 
-    handle = open(os.path.expanduser(os.path.join(OutputDir,'Cloud-profiler-Moba.mxtsessions')),'wt')
+    handle = open(os.path.expanduser(os.path.join(CP_OutputDir,'Cloud-profiler-Moba.mxtsessions')),'wt')
     handle.write(profiles)
     handle.close()
 
@@ -630,7 +630,7 @@ def updateTerm(dict_list):
             profiles.append(profile)
 
         profiles = {"Profiles":(profiles)}
-        handle = open(os.path.expanduser(os.path.join(OutputDir,"." + profile_dict["instance_source"])),'wt')
+        handle = open(os.path.expanduser(os.path.join(CP_OutputDir,"." + profile_dict["instance_source"])),'wt')
         handle.write(json.dumps(profiles,sort_keys=True,indent=4, separators=(',', ': ')))
         handle.close()
         head_tail = os.path.split(handle.name)
@@ -640,7 +640,7 @@ def updateTerm(dict_list):
 
 def update_statics():
     profiles =[]
-    app_static_profile_handle = open(os.path.expanduser(os.path.join(OutputDir, ".statics")),"wt")
+    app_static_profile_handle = open(os.path.expanduser(os.path.join(CP_OutputDir, ".statics")),"wt")
     path_to_static_profiles = os.path.expanduser(script_config["Local"]['static_profiles'])
     
     for root, dirs, files in os.walk(path_to_static_profiles, topdown=False):
@@ -656,7 +656,7 @@ def update_statics():
     profiles = {"Profiles":(profiles)} 
     app_static_profile_handle.write(json.dumps(profiles,sort_keys=True,indent=4, separators=(',', ': ')))
     app_static_profile_handle.close()
-    shutil.move(app_static_profile_handle.name,os.path.expanduser(os.path.join(OutputDir, "statics")))
+    shutil.move(app_static_profile_handle.name,os.path.expanduser(os.path.join(CP_OutputDir, "statics")))
 
 
 
@@ -705,16 +705,16 @@ if __name__ == '__main__':
     with open(os.path.join(script_dir,'config.yaml')) as conf_file:
         script_config_repo = yaml.full_load(conf_file)
     
-    if os.environ.get('OutputDir', False):
-        OutputDir = os.environ['OutputDir']
+    if os.environ.get('CP_OutputDir', False):
+        CP_OutputDir = os.environ['CP_OutputDir']
     elif platform.system() == 'Windows' or os.environ.get('CP_Windows', False):
-        OutputDir = "~/Cloud_Profiler/"
+        CP_OutputDir = "~/Cloud_Profiler/"
     else:
-        OutputDir = "~/Library/Application Support/iTerm2/DynamicProfiles/"
-    print(f"OutputDir to be used: {OutputDir}")
+        CP_OutputDir = "~/Library/Application Support/iTerm2/DynamicProfiles/"
+    print(f"CP_OutputDir to be used: {CP_OutputDir}")
     
-    if not os.path.isdir(os.path.expanduser(OutputDir)):
-        os.makedirs(os.path.expanduser(OutputDir))
+    if not os.path.isdir(os.path.expanduser(CP_OutputDir)):
+        os.makedirs(os.path.expanduser(CP_OutputDir))
 
     # From user home direcotry
     script_config = {}

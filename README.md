@@ -231,7 +231,7 @@ It is possible to change the default behavior of the scripts (service and update
 
 - CP_Service - Toggles “service” behavior (infinite loop), so one can choose to run the script in “ad-hoc” or as a service (as shown in the above instructions.
 
-- OutputDir - This changes the location, where the resulting profile files are created.
+- CP_OutputDir - This changes the location, where the resulting profile files are created.
 
 ## System install (less recommended)
 - Install requirements using pip
