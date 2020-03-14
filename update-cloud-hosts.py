@@ -707,7 +707,7 @@ if __name__ == '__main__':
     
     if os.environ.get('OutputDir', False):
         OutputDir = os.environ['OutputDir']
-    elif platform.system() == 'Windows':
+    elif platform.system() == 'Windows' or os.environ.get('CP_Windows', False):
         OutputDir = "~/Cloud_Profiler/"
     else:
         OutputDir = "~/Library/Application Support/iTerm2/DynamicProfiles/"
@@ -765,7 +765,7 @@ if __name__ == '__main__':
             print(f"Working on {profile['name']}")
             getDOInstances(profile)
     
-    if platform.system() == 'Windows' or os.environ.get('CP_windows', False):
+    if platform.system() == 'Windows' or os.environ.get('CP_Windows', False):
         updateMoba(cloud_instances_obj_list)
     else:
         updateTerm(cloud_instances_obj_list)

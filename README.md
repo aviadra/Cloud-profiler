@@ -28,7 +28,7 @@ This is the recommended way of running the script. Running it with the below par
 
 ##### On windoes
 
-`docker run --init --restart=always -d -e CP_Service=True -v "%HOMEDRIVE%%HOMEPATH%"\Cloud_Profiler/:/root/Cloud_Profiler/ -v "%HOMEDRIVE%%HOMEPATH%"\.iTerm-cloud-profile-generator/config.yaml:/root/.iTerm-cloud-profile-generator/config.yaml aviadra/cp`
+`docker run --init --restart=always -d -e CP_Windows=True -e CP_Service=True -v "%HOMEDRIVE%%HOMEPATH%"\Cloud_Profiler/:/root/Cloud_Profiler/ -v "%HOMEDRIVE%%HOMEPATH%"\.iTerm-cloud-profile-generator/config.yaml:/root/.iTerm-cloud-profile-generator/config.yaml aviadra/cp`
 
 
 #### Run ad-hoc
@@ -40,7 +40,7 @@ It is absolutely possible to run the script on a per-needed bases (a.k.a. "ad-ho
 
 ##### On windoes
 
-`docker run --init --rm -e CP_windows=True -v "%HOMEDRIVE%%HOMEPATH%"\Cloud_Profiler/:/root/Cloud_Profiler/ -v "%HOMEDRIVE%%HOMEPATH%"\.iTerm-cloud-profile-generator/config.yaml:/root/.iTerm-cloud-profile-generator/config.yaml aviadra/cp`
+`docker run -it --init --rm -e CP_Windows=True -v "%HOMEDRIVE%%HOMEPATH%"\Cloud_Profiler/:/root/Cloud_Profiler/ -v "%HOMEDRIVE%%HOMEPATH%"\.iTerm-cloud-profile-generator\config.yaml:/root/.iTerm-cloud-profile-generator/config.yaml aviadra/cp`
 
 Note: While not required, I've added to the above the "[--rm](https://docs.docker.com/engine/reference/run/#clean-up---rm)" option just for tightness.
 

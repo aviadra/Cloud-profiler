@@ -1,6 +1,8 @@
 import os
 import time
 import progressbar
+import subprocess
+
 
 if os.environ.get('CP_LoopInterval', False):
     CP_LoopInterval = os.environ['CP_LoopInterval']
@@ -11,6 +13,9 @@ else:
 
 #Convert count to minutes
 LoopInt = LoopInt
+
+#sync time
+subprocess.Popen(['/usr/sbin/ntpdate', '-s', 'time.nist.gov'])
 
 if os.environ.get('CP_Service', False):
     print(f"Cloud_Profiler Service - Running in Service mode.")

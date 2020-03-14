@@ -3,6 +3,8 @@ FROM python:3.8.1-slim-buster as base
 ADD ./requirements.txt /opt/CloudProfiler/requirements.txt
 WORKDIR /opt/CloudProfiler
 RUN pip install -r requirements.txt
+RUN apt update && apt install ntpdate -y
+RUN apt-get clean autoclean && apt-get autoremove --yes && rm -rf /var/lib/{apt,dpkg,cache,log}/
 ADD . /opt/CloudProfiler
 
 #### Debug
