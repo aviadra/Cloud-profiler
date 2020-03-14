@@ -365,7 +365,7 @@ def getEC2Instances(profile, role_arn = False):
     if role_arn:
         instance_source = f"{instance_source}.{role_arn}"
         role_session_name = f"{os.path.basename(__file__).rpartition('.')[0]}."\
-                            f"{getpass.getuser()}@{platform.uname()[1]}"
+                            f"{getpass.getuser().replace(' ','_')}@{platform.uname()[1]}"
         sts_client = boto3.client('sts')
         if profile.get("mfa_serial_number", False):
             retry = 3
@@ -393,8 +393,8 @@ def getEC2Instances(profile, role_arn = False):
                                     RoleArn=profile["role_arns"][role_arn],
                                     RoleSessionName=role_session_name
                 )
-            except:
-                print(f"Was unable to assume role. Maybe you need MFA?")
+            except Exception as e:
+                print(f"The exception was:\n{e}")
                 return
 
         credentials=assumed_role_object['Credentials']
@@ -655,8 +655,8 @@ def update_statics():
     
     profiles = {"Profiles":(profiles)} 
     app_static_profile_handle.write(json.dumps(profiles,sort_keys=True,indent=4, separators=(',', ': ')))
-    os.rename(app_static_profile_handle.name,os.path.expanduser(os.path.join(OutputDir, "statics")))
     app_static_profile_handle.close()
+    shutil.move(app_static_profile_handle.name,os.path.expanduser(os.path.join(OutputDir, "statics")))
 
 
 
@@ -707,8 +707,8 @@ if __name__ == '__main__':
     
     if os.environ.get('OutputDir', False):
         OutputDir = os.environ['OutputDir']
-    elif platform.system() == 'Windows':
-        OutputDir = "~/Cloud Profiler/"
+    elif platform.system() == 'Windows' or os.environ.get('CP_Windows', False):
+        OutputDir = "~/Cloud_Profiler/"
     else:
         OutputDir = "~/Library/Application Support/iTerm2/DynamicProfiles/"
     print(f"OutputDir to be used: {OutputDir}")
@@ -765,7 +765,7 @@ if __name__ == '__main__':
             print(f"Working on {profile['name']}")
             getDOInstances(profile)
     
-    if platform.system() == 'Windows':
+    if platform.system() == 'Windows' or os.environ.get('CP_Windows', False):
         updateMoba(cloud_instances_obj_list)
     else:
         updateTerm(cloud_instances_obj_list)
