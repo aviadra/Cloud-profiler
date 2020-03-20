@@ -25,27 +25,40 @@ import platform
 
 def BadgeMe(instance_key,instance):
     end_badge = []
+    Name = instance['name'].split('.')
+    if len(Name) == 4:
+        Name_formatted = f"""Instance name: {Name[3]}
+                            Cloud provIdor: {Name[0]}
+                            Cloud account: {Name[2]}
+                            Account profile: {Name[1]}"""
+    else:
+        Name_formatted = f"""Instance name: {Name[2]}
+                            Cloud provIdor: {Name[0]}
+                            Account profile: {Name[1]}"""
     all_badge_toggeles = script_config["Local"].get("badge_info_to_display", False)
     if all_badge_toggeles == False:
-        # "Badge Text":shortName + '\n' + profile_dict["instances"][instance]['InstanceType'] + '\n' + ip_for_connection,
-        end_badge = f"""{instance['name']}
-                        {instance['InstanceType']}
-                        {instance['ip_public']}
-                        {instance_key}
-                    """
-    for badge,toggle in all_badge_toggeles.items():
-        if toggle == True or isinstance(toggle,list):
-            if badge == "instance_key":
-                end_badge.append(f"instance_key: {instance_key}")
-            if badge and instance['password'][1] != "":
-                end_badge.append(f"{badge}: {instance['password'][1]}")
-            if instance.get(badge, False) and badge != "password":
-                end_badge.append(f"{badge}: {str(instance[badge])}")
-            if isinstance(toggle,list) and len(toggle) != 0:
-                end_badge.append(q_tag_flat(instance['iterm_tags'], toggle))
-            if isinstance(toggle,list) and len(toggle) == 0:
-                end_badge.append(f"{instance['iterm_tags']}")
-    value_to_return = '\n'.join(filter(lambda x: x != "", end_badge))
+        value_to_return = f"""  {Name_formatted}
+                                InstanceType: {instance['InstanceType']}
+                                Ip_public: {instance['Ip_public']}
+                                Main_IP: {instance_key}
+                            """
+    else:
+        for badge,toggle in all_badge_toggeles.items():
+            if toggle or isinstance(toggle,list):
+                if badge == "instance_key":
+                    end_badge.append(f"Main_IP: {instance_key}")
+                if badge == "name" and toggle == "Formated":
+                    end_badge.append(f"{Name_formatted}")
+                    continue
+                if badge and instance['password'][1] != "":
+                    end_badge.append(f"{badge}: {instance['password'][1]}")
+                if instance.get(badge, False) and badge != "password":
+                    end_badge.append(f"{badge}: {str(instance[badge])}")
+                if isinstance(toggle,list) and len(toggle) != 0:
+                    end_badge.append(q_tag_flat(instance['Iterm_tags'], toggle))
+                if isinstance(toggle,list) and len(toggle) == 0:
+                    end_badge.append(f"{instance['iterm_tags']}")
+        value_to_return = '\n'.join(filter(lambda x: x != "", end_badge))
     return value_to_return
 
 
