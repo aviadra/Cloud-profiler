@@ -6,30 +6,30 @@ Local:
   ssh_keys_path: "~/.ssh"
   use_shared_key: False
   badge_info_to_display: 
-    name: True
-    instance_key: True
-    InstanceType: True
-    bastion: True
+    name: False
+    instance_key: False
+    InstanceType: False
+    bastion: False
     bastion_con_port: False
-    bastion_con_username: True
-    con_port: True
+    bastion_con_username: False
+    con_port: False
     con_username: False
-    dynamic_profile_parent_name: True
-    group: True
-    id: True
+    dynamic_profile_parent_name: False
+    group: False
+    id: False
     index: False
-    instance_use_bastion: True
-    instance_use_ip_public: True
-    ip_public: True
+    instance_use_bastion: False
+    instance_use_ip_public: False
+    ip_public: False
     # iterm_tags_prefixs: ["ENV","Name"]
     # iterm_tags_prefixs: []
     iterm_tags_prefixs: False
-    password: True
-    platform: True
-    region: True
-    ssh_key: True
-    use_shared_key: True
-    vpc: True
+    password: False
+    platform: False
+    region: False
+    ssh_key: False
+    use_shared_key: False
+    vpc: False
   
 AWS:
   aws_credentials_file: "~/.aws/credentials"
