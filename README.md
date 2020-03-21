@@ -53,11 +53,35 @@ While a valid sample configuration file is provided within the repo, the below c
 Local:
   static_profiles: "./iTerm2-static-profiles"
   ssh_base_string: "-oStrictHostKeyChecking=no -oUpdateHostKeys=yes -oServerAliveInterval=30 -oAddKeysToAgent=no"
-  con_username: ''
-  bastion: ''
-  ssh_keys_path: "~/.ssh"
-  use_shared_key: False
-  
+  Bastion: False
+  SSH_keys_path: "~/Downloads"
+  Use_shared_key: False
+  parallel_exec: True
+  skip_stopped: True
+  badge_info_to_display: 
+    Name: "Formatted"
+    Instance_key: True
+    InstanceType: True
+    Bastion: False
+    Bastion_con_port: False
+    Bastion_con_username: False
+    Con_port: False
+    Con_username: False
+    Dynamic_profile_parent_name: False
+    Group: False
+    Id: False
+    Instance_use_bastion: False
+    Instance_use_ip_public: False
+    Ip_public: True
+    Iterm_tags_prefixs: ["ENV"]
+    # Iterm_tags_prefixs: []
+    Password: False
+    Platform: False
+    Region: True
+    SSH_key: False
+    Use_shared_key: False
+    VPC: True
+
 AWS:
   exclude_regions: ["ap-southeast-1", "ap-southeast-2","sa-east-1","ap-northeast-1","ap-northeast-2","ap-south-1"]
   aws_credentials_file: "~/.aws/credentials"
