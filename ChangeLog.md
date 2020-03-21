@@ -1,5 +1,20 @@
 # Change Log
 
+## v1.6.2
+Added Badge customization ^_^
+
+## v1.6.1
+Bumped python base version to latest
+Removed install of time update as it seems to not work in a container
+Some README updates due to improved docker usage.
+
+## v1.6
+Docker for windows support is now first class citizen.
+Moved to use multi-stage builds.
+Fixed STS issue when system user has spaces.
+STS assume role exception now gives the actual exception message from boto.
+Now syncing container time with NTP before running, due to Windows finicky behavior.
+
 ## v1.5.1
 Changed Docker base to use "python:slim-buster". This reduced the image size from 1.13G to 392M. \m/ (>_<) \m/
 
@@ -20,7 +35,7 @@ Added setting Bastion username and port
 
 
 ## v1.3.1
-Changed repo/project name from "iTerm-cloud-profile-generator" to "Cloud profiler"
+Changed repo/project name from "iTerm-cloud-profile-generator" to "Cloud_Profiler"
 
 
 ## v1.3

@@ -1,4 +1,4 @@
-# Cloud profiler
+# Cloud_Profiler
 
 The purpose of this script is to connect to cloud providers and generate profiles for quick SSHing.
 As of v1.3, both iTerm for MacOS and MobaXterm for Windows are supported
@@ -15,19 +15,27 @@ This project has some assumptions:
 ## Docker way (recommended)
 As of v1.5, it is possible to run the script using a docker container. You can choose to build it yourself or pull from docker hub. The instructions will focus on the latter.
 
-#### Pull the container from docker hub
-
-`docker pull aviadra/cp`
-
 #### Run as a service
 This is the recommended way of running the script. Running it with the below parameters will have docker ensure that it is always in the background (unless specifically stopped), and the default refresh rate is 5 minutes. The below also maps the configuration directory and iTerm profile directory into the container.
 
-`docker run --restart=always -d -e CP_Service=True -v ~/Library/Application\ Support/iTerm2/DynamicProfiles/:/root/Library/Application\ Support/iTerm2/DynamicProfiles/ -v ~/.iTerm-cloud-profile-generator/config.yaml:/root/.iTerm-cloud-profile-generator/config.yaml aviadra/cp`
+##### On MacOS
+
+`docker run --init --restart=always -d -e CP_Service=True -v ~/Library/Application\ Support/iTerm2/DynamicProfiles/:/root/Library/Application\ Support/iTerm2/DynamicProfiles/ -v ~/.iTerm-cloud-profile-generator/config.yaml:/root/.iTerm-cloud-profile-generator/config.yaml aviadra/cp`
+
+##### On Windoes
+
+`docker run --init --restart=always -d -e CP_Windows=True -e CP_Service=True -v "%HOMEDRIVE%%HOMEPATH%"\Cloud_Profiler/:/root/Cloud_Profiler/ -v "%HOMEDRIVE%%HOMEPATH%"\.iTerm-cloud-profile-generator/config.yaml:/root/.iTerm-cloud-profile-generator/config.yaml aviadra/cp`
 
 #### Run ad-hoc
 It is absolutely possible to run the script on a per-needed bases (a.k.a. "ad-hoc"). To do so, simply issue the same command, only omitting the "-d", "-e CP_Service=True" and "--restart=always" parameters.
 
-`docker run --rm -v ~/Library/Application\ Support/iTerm2/DynamicProfiles/:/root/Library/Application\ Support/iTerm2/DynamicProfiles/ -v ~/.iTerm-cloud-profile-generator/config.yaml:/root/.iTerm-cloud-profile-generator/config.yaml aviadra/cp`
+##### On MacOS
+
+`docker run --init --rm -v ~/Library/Application\ Support/iTerm2/DynamicProfiles/:/root/Library/Application\ Support/iTerm2/DynamicProfiles/ -v ~/.iTerm-cloud-profile-generator/config.yaml:/root/.iTerm-cloud-profile-generator/config.yaml aviadra/cp`
+
+##### On windoes
+
+`docker run -it --init --rm -e CP_Windows=True -v "%HOMEDRIVE%%HOMEPATH%"\Cloud_Profiler/:/root/Cloud_Profiler/ -v "%HOMEDRIVE%%HOMEPATH%"\.iTerm-cloud-profile-generator\config.yaml:/root/.iTerm-cloud-profile-generator/config.yaml aviadra/cp`
 
 Note: While not required, I've added to the above the "[--rm](https://docs.docker.com/engine/reference/run/#clean-up---rm)" option just for tightness.
 
@@ -45,11 +53,35 @@ While a valid sample configuration file is provided within the repo, the below c
 Local:
   static_profiles: "./iTerm2-static-profiles"
   ssh_base_string: "-oStrictHostKeyChecking=no -oUpdateHostKeys=yes -oServerAliveInterval=30 -oAddKeysToAgent=no"
-  con_username: ''
-  bastion: ''
-  ssh_keys_path: "~/.ssh"
-  use_shared_key: False
-  
+  Bastion: False
+  SSH_keys_path: "~/Downloads"
+  Use_shared_key: False
+  parallel_exec: True
+  skip_stopped: True
+  badge_info_to_display: 
+    Name: "Formatted"
+    Instance_key: True
+    InstanceType: True
+    Bastion: False
+    Bastion_con_port: False
+    Bastion_con_username: False
+    Con_port: False
+    Con_username: False
+    Dynamic_profile_parent_name: False
+    Group: False
+    Id: False
+    Instance_use_bastion: False
+    Instance_use_ip_public: False
+    Ip_public: True
+    Iterm_tags_prefixs: ["ENV"]
+    # Iterm_tags_prefixs: []
+    Password: False
+    Platform: False
+    Region: True
+    SSH_key: False
+    Use_shared_key: False
+    VPC: True
+
 AWS:
   exclude_regions: ["ap-southeast-1", "ap-southeast-2","sa-east-1","ap-northeast-1","ap-northeast-2","ap-south-1"]
   aws_credentials_file: "~/.aws/credentials"
@@ -62,7 +94,7 @@ AWS:
   update_hosts: False
   profiles:
     -
-      name: "CYE_TGT"
+      name: "Company_TGT"
       aws_access_key_id: "AKIAW*********"
       aws_secret_access_key: "D5am******************"
       role_arns: {
@@ -84,7 +116,57 @@ These are settings that are local to your machine or you want to set globally fo
 
 `static_profiles` - Set the location of the "static profiles" on your computer. The default is to point to where the repo is.
 
-`ssh_keys_path` - Set the location to get the "shared keys" from. The default is "~/.ssh"
+`SSH_keys_path` - Set the location to get the "shared keys" from. The default is "~/.ssh"
+
+As of version 1.6.2, it is possible to set what information will be shown for an instance in the ["badge"](https://www.iterm2.com/documentation-badges.html) area.
+The repo configuration file comes with all possible values for the individual badges. However, as not all values are available for every instance type from every provider, only applicable values are shown even if they have been toggled.
+In general, the toggle is simply “True” or “False”. See the list below for details.
+Removing the toggle completely is the same as setting it to False.
+It is possible to change the order of the items in the badge, by simply reordering them in the configuration file.
+
+`Name` - Toggles showing the instance name. It is possible to set this to "Formatted", in order to get a line braked list of the name information.
+
+`Instance_key` - The Main IP associated with the instance.
+
+`InstanceType` - The type/size of the instance. For example, t3.nano.
+
+`Bastion` - The associated Bastion for this instance.
+
+`Bastion_con_port` - The Bastion connection port.
+
+`Bastion_con_username` - The username used to connect to the Bastion.
+
+`Con_port` - The port used to connect to the instance.
+
+`Con_username` - The username used to connect to the instance.
+
+`Dynamic_profile_parent_name` - The name of the Dynamic profile parent name.
+
+`Group` - The group the instance belongs to.
+
+`Id` - The instance ID
+
+`Instance_use_bastion` - Is the flag of using the Bastion set?
+
+`Instance_use_ip_public` - Is the flag of using the public IP set?
+
+`Iterm_tags_prefixs` - Iterm_tags, are what iTerm uses for indexing and show as information in the instance. It is possible to set this toggle to false to not show them as all.
+Setting this toggle to an empty array([]), will simply show all the iTerm tags given to the instance.
+Given an array with values, the shown values will be filtered to only show tags that start with the prefix of the strings in the array and separated by a colon(:). For example, for a tags “Id: id-123, ENV: prod, sg-groupname:sg-123123, VPC: vpc-1231”, with the prefix filter of [“ENV”,”Id”], only “ENV: prod” and “Id: id-123” will be shown.
+
+`Password` - If there is a password associated with the instance (windows) and decryption was possible, show it in the badge.
+
+`Platform` - Show the platform set for the instance (usually windows)
+
+`Region` - Show the region of the instance.
+
+` SSH_key` - Show the name of the SSH key associated with the instance at creation time.
+
+` Use_shared_key` - Is the flag of using a shared key set?
+
+`VPC` - The VPC id of the instance.
+
+
 
 ## AWS options
 These are settings for your AWS account/s. 
@@ -181,14 +263,13 @@ For example:
 
 # MobaXterm setup
 The way to get the profiles into Moba is not as automatic as it is for iTerm. With that said, the script will generate a "sessions" file, that you can import manually into Moba, or you can use the [shared sessions feature](https://mobaxterm.mobatek.net/documentation.html#3_1_6).
-The default location of the generated configuration file is "~/Cloud Profiler/Cloud-profiler-Moba.mxtsessions".
+The default location of the generated configuration file is "~/Cloud_Profiler/Cloud-profiler-Moba.mxtsessions".
 
 # iTerm setup
-Again, in general you don't need to change anything in your iTerm configuration. With that said, it is recommended that you create in your iTerm, the profiles you're going to reference when using the "iTerm_dynamic_profile_parent_name" tag. if you don't, nothing major will happen, iTerm will simply use the default profile and throw some errors to the Mac's console log.
+Again, in general you don't need to change anything in your iTerm configuration. With that said, it is recommended that you create in your iTerm, the profiles you're going to reference when using the "iTerm_dynamic_profile_parent_name" tag. if you don't, nothing major will happen, iTerm will simply use the default profile. However as of v3.3.8 of iTerm, it will throw errors to an error log and will give popups to note it has done so...
 
 ## RDP support for MacOS (optional)
 The RDP support is based on your MAC's ability to open rdp URIs. That is iTerm will issue something like "open rdp://address-of-instance". Compatible programs are Microsoft Remote Desktop 8/10 available on the app store.
-
 
 ## Static profiles
 The "Static profiles" feature of this script, allows you to centrally distribute profiles so that you can reference them with the "iTerm_dynamic_profile_parent_name" tag. For example, the two profiles in the repo, give the "Red Alert" and "Dracula" color schemas with my beloved keyboard shortcuts. They are installed for you in the dynamic profiles automatically, which makes it possible to reference them with the tag and get a clear distinction when you're on prod vs normal servers.
@@ -211,7 +292,6 @@ Note: The "Red Alert" profile, which I recommend for production servers is part 
 
 We wish you calm clouds and a serene path...
 
-
 # Appendix
 These are things that have been written, but do not belong in the spotlight.
 
@@ -222,7 +302,7 @@ It is possible to change the default behavior of the scripts (service and update
 
 - CP_Service - Toggles “service” behavior (infinite loop), so one can choose to run the script in “ad-hoc” or as a service (as shown in the above instructions.
 
-- OutputDir - This changes the location, where the resulting profile files are created.
+- CP_OutputDir - This changes the location, where the resulting profile files are created.
 
 ## System install (less recommended)
 - Install requirements using pip
@@ -236,3 +316,4 @@ It is possible to change the default behavior of the scripts (service and update
 
 `python3 ./iTerm-cloud-profile-generator/update-cloud-hosts.py`
 - You need to setup your access keys per the instructions below and then run again. Once that's done, you should see the dynamic profiles populated in iTerm (cmd + O). Windows users, see instructions below.
+
