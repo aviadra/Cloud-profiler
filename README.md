@@ -26,7 +26,6 @@ This is the recommended way of running the script. Running it with the below par
 
 `docker run --init --restart=always -d -e CP_Windows=True -e CP_Service=True -v "%HOMEDRIVE%%HOMEPATH%"\Cloud_Profiler/:/root/Cloud_Profiler/ -v "%HOMEDRIVE%%HOMEPATH%"\.iTerm-cloud-profile-generator/config.yaml:/root/.iTerm-cloud-profile-generator/config.yaml aviadra/cp`
 
-
 #### Run ad-hoc
 It is absolutely possible to run the script on a per-needed bases (a.k.a. "ad-hoc"). To do so, simply issue the same command, only omitting the "-d", "-e CP_Service=True" and "--restart=always" parameters.
 
@@ -54,11 +53,35 @@ While a valid sample configuration file is provided within the repo, the below c
 Local:
   static_profiles: "./iTerm2-static-profiles"
   ssh_base_string: "-oStrictHostKeyChecking=no -oUpdateHostKeys=yes -oServerAliveInterval=30 -oAddKeysToAgent=no"
-  con_username: ''
-  bastion: ''
-  ssh_keys_path: "~/.ssh"
-  use_shared_key: False
-  
+  Bastion: False
+  SSH_keys_path: "~/Downloads"
+  Use_shared_key: False
+  parallel_exec: True
+  skip_stopped: True
+  badge_info_to_display: 
+    Name: "Formatted"
+    Instance_key: True
+    InstanceType: True
+    Bastion: False
+    Bastion_con_port: False
+    Bastion_con_username: False
+    Con_port: False
+    Con_username: False
+    Dynamic_profile_parent_name: False
+    Group: False
+    Id: False
+    Instance_use_bastion: False
+    Instance_use_ip_public: False
+    Ip_public: True
+    Iterm_tags_prefixs: ["ENV"]
+    # Iterm_tags_prefixs: []
+    Password: False
+    Platform: False
+    Region: True
+    SSH_key: False
+    Use_shared_key: False
+    VPC: True
+
 AWS:
   exclude_regions: ["ap-southeast-1", "ap-southeast-2","sa-east-1","ap-northeast-1","ap-northeast-2","ap-south-1"]
   aws_credentials_file: "~/.aws/credentials"
@@ -93,7 +116,57 @@ These are settings that are local to your machine or you want to set globally fo
 
 `static_profiles` - Set the location of the "static profiles" on your computer. The default is to point to where the repo is.
 
-`ssh_keys_path` - Set the location to get the "shared keys" from. The default is "~/.ssh"
+`SSH_keys_path` - Set the location to get the "shared keys" from. The default is "~/.ssh"
+
+As of version 1.6.2, it is possible to set what information will be shown for an instance in the ["badge"](https://www.iterm2.com/documentation-badges.html) area.
+The repo configuration file comes with all possible values for the individual badges. However, as not all values are available for every instance type from every provider, only applicable values are shown even if they have been toggled.
+In general, the toggle is simply “True” or “False”. See the list below for details.
+Removing the toggle completely is the same as setting it to False.
+It is possible to change the order of the items in the badge, by simply reordering them in the configuration file.
+
+`Name` - Toggles showing the instance name. It is possible to set this to "Formatted", in order to get a line braked list of the name information.
+
+`Instance_key` - The Main IP associated with the instance.
+
+`InstanceType` - The type/size of the instance. For example, t3.nano.
+
+`Bastion` - The associated Bastion for this instance.
+
+`Bastion_con_port` - The Bastion connection port.
+
+`Bastion_con_username` - The username used to connect to the Bastion.
+
+`Con_port` - The port used to connect to the instance.
+
+`Con_username` - The username used to connect to the instance.
+
+`Dynamic_profile_parent_name` - The name of the Dynamic profile parent name.
+
+`Group` - The group the instance belongs to.
+
+`Id` - The instance ID
+
+`Instance_use_bastion` - Is the flag of using the Bastion set?
+
+`Instance_use_ip_public` - Is the flag of using the public IP set?
+
+`Iterm_tags_prefixs` - Iterm_tags, are what iTerm uses for indexing and show as information in the instance. It is possible to set this toggle to false to not show them as all.
+Setting this toggle to an empty array([]), will simply show all the iTerm tags given to the instance.
+Given an array with values, the shown values will be filtered to only show tags that start with the prefix of the strings in the array and separated by a colon(:). For example, for a tags “Id: id-123, ENV: prod, sg-groupname:sg-123123, VPC: vpc-1231”, with the prefix filter of [“ENV”,”Id”], only “ENV: prod” and “Id: id-123” will be shown.
+
+`Password` - If there is a password associated with the instance (windows) and decryption was possible, show it in the badge.
+
+`Platform` - Show the platform set for the instance (usually windows)
+
+`Region` - Show the region of the instance.
+
+` SSH_key` - Show the name of the SSH key associated with the instance at creation time.
+
+` Use_shared_key` - Is the flag of using a shared key set?
+
+`VPC` - The VPC id of the instance.
+
+
 
 ## AWS options
 These are settings for your AWS account/s. 
@@ -198,7 +271,6 @@ Again, in general you don't need to change anything in your iTerm configuration.
 ## RDP support for MacOS (optional)
 The RDP support is based on your MAC's ability to open rdp URIs. That is iTerm will issue something like "open rdp://address-of-instance". Compatible programs are Microsoft Remote Desktop 8/10 available on the app store.
 
-
 ## Static profiles
 The "Static profiles" feature of this script, allows you to centrally distribute profiles so that you can reference them with the "iTerm_dynamic_profile_parent_name" tag. For example, the two profiles in the repo, give the "Red Alert" and "Dracula" color schemas with my beloved keyboard shortcuts. They are installed for you in the dynamic profiles automatically, which makes it possible to reference them with the tag and get a clear distinction when you're on prod vs normal servers.
 The static profiles can also be used as a shim for the cases where you want to distribute profiles that don't come from AWS. For example, you have some VMs on a local ESX. You can create their profiles and save them in the "static" directory, and they will be distributed to the rest of the repo users
@@ -219,7 +291,6 @@ For example, to create "DRACULA" profile:
 Note: The "Red Alert" profile, which I recommend for production servers is part of the "Static profiles", so you can just use it by making it the value of the "iTerm_dynamic_profile_parent_name" tag.
 
 We wish you calm clouds and a serene path...
-
 
 # Appendix
 These are things that have been written, but do not belong in the spotlight.
@@ -245,3 +316,4 @@ It is possible to change the default behavior of the scripts (service and update
 
 `python3 ./iTerm-cloud-profile-generator/update-cloud-hosts.py`
 - You need to setup your access keys per the instructions below and then run again. Once that's done, you should see the dynamic profiles populated in iTerm (cmd + O). Windows users, see instructions below.
+
