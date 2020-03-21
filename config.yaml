@@ -3,33 +3,32 @@ Local:
   ssh_base_string: "-oStrictHostKeyChecking=no -oUpdateHostKeys=yes -oServerAliveInterval=30 -oAddKeysToAgent=no"
   con_username: ''
   bastion: ''
-  ssh_keys_path: "~/.ssh"
+  SSH_keys_path: "~/.ssh"
   use_shared_key: False
   badge_info_to_display: 
-    name: False
-    instance_key: False
+    Name: False
+    Instance_key: False
     InstanceType: False
-    bastion: False
-    bastion_con_port: False
-    bastion_con_username: False
-    con_port: False
-    con_username: False
-    dynamic_profile_parent_name: False
-    group: False
-    id: False
-    index: False
-    instance_use_bastion: False
-    instance_use_ip_public: False
-    ip_public: False
-    # iterm_tags_prefixs: ["ENV","Name"]
-    # iterm_tags_prefixs: []
-    iterm_tags_prefixs: False
-    password: False
-    platform: False
-    region: False
-    ssh_key: False
-    use_shared_key: False
-    vpc: False
+    Bastion: False
+    Bastion_con_port: False
+    Bastion_con_username: False
+    Con_port: False
+    Con_username: False
+    Dynamic_profile_parent_name: False
+    Group: False
+    Id: False
+    Instance_use_bastion: False
+    Instance_use_ip_public: False
+    Ip_public: False
+    # Iterm_tags_prefixs: ["ENV","Name"]
+    # Iterm_tags_prefixs: []
+    Iterm_tags_prefixs: False
+    Password: False
+    Platform: False
+    Region: False
+    SSH_key: False
+    Use_shared_key: False
+    VPC: False
   
 AWS:
   aws_credentials_file: "~/.aws/credentials"
