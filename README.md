@@ -53,26 +53,26 @@ Note: For convenience, the following values are accepted for "True": 'True', 'ye
 While a valid sample configuration file is provided within the repo, the below configuration, is what I actually use as my daily driver (keys have been omitted).
 ```
 Local:
-  static_profiles: "./iTerm2-static-profiles"
-  ssh_base_string: "-oStrictHostKeyChecking=no -oUpdateHostKeys=yes -oServerAliveInterval=30 -oAddKeysToAgent=no"
+  Static_profiles: "./iTerm2-static-profiles"
+  SSH_base_string: "-oStrictHostKeyChecking=no -oUpdateHostKeys=yes -oServerAliveInterval=30 -oAddKeysToAgent=no"
   Bastion: False
   SSH_keys_path: "~/Downloads"
   Use_shared_key: False
-  parallel_exec: True
-  skip_stopped: True
-  badge_info_to_display: 
+  Parallel_exec: True
+  Skip_stopped: True
+  Badge_info_to_display: 
     Name: "Formatted"
     Instance_key: True
     InstanceType: True
     Bastion: False
-    Bastion_con_port: False
-    Bastion_con_username: False
+    Bastion_Con_port: False
+    Bastion_Con_username: False
     Con_port: False
     Con_username: False
     Dynamic_profile_parent_name: False
     Group: False
     Id: False
-    Instance_use_bastion: False
+    Instance_use_Bastion: False
     Instance_use_ip_public: False
     Ip_public: True
     Iterm_tags_prefixs: ["ENV"]
@@ -87,10 +87,10 @@ Local:
 AWS:
   exclude_regions: ["ap-southeast-1", "ap-southeast-2","sa-east-1","ap-northeast-1","ap-northeast-2","ap-south-1"]
   aws_credentials_file: "~/.aws/credentials"
-  con_username: False
-  bastion_con_port: 22
+  Con_username: False
+  Bastion_Con_port: 22
   use_ip_public: False
-  skip_stopped: True
+  Skip_stopped: True
   exclude_accounts: []
   use_awscli_profiles: False
   update_hosts: False
@@ -116,7 +116,7 @@ DO:
 ## Local options
 These are settings that are local to your machine or you want to set globally for all clouds. You can set here most of the same directives as in the "tags" section, except the below ones (they don't make sense anywhere else):
 
-`static_profiles` - Set the location of the "static profiles" on your computer. The default is to point to where the repo is.
+`Static_profiles` - Set the location of the "static profiles" on your computer. The default is to point to where the repo is.
 
 `SSH_keys_path` - Set the location to get the "shared keys" from. The default is "~/.ssh"
 
@@ -134,9 +134,9 @@ It is possible to change the order of the items in the badge, by simply reorderi
 
 `Bastion` - The associated Bastion for this instance.
 
-`Bastion_con_port` - The Bastion connection port.
+`Bastion_Con_port` - The Bastion connection port.
 
-`Bastion_con_username` - The username used to connect to the Bastion.
+`Bastion_Con_username` - The username used to connect to the Bastion.
 
 `Con_port` - The port used to connect to the instance.
 
@@ -148,7 +148,7 @@ It is possible to change the order of the items in the badge, by simply reorderi
 
 `Id` - The instance ID
 
-`Instance_use_bastion` - Is the flag of using the Bastion set?
+`Instance_use_Bastion` - Is the flag of using the Bastion set?
 
 `Instance_use_ip_public` - Is the flag of using the public IP set?
 
@@ -179,7 +179,7 @@ These are settings for your AWS account/s.
 
 `use_ip_public` - Toggles if the IPs for the connection should be the internal ones (with Bastion) or external ones. The default is to use internal ones with the value of "False".
 
-`skip_stopped` - Toggles if profiles for stopped instances should be created. The default is to skip stopped instances with the value of "True".
+`Skip_stopped` - Toggles if profiles for stopped instances should be created. The default is to skip stopped instances with the value of "True".
 
 `exclude_accounts` - This is a list of accounts that are in your awscli configuration but should be excluded from the lookup. The default is an empty array([]).
 
@@ -204,11 +204,11 @@ Note: The example is deliberately commented out, so that if you don't configure 
 
 # Configuration directives from tags and/or configuration files
 The script can change the end result of the connections/profiles it creates, due to tags discovered on the cloud or directives from the conf files.
-These range from whether to use the public IP for the connection, to should a bastion be used or what the address of it should be.
+These range from whether to use the public IP for the connection, to should a Bastion be used or what the address of it should be.
 
 ## Precedence
 The script tries to "resolve" the directives from several data sources. The further away from the instance the setting originates from, the less precedence it has.
-With that said, the further away from the machine a setting is set, it’s scope will be more far reaching. For example, setting the "con_username" setting at the "Local" level in the configuration file, while it has the lowest precedence and will be overwritten by any other config level or tag, it will essentially be set for all machines for all providers, unless noted otherwise at a higher precedence level.
+With that said, the further away from the machine a setting is set, it’s scope will be more far reaching. For example, setting the "Con_username" setting at the "Local" level in the configuration file, while it has the lowest precedence and will be overwritten by any other config level or tag, it will essentially be set for all machines for all providers, unless noted otherwise at a higher precedence level.
 
 The precedence of directives, is:
 1. On the instance itself as Tags.
@@ -226,25 +226,25 @@ Possible directives are:
 
 `profile_parent_name` - Sets the profile to inherit colors and other settings from.
 
-`bastion` - The address of the Bastion to be used to reach this VM. When setting the value of this setting to "no", the bastion will not be used.
+`Bastion` - The address of the Bastion to be used to reach this VM. When setting the value of this setting to "no", the Bastion will not be used.
 
-`bastion_use` - When using "iTerm_ip_public", the bastion is not used. unless this tag is set with the value of "yes".
+`Bastion_use` - When using "iTerm_ip_public", the Bastion is not used. unless this tag is set with the value of "yes".
 
-`use_ip_public` - Denote that this instance profile, should use the instance public IP for the connection. Setting this tag, also sets the profile to not use a bastion, unless the "iTerm_bastion_use" tag is set.
+`use_ip_public` - Denote that this instance profile, should use the instance public IP for the connection. Setting this tag, also sets the profile to not use a Bastion, unless the "iTerm_Bastion_use" tag is set.
 
-`con_username` - The username to add to the connection.
+`Con_username` - The username to add to the connection.
 
-`con_port` - The port to add to the connection.
+`Con_port` - The port to add to the connection.
 
-`use_shared_key` - Toggle the use of the shared key that was used to create the instance. While this is not recommended, this is where you usually start. The default is to not use the shared key with the value of "False".
+`Use_shared_key` - Toggle the use of the shared key that was used to create the instance. While this is not recommended, this is where you usually start. The default is to not use the shared key with the value of "False".
 
-`ssh_key` - The name of the key to use. If this is not defined, and the "use_shared_key" is set, the key name on the instance is used.
+`SSH_key` - The name of the key to use. If this is not defined, and the "Use_shared_key" is set, the key name on the instance is used.
 
 # Cloud side setup
 In general, there really isn't anything you "need" to do on the clouds side. With that said, there are Things you can/should set on the cloud side to make the setup more specific.
 
 ## AWS setup
-On AWS, the default configuration is to push you towards securing your connections and to use a [Bastion](https://docs.aws.amazon.com/quickstart/latest/linux-bastion/architecture.html#bastion-hosts) for everything. This can be changed in the configuration files or using TAGs that you can add to instances and/or VPCs. In general, it is recommended to "tattoo" the "iTerm_bastion" at the VPC level.
+On AWS, the default configuration is to push you towards securing your connections and to use a [Bastion](https://docs.aws.amazon.com/quickstart/latest/linux-bastion/architecture.html#bastion-hosts) for everything. This can be changed in the configuration files or using TAGs that you can add to instances and/or VPCs. In general, it is recommended to "tattoo" the "iTerm_Bastion" at the VPC level.
 On AWS you set a tag by adding it to the desired resource, setting the "key" field to the name of the tag and in the "value" field the desired setting.
 Note the credentials used for AWS, must have the following permissions: "ec2:DescribeVpcs", "ec2:GetPasswordData", "ec2:DescribeRegions" and "ec2:DescribeInstances".
 
@@ -259,22 +259,22 @@ For example:
 
 `host_name:Incredible_name1`
 
-`bastion_use:yes`
+`Bastion_use:yes`
 
-`bastion:1-1-1-1`
+`Bastion:1-1-1-1`
 
 # MobaXterm setup
 The way to get the profiles into Moba is not as automatic as it is for iTerm. With that said, the script will generate a "sessions" file, that you can import manually into Moba, or you can use the [shared sessions feature](https://mobaxterm.mobatek.net/documentation.html#3_1_6).
 The default location of the generated configuration file is "~/Cloud_Profiler/Cloud-profiler-Moba.mxtsessions".
 
 # iTerm setup
-Again, in general you don't need to change anything in your iTerm configuration. With that said, it is recommended that you create in your iTerm, the profiles you're going to reference when using the "iTerm_dynamic_profile_parent_name" tag. if you don't, nothing major will happen, iTerm will simply use the default profile. However as of v3.3.8 of iTerm, it will throw errors to an error log and will give popups to note it has done so...
+Again, in general you don't need to change anything in your iTerm configuration. With that said, it is recommended that you create in your iTerm, the profiles you're going to reference when using the "iTerm_Dynamic_profile_parent_name" tag. if you don't, nothing major will happen, iTerm will simply use the default profile. However as of v3.3.8 of iTerm, it will throw errors to an error log and will give popups to note it has done so...
 
 ## RDP support for MacOS (optional)
 The RDP support is based on your MAC's ability to open rdp URIs. That is iTerm will issue something like "open rdp://address-of-instance". Compatible programs are Microsoft Remote Desktop 8/10 available on the app store.
 
 ## Static profiles
-The "Static profiles" feature of this script, allows you to centrally distribute profiles so that you can reference them with the "iTerm_dynamic_profile_parent_name" tag. For example, the two profiles in the repo, give the "Red Alert" and "Dracula" color schemas with my beloved keyboard shortcuts. They are installed for you in the dynamic profiles automatically, which makes it possible to reference them with the tag and get a clear distinction when you're on prod vs normal servers.
+The "Static profiles" feature of this script, allows you to centrally distribute profiles so that you can reference them with the "iTerm_Dynamic_profile_parent_name" tag. For example, the two profiles in the repo, give the "Red Alert" and "Dracula" color schemas with my beloved keyboard shortcuts. They are installed for you in the dynamic profiles automatically, which makes it possible to reference them with the tag and get a clear distinction when you're on prod vs normal servers.
 The static profiles can also be used as a shim for the cases where you want to distribute profiles that don't come from AWS. For example, you have some VMs on a local ESX. You can create their profiles and save them in the "static" directory, and they will be distributed to the rest of the repo users
 
 The way to add/remove profiles, is to do so in the "iTerm2-static-profiles" directory within the repo. You get the profiles, by creating them the regular iTerm way (as explained below) and then using the "export to json" options at the bottom of the "profiles" tab in preferences.
@@ -290,7 +290,7 @@ For example, to create "DRACULA" profile:
 - Click on "Import". It will open up a finder window. Go into the "schemes" folder within the sub-module folder.
 - Choose "Dracula.itermcolors".
 - Now the "DRACULA" schema is select-able in the dropdown list.
-Note: The "Red Alert" profile, which I recommend for production servers is part of the "Static profiles", so you can just use it by making it the value of the "iTerm_dynamic_profile_parent_name" tag.
+Note: The "Red Alert" profile, which I recommend for production servers is part of the "Static profiles", so you can just use it by making it the value of the "iTerm_Dynamic_profile_parent_name" tag.
 
 We wish you calm clouds and a serene path...
 

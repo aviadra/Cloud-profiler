@@ -1,23 +1,23 @@
 Local:
-  static_profiles: "./iTerm2-static-profiles"
-  ssh_base_string: "-oStrictHostKeyChecking=no -oUpdateHostKeys=yes -oServerAliveInterval=30 -oAddKeysToAgent=no"
-  con_username: ''
-  bastion: ''
+  Static_profiles: "./iTerm2-static-profiles"
+  SSH_base_string: "-oStrictHostKeyChecking=no -oUpdateHostKeys=yes -oServerAliveInterval=30 -oAddKeysToAgent=no"
+  Con_username: False
+  Bastion: False
   SSH_keys_path: "~/.ssh"
-  use_shared_key: False
-  badge_info_to_display: 
+  Use_shared_key: False
+  Badge_info_to_display: 
     Name: False
     Instance_key: False
     InstanceType: False
     Bastion: False
-    Bastion_con_port: False
-    Bastion_con_username: False
+    Bastion_Con_port: False
+    Bastion_Con_username: False
     Con_port: False
     Con_username: False
     Dynamic_profile_parent_name: False
     Group: False
     Id: False
-    Instance_use_bastion: False
+    Instance_use_Bastion: False
     Instance_use_ip_public: False
     Ip_public: False
     # Iterm_tags_prefixs: ["ENV","Name"]
@@ -32,11 +32,11 @@ Local:
   
 AWS:
   aws_credentials_file: "~/.aws/credentials"
-  con_username: ''
-  con_port: 22
-  con_port_windows: 3389
+  Con_username: ''
+  Con_port: 22
+  Con_port_windows: 3389
   use_ip_public: False
-  skip_stopped: True
+  Skip_stopped: True
   exclude_accounts: []
   exclude_regions: [] # for example: ["ap-southeast-1", "ap-southeast-2","sa-east-1","ap-northeast-1","ap-northeast-2","ap-south-1"]
   use_awscli_profiles: False
@@ -46,7 +46,7 @@ AWS:
   #     name: "name_of_profile"
   #     aws_access_key_id: "your_id"
   #     aws_secret_access_key: "your_key"
-  #     con_username: ''
+  #     Con_username: ''
   # -
   #     name: "sts_using_profile"
   #     aws_access_key_id: "your_id"
@@ -58,7 +58,7 @@ AWS:
   #     }
 
 DO:
-  skip_stopped: True
+  Skip_stopped: True
   profiles:
   #   -
   #     name: "name_of_profile"

@@ -25,7 +25,7 @@ Windows bug "missing setting of d, before use" fix.
 
 
 ## v1.4.1
-Changed bastion decision (again) so that it works as expected.
+Changed Bastion decision (again) so that it works as expected.
 Removed unnecessary space after the ssh command 
 
 ## v1.4
@@ -69,7 +69,7 @@ Added PyCryptodome to requirements.
 
 
 ## v1.0.1
-Added the ability to block the use of a bastion, by setting the tag iTerm_bastion to the value of "no".
+Added the ability to block the use of a Bastion, by setting the tag iTerm_bastion to the value of "no".
 Corrected DO bug not using Bastion.
 Added self-healing for usage of random port by detecting an already established tunnel and killing it before trying to connect if the variable is already set.
 Added ability to run without parallelization (mainly for debugging)
