@@ -1,5 +1,12 @@
 # Change Log
 
+## v1.6.4
+You get capitalisation, and you get capitalisation... everybody gets CAPITALISATION!!! ＼(｀0´)／
+Added Login_command to be executed right after login to the remote system. (Useful for automatically "sudo -i")
+
+## v1.6.3
+Added the "Update" profile to the "static" profiles in the repository.
+
 ## v1.6.2
 Added Badge customization ^_^
 

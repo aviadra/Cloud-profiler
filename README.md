@@ -221,6 +221,7 @@ The precedence of directives, is:
 Directives can be set with tags on the instances. You can either use them as is, for example as they appear in the config files, or prefix them with either "Cloud_Profiler" or "iTerm_" (the latter is kept for compatibility and may be deprecated in a future release).
 It is recommended to use the "Cloud_Profiler" prefix, as it just gives context to the person seeing the tags on the instance.
 For example, `Cloud_Profiler_profile_parent_name` (the preferred method), `iTerm_profile_parent_name` (may be deprecated in a future release), and even just `profile_parent_name` are all acceptable forms of tagging.
+Note: As of v1.6.4, the capitalisation of the text in the tags after the prefix doesn't matter.
 
 Possible directives are:
 
