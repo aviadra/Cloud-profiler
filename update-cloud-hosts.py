@@ -173,7 +173,7 @@ def getDOInstances(profile):
         
         Password = [False, ""]
         Iterm_tags = []
-        Instance_use_ip_public = settingResolver('Use_ip_public',drop, {}, "DO", False)
+        Instance_use_Ip_public = settingResolver('Use_Ip_public',drop, {}, "DO", False)
         Instance_use_Bastion = settingResolver('Use_bastion',drop, {}, "DO", False)
         Or_host_name=settingResolver('Host_name',drop,{},"DO", False)
         Bastion = settingResolver('Bastion',drop,{},"DO", False)
@@ -192,7 +192,7 @@ def getDOInstances(profile):
         else:
             drop_name = drop.name
 
-        if Instance_use_ip_public:
+        if Instance_use_Ip_public:
             ip = drop.ip_address
         else:
             ip = drop.private_ip_address
@@ -223,7 +223,7 @@ def getDOInstances(profile):
                         'Login_command': Login_command,
                         'Instance_use_Bastion': Instance_use_Bastion,
                         'Bastion': Bastion,
-                        'Instance_use_ip_public': Instance_use_ip_public,
+                        'Instance_use_Ip_public': Instance_use_Ip_public,
                         'Ip_public': Public_ip,
                         'Password': Password,
                         'Region': drop.region['name']}
@@ -238,7 +238,7 @@ def fetchEC2Instance(instance, client, groups, instances, instance_source, reser
     Password = [False, ""]
 
     Instance_use_Bastion = settingResolver('Use_bastion', instance, vpc_data_all,'AWS', False)
-    Instance_use_ip_public = settingResolver('Use_ip_public', instance, vpc_data_all,'AWS', False)
+    Instance_use_Ip_public = settingResolver('Use_Ip_public', instance, vpc_data_all,'AWS', False)
     SSH_key = settingResolver('SSH_key', instance, vpc_data_all,'AWS', instance.get('KeyName',False))
     Use_shared_key = settingResolver('Use_shared_key', instance, vpc_data_all,'AWS', False)
     Login_command = settingResolver('Login_command', instance, vpc_data_all,'AWS', False)
@@ -262,7 +262,7 @@ def fetchEC2Instance(instance, client, groups, instances, instance_source, reser
     else:
         name = instance['InstanceId']
 
-    if Instance_use_ip_public == True and 'PublicIpAddress' in instance:
+    if Instance_use_Ip_public == True and 'PublicIpAddress' in instance:
         ip = instance['PublicIpAddress']
     else:
         try:
@@ -317,7 +317,7 @@ def fetchEC2Instance(instance, client, groups, instances, instance_source, reser
                      'Group': name,
                      'Bastion': Bastion,
                      'VPC': instance.get('VpcId', ""),
-                     'Instance_use_ip_public': Instance_use_ip_public,
+                     'Instance_use_Ip_public': Instance_use_Ip_public,
                      'Instance_use_Bastion': Instance_use_Bastion,
                      'Ip_public': Public_ip,
                      'Dynamic_profile_parent_name': Dynamic_profile_parent_name, 'Iterm_tags': Iterm_tags_fin,
@@ -490,10 +490,10 @@ def updateMoba(dict_list):
         if not 'instance_by_region' in d:
             d['instance_by_region'] = {}
         for key,instance in d['instances'].items():
-            if not instance['region'] in d['instance_by_region']:
-                d['instance_by_region'][instance['region']] = []
+            if not instance['Region'] in d['instance_by_region']:
+                d['instance_by_region'][instance['Region']] = []
             instance['ip'] = key
-            d['instance_by_region'][instance['region']].append(instance)
+            d['instance_by_region'][instance['Region']].append(instance)
     del d
 
 
@@ -501,15 +501,15 @@ def updateMoba(dict_list):
     
     for profile_dict in dict_list:
         for region in profile_dict['instance_by_region']:
-            profiles +=  f'\n[Bookmarks_{bookmark_counter}]\nSubRep={profile_dict["instance_source"]}\{region}\nImgNum=41\n'
+            profiles +=  f"""\n[Bookmarks_{bookmark_counter}]\nSubRep={profile_dict["instance_source"]}\\{region}\nImgNum=41\n"""
             for instance in profile_dict['instance_by_region'][region]:
                 instance_counter[profile_dict['instance_source']] += 1
-                shortName = instance['name'].rpartition('.')[2]
-                group = instance['group']
+                shortName = instance['Name'].rpartition('.')[2]
+                group = instance['Group']
 
                 connection_command = f"{shortName}= "
 
-                tags = ["Account: " + profile_dict["instance_source"], str(instance['id'])]
+                tags = ["Account: " + profile_dict["instance_source"], str(instance['Id'])]
                 for tag in instance['Iterm_tags']:
                     tags.append(tag)
                 if profile_dict["groups"].get(group, 0) > 1:
@@ -519,8 +519,8 @@ def updateMoba(dict_list):
                 if "Sorry" in instance:
                     connection_command = "echo"
                     ip_for_connection = instance
-                elif instance.get('Instance_use_ip_public', False) == True or not instance['Bastion']:
-                    ip_for_connection = instance['ip_public']
+                elif instance.get('Instance_use_Ip_public', False) == True or not instance['Bastion']:
+                    ip_for_connection = instance['Ip_public']
                 else:
                     ip_for_connection = instance['ip']
 
@@ -530,7 +530,7 @@ def updateMoba(dict_list):
                 else:
                     Con_username = '<default>'
                 
-                if instance.get('platform', '') == 'windows':
+                if instance.get('Platform', '') == 'windows':
                     if not instance['Con_username']:
                         Con_username = "Administrator"
                     connection_type = "#91#4%"
@@ -538,7 +538,7 @@ def updateMoba(dict_list):
                     connection_type = "#109#0%"
                 
                 if ( instance['Bastion'] != False \
-                    and instance['Instance_use_ip_public'] != True ) \
+                    and instance['Instance_use_Ip_public'] != True ) \
                     or instance['Instance_use_Bastion'] == True:
                     
                     Bastion_for_profile = instance['Bastion']
@@ -597,7 +597,7 @@ def updateTerm(dict_list):
             if "Sorry" in instance:
                 connection_command = "echo"
                 ip_for_connection = instance
-            elif profile_dict["instances"][instance].get('Instance_use_ip_public', False) == True or not profile_dict["instances"][instance]['Bastion']:
+            elif profile_dict["instances"][instance].get('Instance_use_Ip_public', False) == True or not profile_dict["instances"][instance]['Bastion']:
                 ip_for_connection = profile_dict["instances"][instance]['Ip_public']
             else:
                 ip_for_connection = instance
@@ -610,7 +610,7 @@ def updateTerm(dict_list):
             connection_command = f"{connection_command} {ip_for_connection}"
             
             if profile_dict["instances"][instance]['Bastion'] != False \
-                and profile_dict["instances"][instance]['Instance_use_ip_public'] != True \
+                and profile_dict["instances"][instance]['Instance_use_Ip_public'] != True \
                 or profile_dict["instances"][instance]['Instance_use_Bastion'] == True:
                 
                 Bastion_connection_command = ''

@@ -73,7 +73,7 @@ Local:
     Group: False
     Id: False
     Instance_use_Bastion: False
-    Instance_use_ip_public: False
+    Instance_use_Ip_public: False
     Ip_public: True
     Iterm_tags_prefixs: ["ENV"]
     # Iterm_tags_prefixs: []
@@ -89,7 +89,7 @@ AWS:
   aws_credentials_file: "~/.aws/credentials"
   Con_username: False
   Bastion_Con_port: 22
-  use_ip_public: False
+  use_Ip_public: False
   Skip_stopped: True
   exclude_accounts: []
   use_awscli_profiles: False
@@ -110,7 +110,7 @@ DO:
     -
       name: "The one"
       token: "secretspecialuniquesnowflake"
-      use_ip_public: True
+      use_Ip_public: True
 ```
 
 ## Local options
@@ -150,7 +150,7 @@ It is possible to change the order of the items in the badge, by simply reorderi
 
 `Instance_use_Bastion` - Is the flag of using the Bastion set?
 
-`Instance_use_ip_public` - Is the flag of using the public IP set?
+`Instance_use_Ip_public` - Is the flag of using the public IP set?
 
 `Iterm_tags_prefixs` - Iterm_tags, are what iTerm uses for indexing and show as information in the instance. It is possible to set this toggle to false to not show them as all.
 Setting this toggle to an empty array([]), will simply show all the iTerm tags given to the instance.
@@ -177,7 +177,7 @@ These are settings for your AWS account/s.
 
 `aws_credentials_file` - This directive sets the location of the "credentials" file, when using the awscli configurations. The "credentials" file is where the profile names and credentials are derived from for the connections. The default is "~/.aws/credentials"
 
-`use_ip_public` - Toggles if the IPs for the connection should be the internal ones (with Bastion) or external ones. The default is to use internal ones with the value of "False".
+`use_Ip_public` - Toggles if the IPs for the connection should be the internal ones (with Bastion) or external ones. The default is to use internal ones with the value of "False".
 
 `Skip_stopped` - Toggles if profiles for stopped instances should be created. The default is to skip stopped instances with the value of "True".
 
@@ -229,9 +229,9 @@ Possible directives are:
 
 `Bastion` - The address of the Bastion to be used to reach this VM. When setting the value of this setting to "no", the Bastion will not be used.
 
-`Bastion_use` - When using "iTerm_ip_public", the Bastion is not used. unless this tag is set with the value of "yes".
+`Bastion_use` - When using "iTerm_Ip_public", the Bastion is not used. unless this tag is set with the value of "yes".
 
-`use_ip_public` - Denote that this instance profile, should use the instance public IP for the connection. Setting this tag, also sets the profile to not use a Bastion, unless the "iTerm_Bastion_use" tag is set.
+`use_Ip_public` - Denote that this instance profile, should use the instance public IP for the connection. Setting this tag, also sets the profile to not use a Bastion, unless the "iTerm_Bastion_use" tag is set.
 
 `Con_username` - The username to add to the connection.
 
