@@ -1,5 +1,8 @@
 # Change Log
 
+## v1.6.5
+Added CP_Version variable, which if set (in your zshrc file for example) will be used to determine which version to use to pull
+
 ## v1.6.4
 You get capitalisation, and you get capitalisation... everybody gets CAPITALISATION!!! ＼(｀0´)／
 Added Login_command to be executed right after login to the remote system. (Useful for automatically "sudo -i")

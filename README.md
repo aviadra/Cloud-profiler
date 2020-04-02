@@ -32,6 +32,7 @@ It is absolutely possible to run the script on a per-needed bases (a.k.a. "ad-ho
 ##### On MacOS
 
 As of v1.6.3 the "Update" profile was added to the "static" profiles distributed with the repository. In order to use it, simply call it like any other profile (CMD + O)
+Note: As of v1.6.5, if you set the variable CP_Version (in your zshrc file for example), the update profile will use it to determine which version to use to pull
 
 `docker run --init --rm -v ~/Library/Application\ Support/iTerm2/DynamicProfiles/:/root/Library/Application\ Support/iTerm2/DynamicProfiles/ -v ~/.iTerm-cloud-profile-generator/config.yaml:/root/.iTerm-cloud-profile-generator/config.yaml aviadra/cp`
 
