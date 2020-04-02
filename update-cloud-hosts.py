@@ -35,7 +35,7 @@ def BadgeMe(instance_key,instance):
         Name_formatted = f"""Instance name: {Name[2]}
                             Cloud provIdor: {Name[0]}
                             Account profile: {Name[1]}"""
-    all_badge_toggeles = script_config["Local"].get("badge_info_to_display", False)
+    all_badge_toggeles = script_config["Local"].get("Badge_info_to_display", False)
     if all_badge_toggeles == False:
         value_to_return = f"""  {Name_formatted}
                                 InstanceType: {instance['InstanceType']}
@@ -108,7 +108,7 @@ def get_DO_tag_value(tags,q_tag, q_tag_value):
             for tag in tags:
                 if ':' in tag and ('iTerm' in tag or 'Cloud_Profiler' in tags):
                     tag_key,tag_value = tag.split(':')
-                    if tag_key == q_tag:
+                    if tag_key == q_tag.casefold():
                         q_tag_value = tag_value.replace('_', ' ')
                         q_tag_value = tag_value.replace('-', '.')
                         break
@@ -129,11 +129,11 @@ def get_tag_value(tags, q_tag, sg=False, q_tag_value = False):
                 q_tag_value = ''
             q_tag_value += tag['GroupName'] + ': ' + tag['GroupId'] + ","
         else:
-            if tag['Key'] == q_tag:
+            if tag['Key'].casefold() == q_tag.casefold():
                 q_tag_value = tag['Value']
-                if tag['Value'] == 'True' or tag['Value'] == "yes" or tag['Value'] == "y":
+                if tag['Value'] == 'True'.casefold() or tag['Value'] == "yes".casefold() or tag['Value'] == "y".casefold():
                     q_tag_value = True
-                if tag['Value'] == 'False' or tag['Value'] == 'no' or tag['Value'] == "n":
+                if tag['Value'] == 'False'.casefold() or tag['Value'] == 'no'.casefold() or tag['Value'] == "n".casefold():
                     q_tag_value = False
                 break
     return q_tag_value
@@ -165,33 +165,34 @@ def getDOInstances(profile):
     my_droplets = manager.get_all_droplets()
 
     for drop in my_droplets:
-        if (script_config['DO'].get('skip_stopped', True) == True \
-            and script_config['Local'].get('skip_stopped', True) == True \
-            and profile.get('skip_stopped', True) == True) \
+        if (script_config['DO'].get('Skip_stopped', True) == True \
+            and script_config['Local'].get('Skip_stopped', True) == True \
+            and profile.get('Skip_stopped', True) == True) \
             and drop.status != 'active':
             continue
         
         Password = [False, ""]
         Iterm_tags = []
-        instance_use_ip_public = settingResolver('use_ip_public',drop, {}, "DO", False)
-        instance_use_bastion = settingResolver('use_bastion',drop, {}, "DO", False)
-        or_host_name=settingResolver('host_name',drop,{},"DO", False)
-        bastion = settingResolver('bastion',drop,{},"DO", False)
-        con_username = settingResolver('con_username',drop,{},"DO", False)
-        bastion_con_username = settingResolver('bastion_con_username',drop,{},"DO", False)
-        con_port = settingResolver('con_port',drop,{},"DO", 22)
-        bastion_con_port = settingResolver('bastion_con_port',drop,{},"DO", 22)
-        ssh_key = settingResolver('ssh_key',drop,{}, "DO", False)
-        use_shared_key = settingResolver('use_shared_key',drop,{},"DO", False)
-        dynamic_profile_parent_name = settingResolver('dynamic_profile_parent_name',drop,{},"DO")
-        public_ip = drop.ip_address
+        Instance_use_Ip_public = settingResolver('Use_Ip_public',drop, {}, "DO", True)
+        Instance_use_Bastion = settingResolver('Use_bastion',drop, {}, "DO", False)
+        Or_host_name=settingResolver('Host_name',drop,{},"DO", False)
+        Bastion = settingResolver('Bastion',drop,{},"DO", False)
+        Con_username = settingResolver('Con_username',drop,{},"DO", False)
+        Bastion_Con_username = settingResolver('Bastion_Con_username',drop,{},"DO", False)
+        Con_port = settingResolver('Con_port',drop,{},"DO", 22)
+        Bastion_Con_port = settingResolver('Bastion_Con_port',drop,{},"DO", 22)
+        SSH_key = settingResolver('SSH_key',drop,{}, "DO", False)
+        Use_shared_key = settingResolver('Use_shared_key',drop,{},"DO", False)
+        Login_command = settingResolver('Login_command',drop,{},"DO", False)
+        Dynamic_profile_parent_name = settingResolver('Dynamic_profile_parent_name',drop,{},"DO")
+        Public_ip = drop.ip_address
 
-        if or_host_name:
-            drop_name = or_host_name
+        if Or_host_name:
+            drop_name = Or_host_name
         else:
             drop_name = drop.name
 
-        if instance_use_ip_public:
+        if Instance_use_Ip_public:
             ip = drop.ip_address
         else:
             ip = drop.private_ip_address
@@ -210,22 +211,23 @@ def getDOInstances(profile):
         instances[ip] = {'Name':instance_source + '.' + drop_name,
                         'Group': drop_name,
                         'Index':groups[drop.name],
-                        'Dynamic_profile_parent_name': dynamic_profile_parent_name,
+                        'Dynamic_profile_parent_name': Dynamic_profile_parent_name,
                         'Iterm_tags': Iterm_tags, 'InstanceType': drop.size['slug'],
-                        'Con_username': con_username,
-                        'Bastion_con_username': bastion_con_username,
-                        'Con_port': con_port,
-                        'Bastion_con_port': bastion_con_port,
+                        'Con_username': Con_username,
+                        'Bastion_Con_username': Bastion_Con_username,
+                        'Con_port': Con_port,
+                        'Bastion_Con_port': Bastion_Con_port,
                         'Id': drop.id,
-                        'SSH_key': ssh_key,
-                        'Use_shared_key': use_shared_key,
-                        'Instance_use_bastion': instance_use_bastion,
-                        'Bastion': bastion,
-                        'Instance_use_ip_public': instance_use_ip_public,
-                        'Ip_public': public_ip,
+                        'SSH_key': SSH_key,
+                        'Use_shared_key': Use_shared_key,
+                        'Login_command': Login_command,
+                        'Instance_use_Bastion': Instance_use_Bastion,
+                        'Bastion': Bastion,
+                        'Instance_use_Ip_public': Instance_use_Ip_public,
+                        'Ip_public': Public_ip,
                         'Password': Password,
                         'Region': drop.region['name']}
-        print(f'instance_source: {ip}\t\t{instance_source}. {drop_name}\t\tassociated bastion: "{str(bastion)}"')
+        print(f'instance_source: {ip}\t\t{instance_source}. {drop_name}\t\tassociated Bastion: "{str(Bastion)}"')
     
     cloud_instances_obj_list.append({"instance_source": instance_source, "groups": groups, "instances":instances})
 
@@ -235,23 +237,24 @@ def fetchEC2Instance(instance, client, groups, instances, instance_source, reser
     Iterm_tags = []
     Password = [False, ""]
 
-    instance_use_bastion = settingResolver('use_bastion', instance, vpc_data_all,'AWS', False)
-    instance_use_ip_public = settingResolver('use_ip_public', instance, vpc_data_all,'AWS', False)
-    ssh_key = settingResolver('ssh_key', instance, vpc_data_all,'AWS', instance.get('KeyName',False))
-    use_shared_key = settingResolver('use_shared_key', instance, vpc_data_all,'AWS', False)
-    con_username = settingResolver('con_username', instance, vpc_data_all,'AWS', False)
-    bastion_con_username = settingResolver('bastion_con_username', instance, vpc_data_all,'AWS', False)
-    con_port = settingResolver('con_port', instance, vpc_data_all,'AWS', 22)
-    bastion_con_port = settingResolver('bastion_con_port', instance, vpc_data_all,'AWS', 22)
-    bastion = settingResolver('bastion', instance, vpc_data_all,'AWS', False)
-    dynamic_profile_parent_name = settingResolver('dynamic_profile_parent_name', instance, vpc_data_all,'AWS', False)
+    Instance_use_Bastion = settingResolver('Use_bastion', instance, vpc_data_all,'AWS', False)
+    Instance_use_Ip_public = settingResolver('Use_Ip_public', instance, vpc_data_all,'AWS', False)
+    SSH_key = settingResolver('SSH_key', instance, vpc_data_all,'AWS', instance.get('KeyName',False))
+    Use_shared_key = settingResolver('Use_shared_key', instance, vpc_data_all,'AWS', False)
+    Login_command = settingResolver('Login_command', instance, vpc_data_all,'AWS', False)
+    Con_username = settingResolver('Con_username', instance, vpc_data_all,'AWS', False)
+    Bastion_Con_username = settingResolver('Bastion_Con_username', instance, vpc_data_all,'AWS', False)
+    Con_port = settingResolver('Con_port', instance, vpc_data_all,'AWS', 22)
+    Bastion_Con_port = settingResolver('Bastion_Con_port', instance, vpc_data_all,'AWS', 22)
+    Bastion = settingResolver("Bastion", instance, vpc_data_all,'AWS', False)
+    Dynamic_profile_parent_name = settingResolver('Dynamic_profile_parent_name', instance, vpc_data_all,'AWS', False)
     instance_vpc_flat_tags = vpc_data(instance.get('VpcId', ''), "flat", vpc_data_all)
     instance_flat_sgs = ''
     for interface in instance.get('NetworkInterfaces',[]):
         instance_flat_sgs += (get_tag_value(interface['Groups'],'flat',"sg"))
     
-    if not ssh_key:
-        ssh_key = instance.get('KeyName', '')
+    if not SSH_key:
+        SSH_key = instance.get('KeyName', '')
 
     if 'Tags' in instance:
         name = get_tag_value(instance['Tags'], "Name" ,False, instance['InstanceId'])
@@ -259,7 +262,7 @@ def fetchEC2Instance(instance, client, groups, instances, instance_source, reser
     else:
         name = instance['InstanceId']
 
-    if instance_use_ip_public == True and 'PublicIpAddress' in instance:
+    if Instance_use_Ip_public == True and 'PublicIpAddress' in instance:
         ip = instance['PublicIpAddress']
     else:
         try:
@@ -273,10 +276,10 @@ def fetchEC2Instance(instance, client, groups, instances, instance_source, reser
         groups[name] = 1
 
     if 'PublicIpAddress' in instance:
-        public_ip = instance['PublicIpAddress']
+        Public_ip = instance['PublicIpAddress']
         Iterm_tags.append(f"Ip_public: {instance['PublicIpAddress']}")
     else:
-        public_ip = ''
+        Public_ip = ''
     
     if instance_flat_tags:
         Iterm_tags.append(instance_flat_tags)
@@ -307,29 +310,30 @@ def fetchEC2Instance(instance, client, groups, instances, instance_source, reser
                     InstanceId=instance['InstanceId'],
                     )
         data = base64.b64decode(response['PasswordData'])
-        Password = decrypt(data, os.path.join(script_config["Local"].get('SSH_keys_path', '.'),ssh_key))
+        Password = decrypt(data, os.path.join(script_config["Local"].get('SSH_keys_path', '.'),SSH_key))
     
     instances[ip] = {'Name': instance_source + '.' + name,
                      'Index': groups[name],
                      'Group': name,
-                     'Bastion': bastion,
+                     'Bastion': Bastion,
                      'VPC': instance.get('VpcId', ""),
-                     'Instance_use_ip_public': instance_use_ip_public,
-                     'Instance_use_bastion': instance_use_bastion,
-                     'Ip_public': public_ip,
-                     'Dynamic_profile_parent_name': dynamic_profile_parent_name, 'Iterm_tags': Iterm_tags_fin,
+                     'Instance_use_Ip_public': Instance_use_Ip_public,
+                     'Instance_use_Bastion': Instance_use_Bastion,
+                     'Ip_public': Public_ip,
+                     'Dynamic_profile_parent_name': Dynamic_profile_parent_name, 'Iterm_tags': Iterm_tags_fin,
                      'InstanceType': instance['InstanceType'],
-                     'Con_username': con_username,
-                     'Bastion_con_username': bastion_con_username,
-                     'Con_port': con_port,
-                     'Bastion_con_port': bastion_con_port,
+                     'Con_username': Con_username,
+                     'Bastion_Con_username': Bastion_Con_username,
+                     'Con_port': Con_port,
+                     'Bastion_Con_port': Bastion_Con_port,
                      'Id': instance['InstanceId'],
-                     'SSH_key': ssh_key,
-                     'Use_shared_key': use_shared_key,
+                     'SSH_key': SSH_key,
+                     'Use_shared_key': Use_shared_key,
+                     'Login_command': Login_command,
                      'Platform': instance.get('Platform', ''),
                      'Password': Password,
                      'Region': instance['Placement']['AvailabilityZone'][:-1]}
-    return (ip + "\t" + instance['Placement']['AvailabilityZone'] + "\t" + instance_source + "." + name + "\t\t associated bastion: \"" + str(bastion) + "\"")
+    return (ip + "\t" + instance['Placement']['AvailabilityZone'] + "\t" + instance_source + "." + name + "\t\t associated Bastion: \"" + str(Bastion) + "\"")
 
 
 def fetchEC2Region(region, profile_name, instances, groups, instance_source, credentials = False):
@@ -346,7 +350,7 @@ def fetchEC2Region(region, profile_name, instances, groups, instance_source, cre
     else:
         client = boto3.client('ec2', region_name=region)
 
-    if script_config['AWS'].get('skip_stopped', True) == False or script_config['Local'].get('skip_stopped', True) == False or profile.get('skip_stopped', True) == False:
+    if script_config['AWS'].get('Skip_stopped', True) == False or script_config['Local'].get('Skip_stopped', True) == False or profile.get('Skip_stopped', True) == False:
         search_states = ['running', 'pending', 'shutting-down', 'terminated', 'stopping', 'stopped']
     else:
         search_states = ['running']
@@ -366,7 +370,7 @@ def fetchEC2Region(region, profile_name, instances, groups, instance_source, cre
     if response.get('Reservations',False):
         for reservation in response['Reservations']:
             for instance in reservation['Instances']:
-                if script_config["Local"].get('parallel_exec', True):
+                if script_config["Local"].get('Parallel_exec', True):
                     with concurrent.futures.ThreadPoolExecutor() as executor:
                         future = executor.submit(fetchEC2Instance, instance, client, groups, instances, instance_source, reservation, vpc_data_all)
                         return_value = future.result()
@@ -418,7 +422,7 @@ def getEC2Instances(profile, role_arn = False):
         role_session_name = f"{os.path.basename(__file__).rpartition('.')[0]}."\
                             f"{getpass.getuser().replace(' ','_')}@{platform.uname()[1]}"
         sts_client = boto3.client('sts')
-        if profile.get("mfa_serial_number", False):
+        if profile.get("MFA_serial_number", False):
             retry = 3
             while retry > 0:
                 try:
@@ -463,7 +467,7 @@ def getEC2Instances(profile, role_arn = False):
         print(f'Was unable to retrive information for "regions" in account "{profile_name}", so it was skipped.')
         return
 
-    if script_config["Local"].get('parallel_exec', True):
+    if script_config["Local"].get('Parallel_exec', True):
         with concurrent.futures.ThreadPoolExecutor() as executor:
             [executor.submit(fetchEC2Region, region , profile_name, instances, groups, instance_source, credentials) for region in ec2_regions]
     else:
@@ -486,10 +490,10 @@ def updateMoba(dict_list):
         if not 'instance_by_region' in d:
             d['instance_by_region'] = {}
         for key,instance in d['instances'].items():
-            if not instance['region'] in d['instance_by_region']:
-                d['instance_by_region'][instance['region']] = []
+            if not instance['Region'] in d['instance_by_region']:
+                d['instance_by_region'][instance['Region']] = []
             instance['ip'] = key
-            d['instance_by_region'][instance['region']].append(instance)
+            d['instance_by_region'][instance['Region']].append(instance)
     del d
 
 
@@ -497,15 +501,15 @@ def updateMoba(dict_list):
     
     for profile_dict in dict_list:
         for region in profile_dict['instance_by_region']:
-            profiles +=  f'\n[Bookmarks_{bookmark_counter}]\nSubRep={profile_dict["instance_source"]}\{region}\nImgNum=41\n'
+            profiles +=  f"""\n[Bookmarks_{bookmark_counter}]\nSubRep={profile_dict["instance_source"]}\\{region}\nImgNum=41\n"""
             for instance in profile_dict['instance_by_region'][region]:
                 instance_counter[profile_dict['instance_source']] += 1
-                shortName = instance['name'].rpartition('.')[2]
-                group = instance['group']
+                shortName = instance['Name'].rpartition('.')[2]
+                group = instance['Group']
 
                 connection_command = f"{shortName}= "
 
-                tags = ["Account: " + profile_dict["instance_source"], str(instance['id'])]
+                tags = ["Account: " + profile_dict["instance_source"], str(instance['Id'])]
                 for tag in instance['Iterm_tags']:
                     tags.append(tag)
                 if profile_dict["groups"].get(group, 0) > 1:
@@ -515,48 +519,52 @@ def updateMoba(dict_list):
                 if "Sorry" in instance:
                     connection_command = "echo"
                     ip_for_connection = instance
-                elif instance.get('instance_use_ip_public', False) == True or not instance['bastion']:
-                    ip_for_connection = instance['ip_public']
+                elif instance.get('Instance_use_Ip_public', False) == True or not instance['Bastion']:
+                    ip_for_connection = instance['Ip_public']
                 else:
                     ip_for_connection = instance['ip']
 
 
-                if instance['con_username']:
-                    con_username = instance['con_username']
+                if instance['Con_username']:
+                    Con_username = instance['Con_username']
                 else:
-                    con_username = '<default>'
+                    Con_username = '<default>'
                 
-                if instance.get('platform', '') == 'windows':
-                    if not instance['con_username']:
-                        con_username = "Administrator"
+                if instance.get('Platform', '') == 'windows':
+                    if not instance['Con_username']:
+                        Con_username = "Administrator"
                     connection_type = "#91#4%"
                 else:
                     connection_type = "#109#0%"
                 
-                if ( instance['bastion'] != False \
-                    and instance['instance_use_ip_public'] != True ) \
-                    or instance['instance_use_bastion'] == True:
+                if ( instance['Bastion'] != False \
+                    and instance['Instance_use_Ip_public'] != True ) \
+                    or instance['Instance_use_Bastion'] == True:
                     
-                    bastion_for_profile = instance['bastion']
+                    Bastion_for_profile = instance['Bastion']
                 else:
-                    bastion_for_profile = ''
+                    Bastion_for_profile = ''
 
-                if instance['ssh_key'] and instance['use_shared_key']:
-                    sharead_key_path = os.path.join(connection_command,os.path.expanduser(script_config["Local"].get('SSH_keys_path', '.')), instance['ssh_key'])
+                if instance['SSH_key'] and instance['Use_shared_key']:
+                    sharead_key_path = os.path.join(connection_command,os.path.expanduser(script_config["Local"].get('SSH_keys_path', '.')), instance['SSH_key'])
                 else:
                         sharead_key_path = ''
                 tags = ','.join(tags)
-                if instance['bastion_con_port'] != 22:
-                    bastion_port = instance['bastion_con_port']
+                if instance['Bastion_Con_port'] != 22:
+                    Bastion_port = instance['Bastion_Con_port']
                 else:
-                    bastion_port = ''
-                if instance['bastion_con_username']:
-                    bastion_user = instance['bastion_con_username']
+                    Bastion_port = ''
+                if instance['Bastion_Con_username']:
+                    Bastion_user = instance['Bastion_Con_username']
                 else:
-                    bastion_user = ''
+                    Bastion_user = ''
+                if instance['Login_command']:
+                    login_command = instance['Login_command']
+                else:
+                    login_command = ''
                 profile =   (
-                        f"\n{shortName}= {connection_type}{ip_for_connection}%{instance['con_port']}%"
-                        f"{con_username}%%-1%-1%%{bastion_for_profile}%{bastion_port}%{bastion_user}%0%"
+                        f"\n{shortName}= {connection_type}{ip_for_connection}%{instance['Con_port']}%"
+                        f"{Con_username}%%-1%-1%{login_command}%{Bastion_for_profile}%{Bastion_port}%{Bastion_user}%0%"
                         f"0%0%{sharead_key_path}%%"
                         f"-1%0%0%0%%1080%%0%0%1#MobaFont%10%0%0%0%15%236,"
                         f"236,236%30,30,30%180,180,192%0%-1%0%%xterm%-1%"
@@ -581,6 +589,7 @@ def updateTerm(dict_list):
             group = profile_dict["instances"][instance]['Group']
 
             connection_command = "ssh"
+            # Con_username = ''
 
             tags = ["Account: " + profile_dict["instance_source"], instance]
             for tag in profile_dict["instances"][instance]['Iterm_tags']:
@@ -592,37 +601,36 @@ def updateTerm(dict_list):
             if "Sorry" in instance:
                 connection_command = "echo"
                 ip_for_connection = instance
-            elif profile_dict["instances"][instance].get('Instance_use_ip_public', False) == True or not profile_dict["instances"][instance]['Bastion']:
+            elif profile_dict["instances"][instance].get('Instance_use_Ip_public', False) == True or not profile_dict["instances"][instance]['Bastion']:
                 ip_for_connection = profile_dict["instances"][instance]['Ip_public']
             else:
                 ip_for_connection = instance
 
             
-            if profile_dict["instances"][instance].get('platform', '') == 'windows':
-                if not profile_dict["instances"][instance]['con_username']:
-                    con_username = "Administrator"
+            if profile_dict["instances"][instance].get('platform', False) == 'windows':
+                if not profile_dict["instances"][instance]['Con_username']:
+                    Con_username = "Administrator"
 
             connection_command = f"{connection_command} {ip_for_connection}"
             
             if profile_dict["instances"][instance]['Bastion'] != False \
-                and profile_dict["instances"][instance]['Instance_use_ip_public'] != True \
-                or profile_dict["instances"][instance]['Instance_use_bastion'] == True:
+                and profile_dict["instances"][instance]['Instance_use_Ip_public'] != True \
+                or profile_dict["instances"][instance]['Instance_use_Bastion'] == True:
                 
-                bastion_connection_command = ''
+                Bastion_connection_command = ''
 
-                if profile_dict['instances'][instance]['Bastion_con_username']:
-                    bastion_connection_command =    f"{profile_dict['instances'][instance]['Bastion_con_username']}@" \
+                if profile_dict['instances'][instance]['Bastion_Con_username']:
+                    Bastion_connection_command =    f"{profile_dict['instances'][instance]['Bastion_Con_username']}@" \
                                                     f"{profile_dict['instances'][instance]['Bastion']}"
                 else:
-                    bastion_connection_command =    f"{profile_dict['instances'][instance]['Bastion']}"
+                    Bastion_connection_command =    f"{profile_dict['instances'][instance]['Bastion']}"
                 
-                if profile_dict['instances'][instance]['Bastion_con_port'] and profile_dict['instances'][instance]['Bastion_con_port'] != 22:
-                    bastion_connection_command = f"{bastion_connection_command}:{profile_dict['instances'][instance]['Bastion_con_port']}"
+                if profile_dict['instances'][instance]['Bastion_Con_port'] and profile_dict['instances'][instance]['Bastion_Con_port'] != 22:
+                    Bastion_connection_command = f"{Bastion_connection_command}:{profile_dict['instances'][instance]['Bastion_Con_port']}"
                 
-                connection_command = f"{connection_command} -J {bastion_connection_command}"
+                connection_command = f"{connection_command} -J {Bastion_connection_command}"
                 
-                if profile_dict["instances"][instance]['Con_username'] == False and profile_dict["instances"][instance].get('Platform', '') == 'windows':
-                    profile_dict["instances"][instance]['Con_username'] = "administrator"
+                if profile_dict["instances"][instance]['Con_username'] == False and profile_dict["instances"][instance].get('Platform', False) == 'windows':
                 
                     connection_command = f"function random_unused_port {{ local port=$( echo $((2000 + ${{RANDOM}} % 65000))); (echo " \
                                     f">/dev/tcp/127.0.0.1/$port) &> /dev/null ; if [[ $? != 0 ]] ; then export " \
@@ -630,16 +638,17 @@ def updateTerm(dict_list):
                                     f"if [[ -n ${{RANDOM_PORT+x}} && -n \"$( ps aux | grep \"ssh -f\" | grep -v grep | awk \'{{print $2}}\' )\" ]]; " \
                                     f" then kill -9 $( ps aux | grep \"ssh -f\" | grep -v grep | awk \'{{print $2}}\' ) ; else random_unused_port; fi ;ssh -f -o " \
                                     f"ExitOnForwardFailure=yes -L ${{RANDOM_PORT}}:{ip_for_connection}:" \
-                                    f"{profile_dict['instances'][instance].get('con_port_windows', 3389)} " \
-                                    f"{bastion_connection_command} sleep 10 ; open " \
+                                    f"{profile_dict['instances'][instance].get('Con_port_windows', 3389)} " \
+                                    f"{Bastion_connection_command} sleep 10 ; open " \
                                     f"'rdp://full%20address=s:127.0.0.1:'\"${{RANDOM_PORT}}\"'" \
                                     f"&audiomode=i:2&disable%20themes=i:0&screen%20mode%20id=i:1&use%20multimon" \
-                                    f":i:0&username:s:{con_username}" \
+                                    f":i:0&username:s:{Con_username}" \
                                     f"&desktopwidth=i:1024&desktopheight=i:768'"
-            elif profile_dict["instances"][instance].get('Platform', '') == 'windows':
+            elif profile_dict["instances"][instance].get('Platform', False) == 'windows':
+                Con_username = profile_dict["instances"][instance]['Con_username']
                 connection_command = f"open 'rdp://full%20address=s:{ip_for_connection}:{profile_dict['instances'][instance].get('Con_port_windows', 3389)}" \
                                 f"&audiomode=i:2&disable%20themes=i:0&screen%20mode%20id=i:1&use%20multimon" \
-                                f":i:0&username:s:{con_username}" \
+                                f":i:0&username:s:{Con_username}" \
                                 f"&desktopwidth=i:1024&desktopheight=i:768'"
 
             if profile_dict["instances"][instance]['Password'][0] and profile_dict["instances"][instance].get('Platform', '') == 'windows':
@@ -652,7 +661,7 @@ def updateTerm(dict_list):
                                             f"The only hint we have is:{connection_command}\\n\\n\";\n{str(profile_dict['instances'][instance]['Password'][1])}"
 
             if profile_dict["instances"][instance].get('Platform', '') != 'windows':
-                connection_command = f"{connection_command} {script_config['Local']['ssh_base_string']}"
+                connection_command = f"{connection_command} {script_config['Local']['SSH_base_string']}"
 
                 if profile_dict["instances"][instance]['Con_username']:
                     connection_command = f"{connection_command} -l {profile_dict['instances'][instance]['Con_username']}"
@@ -661,18 +670,21 @@ def updateTerm(dict_list):
                     connection_command = f"{connection_command} -p {profile_dict['instances'][instance]['Con_port']}"
 
                 if profile_dict["instances"][instance]['SSH_key'] and profile_dict["instances"][instance]['Use_shared_key']:
-                    connection_command = f"{connection_command} -i {script_config['Local'].get('SSH_keys_path', '.')}/{profile_dict['instances'][instance]['ssh_key']}"
+                    connection_command = f"{connection_command} -i {script_config['Local'].get('SSH_keys_path', '.')}/{profile_dict['instances'][instance]['SSH_key']}"
+
+                if profile_dict["instances"][instance]['Login_command']:
+                    connection_command = f"{connection_command} -t {profile_dict['instances'][instance]['Login_command']}"
             
-            if not profile_dict["instances"][instance]['Dynamic_profile_parent_name']:
-                dynamic_profile_parent_name = 'Default'
+            if profile_dict["instances"][instance]['Dynamic_profile_parent_name']:
+                Dynamic_profile_parent_name = profile_dict["instances"][instance]['Dynamic_profile_parent_name']
             else:
-                dynamic_profile_parent_name = profile_dict["instances"][instance]['Dynamic_profile_parent_name']
+                Dynamic_profile_parent_name = 'Default'
                 
             profile = {"Name":profile_dict["instances"][instance]['Name'],
                         "Guid":f"{profile_dict['instance_source']}-{str(profile_dict['instances'][instance]['Id'])}",
                         "Badge Text": f"{BadgeMe(instance, profile_dict['instances'][instance])}",
                         "Tags":tags,
-                        "Dynamic Profile Parent Name": dynamic_profile_parent_name,
+                        "Dynamic Profile Parent Name": Dynamic_profile_parent_name,
                         "Custom Command" : "Yes",
                         "Initial Text" : connection_command
                         }
@@ -691,9 +703,9 @@ def updateTerm(dict_list):
 def update_statics():
     profiles =[]
     app_static_profile_handle = open(os.path.expanduser(os.path.join(CP_OutputDir, ".statics")),"wt")
-    path_to_static_profiles = os.path.expanduser(script_config["Local"]['static_profiles'])
+    path_to_Static_profiles = os.path.expanduser(script_config["Local"]['Static_profiles'])
     
-    for root, dirs, files in os.walk(path_to_static_profiles, topdown=False):
+    for root, dirs, files in os.walk(path_to_Static_profiles, topdown=False):
         for name in files:
             if name == '.DS_Store':
                 print(f'Static profiles, skipping ".DS_Store"')
