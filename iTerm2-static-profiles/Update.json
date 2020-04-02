@@ -208,7 +208,7 @@
     "Blue Component" : 0,
     "Green Component" : 0.1491314172744751
   },
-  "Initial Text" : "docker pull aviadra\/cp && docker run --rm -v ~\/Library\/Application\\ Support\/iTerm2\/DynamicProfiles\/:\/root\/Library\/Application\\ Support\/iTerm2\/DynamicProfiles\/ -v ~\/.iTerm-cloud-profile-generator\/config.yaml:\/root\/.iTerm-cloud-profile-generator\/config.yaml aviadra\/cp && exit 0",
+  "Initial Text" : "if [ -z ${CP_Version+x} ]; then CP_Version='latest' fi ; docker pull aviadra\/cp:${CP_Version} && docker run --rm -v ~\/Library\/Application\\ Support\/iTerm2\/DynamicProfiles\/:\/root\/Library\/Application\\ Support\/iTerm2\/DynamicProfiles\/ -v ~\/.iTerm-cloud-profile-generator\/config.yaml:\/root\/.iTerm-cloud-profile-generator\/config.yaml aviadra\/cp:${CP_Version} && exit 0",
   "Scrollback Lines" : 0,
   "Send Code When Idle" : false,
   "Close Sessions On End" : true,
