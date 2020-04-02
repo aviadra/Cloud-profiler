@@ -173,7 +173,7 @@ def getDOInstances(profile):
         
         Password = [False, ""]
         Iterm_tags = []
-        Instance_use_Ip_public = settingResolver('Use_Ip_public',drop, {}, "DO", False)
+        Instance_use_Ip_public = settingResolver('Use_Ip_public',drop, {}, "DO", True)
         Instance_use_Bastion = settingResolver('Use_bastion',drop, {}, "DO", False)
         Or_host_name=settingResolver('Host_name',drop,{},"DO", False)
         Bastion = settingResolver('Bastion',drop,{},"DO", False)
