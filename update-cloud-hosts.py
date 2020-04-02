@@ -558,9 +558,13 @@ def updateMoba(dict_list):
                     Bastion_user = instance['Bastion_Con_username']
                 else:
                     Bastion_user = ''
+                if instance['Login_command']:
+                    login_command = instance['Login_command']
+                else:
+                    login_command = ''
                 profile =   (
                         f"\n{shortName}= {connection_type}{ip_for_connection}%{instance['Con_port']}%"
-                        f"{Con_username}%%-1%-1%%{Bastion_for_profile}%{Bastion_port}%{Bastion_user}%0%"
+                        f"{Con_username}%%-1%-1%{login_command}%{Bastion_for_profile}%{Bastion_port}%{Bastion_user}%0%"
                         f"0%0%{sharead_key_path}%%"
                         f"-1%0%0%0%%1080%%0%0%1#MobaFont%10%0%0%0%15%236,"
                         f"236,236%30,30,30%180,180,192%0%-1%0%%xterm%-1%"
