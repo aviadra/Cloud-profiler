@@ -2,7 +2,7 @@
 
 The purpose of this script is to connect to cloud providers and generate profiles for quick SSHing.
 As of v1.3, both iTerm for MacOS and MobaXterm for Windows are supported
-Currently the supported cloud providers, are AWS and Digital Ocean.
+Currently the supported cloud providers are AWS and Digital Ocean.
 This project is a fork of [gmartinerro](https://gist.github.com/gmartinerro/40831c8874ebb32bc17711af95e1416b), which gave me a good starting point. With that said, this version doesn't change the hosts file, so that it can be run without sudo.
 
 This project has some assumptions:
@@ -19,26 +19,58 @@ As of v1.5, it is possible to run the script using a docker container. You can c
 This is the recommended way of running the script. Running it with the below parameters will have docker ensure that it is always in the background (unless specifically stopped), and the default refresh rate is 5 minutes. The below also maps the configuration directory and iTerm profile directory into the container.
 
 ##### On MacOS
+Running the blow script will get you setup with the example configuration file from the repo if you haven't got one in place.
+```#!/usr/bin/env bash
+if [[ ! -e ~/iTerm2-static-profiles || ! -e ~/.iTerm-cloud-profile-generator/config.yaml ]]; then
+    docker create -it --name cloud-profiler-copy aviadra/cp bash
+    if [[ ! -e ~/iTerm2-static-profiles ]]; then
+        docker cp cloud-profiler-copy:/opt/CloudProfiler/iTerm2-static-profiles ~/
+    fi
+    if [[ ! -e ~/.iTerm-cloud-profile-generator/config.yaml ]]; then
+        mkdir -p ~/.iTerm-cloud-profile-generator/
+        docker cp cloud-profiler-copy:/opt/CloudProfiler/config.yaml ~/.iTerm-cloud-profile-generator/config.yaml
+    fi
+    docker rm -f cloud-profiler-copy
+    echo "\n\n\nWe've put a default configuration file for you in \"~/.iTerm-cloud-profile-generator/config.yaml\".\nPlease edit it to set your credentials and preferences"
+else
+    if [[ -z "$(docker ps -q -f name=cloud-profiler)" ]]; then
+        echo "\n\n\nStarting Cloud-profiler service\n"
+        docker run \
+            --init \
+            --restart=always \
+            -d \
+            --name cloud-profiler \
+            -e CP_Service=True \
+            -v ~/Library/Application\ Support/iTerm2/DynamicProfiles/:/home/appuser/Library/Application\ Support/iTerm2/DynamicProfiles/ \
+            -v ~/.iTerm-cloud-profile-generator/config.yaml:/home/appuser/.iTerm-cloud-profile-generator/config.yaml \
+            -v ~/iTerm2-static-profiles/:/opt/CloudProfile/iTerm2-static-profiles/ \
+            aviadra/cp
+    else
+        echo "\n\n\nCloud-profiler service already running\n"
+    fi
+    docker ps -f name=cloud-profiler
+fi
+```
 
-`docker run --init --restart=always -d -e CP_Service=True -v ~/Library/Application\ Support/iTerm2/DynamicProfiles/:/root/Library/Application\ Support/iTerm2/DynamicProfiles/ -v ~/.iTerm-cloud-profile-generator/config.yaml:/root/.iTerm-cloud-profile-generator/config.yaml aviadra/cp`
+##### On Windows
+I'm sorry... you're not a first class citizen... there is no script for you...
+You're going to have to create the config directory and file on your own (help here is welcomed).
 
-##### On Windoes
-
-`docker run --init --restart=always -d -e CP_Windows=True -e CP_Service=True -v "%HOMEDRIVE%%HOMEPATH%"\Cloud_Profiler/:/root/Cloud_Profiler/ -v "%HOMEDRIVE%%HOMEPATH%"\.iTerm-cloud-profile-generator/config.yaml:/root/.iTerm-cloud-profile-generator/config.yaml aviadra/cp`
+`docker run --init --restart=always -d -e CP_Windows=True -e CP_Service=True -v "%HOMEDRIVE%%HOMEPATH%"\Cloud_Profiler/:/home/appuserCloud_Profiler/ -v "%HOMEDRIVE%%HOMEPATH%"\.iTerm-cloud-profile-generator/config.yaml:/home/appuser.iTerm-cloud-profile-generator/config.yaml -v "%HOMEDRIVE%%HOMEPATH%"\iTerm2-static-profiles/:/opt/CloudProfile/iTerm2-static-profiles/ aviadra/cp`
 
 #### Run ad-hoc
-It is absolutely possible to run the script on a per-needed bases (a.k.a. "ad-hoc"). To do so, simply issue the same command, only omitting the "-d", "-e CP_Service=True" and "--restart=always" parameters.
+It is absolutely possible to run the script on a per-needed basis (a.k.a. "ad-hoc"). To do so, simply issue the same command, only omitting the "-d", "-e CP_Service=True" and "--restart=always" parameters.
 
 ##### On MacOS
 
 As of v1.6.3 the "Update" profile was added to the "static" profiles distributed with the repository. In order to use it, simply call it like any other profile (CMD + O)
 Note: As of v1.6.5, if you set the variable CP_Version (in your zshrc file for example), the update profile will use it to determine which version to use to pull
 
-`docker run --init --rm -v ~/Library/Application\ Support/iTerm2/DynamicProfiles/:/root/Library/Application\ Support/iTerm2/DynamicProfiles/ -v ~/.iTerm-cloud-profile-generator/config.yaml:/root/.iTerm-cloud-profile-generator/config.yaml aviadra/cp`
+`docker run --init --rm -v ~/Library/Application\ Support/iTerm2/DynamicProfiles/:/home/appuserLibrary/Application\ Support/iTerm2/DynamicProfiles/ -v ~/.iTerm-cloud-profile-generator/config.yaml:/home/appuser.iTerm-cloud-profile-generator/config.yaml -v ~/iTerm2-static-profiles/:/opt/CloudProfile/iTerm2-static-profiles/ aviadra/cp`
 
-##### On windoes
+##### On windows
 
-`docker run -it --init --rm -e CP_Windows=True -v "%HOMEDRIVE%%HOMEPATH%"\Cloud_Profiler/:/root/Cloud_Profiler/ -v "%HOMEDRIVE%%HOMEPATH%"\.iTerm-cloud-profile-generator\config.yaml:/root/.iTerm-cloud-profile-generator/config.yaml aviadra/cp`
+`docker run -it --init --rm -e CP_Windows=True -v "%HOMEDRIVE%%HOMEPATH%"\Cloud_Profiler/:/home/appuserCloud_Profiler/ -v "%HOMEDRIVE%%HOMEPATH%"\.iTerm-cloud-profile-generator\config.yaml:/home/appuser.iTerm-cloud-profile-generator/config.yaml -v ~/iTerm2-static-profiles/:/opt/CloudProfile/iTerm2-static-profiles/ aviadra/cp`
 
 Note: While not required, I've added to the above the "[--rm](https://docs.docker.com/engine/reference/run/#clean-up---rm)" option just for tightness.
 
@@ -51,7 +83,7 @@ Possible options within the configuration files are noted below.
 Note: For convenience, the following values are accepted for "True": 'True', 'yes' and 'y', and for "False: 'False', 'no' and 'n'.
 
 ## Example configuration
-While a valid sample configuration file is provided within the repo, the below configuration, is what I actually use as my daily driver (keys have been omitted).
+While a valid sample configuration file is provided as a file within the repo, the below configuration is what I actually use as my daily driver (keys have been omitted). For some cases it is easier to copy from here, so here you go.
 ```
 Local:
   Static_profiles: "./iTerm2-static-profiles"
@@ -106,20 +138,20 @@ AWS:
         sts_haim: "arn:aws:iam::701**********:role/iTerm_RO_from_TGT",
       }
 
-DO:
-  profiles:
-    -
-      name: "The one"
-      token: "secretspecialuniquesnowflake"
-      use_Ip_public: True
+#DO:
+#  profiles:
+#    -
+#      name: "The one"
+#      token: "secretspecialuniquesnowflake"
+#      use_Ip_public: True
 ```
 
 ## Local options
 These are settings that are local to your machine or you want to set globally for all clouds. You can set here most of the same directives as in the "tags" section, except the below ones (they don't make sense anywhere else):
 
-`Static_profiles` - Set the location of the "static profiles" on your computer. The default is to point to where the repo is.
+`Static_profiles` - Set the location of the "static profiles" on your computer. The default is to point to where the repo is. When running from a container, this is mapped to a directory on the host, so make sure you’re not changing where the script is looking for it in the container without adjusting your volume mounts.
 
-`SSH_keys_path` - Set the location to get the "shared keys" from. The default is "~/.ssh"
+`SSH_keys_path` - Set the location to get the "shared keys" from. The default is "~/.ssh". Note that when running in a container, that this is not mapped with the above script... This is because I feel that this use case is not as common and would only confuse newcomers. Again, I recommend you use a personal key always for everything… This feature is here for “I have no choice” situations.
 
 As of version 1.6.2, it is possible to set what information will be shown for an instance in the ["badge"](https://www.iterm2.com/documentation-badges.html) area.
 The repo configuration file comes with all possible values for the individual badges. However, as not all values are available for every instance type from every provider, only applicable values are shown even if they have been toggled.
@@ -153,7 +185,7 @@ It is possible to change the order of the items in the badge, by simply reorderi
 
 `Instance_use_Ip_public` - Is the flag of using the public IP set?
 
-`Iterm_tags_prefixs` - Iterm_tags, are what iTerm uses for indexing and show as information in the instance. It is possible to set this toggle to false to not show them as all.
+`Iterm_tags_prefixs` - Iterm_tags, are what iTerm uses for indexing and show as information in the instance. It is possible to set this toggle to false to not show them at all.
 Setting this toggle to an empty array([]), will simply show all the iTerm tags given to the instance.
 Given an array with values, the shown values will be filtered to only show tags that start with the prefix of the strings in the array and separated by a colon(:). For example, for a tags “Id: id-123, ENV: prod, sg-groupname:sg-123123, VPC: vpc-1231”, with the prefix filter of [“ENV”,”Id”], only “ENV: prod” and “Id: id-123” will be shown.
 
@@ -232,7 +264,7 @@ Possible directives are:
 
 `Bastion_use` - When using "iTerm_Ip_public", the Bastion is not used. unless this tag is set with the value of "yes".
 
-`use_Ip_public` - Denote that this instance profile, should use the instance public IP for the connection. Setting this tag, also sets the profile to not use a Bastion, unless the "iTerm_Bastion_use" tag is set.
+`use_Ip_public` - Denotes that this instance profile should use the instance public IP for the connection. Setting this tag, also sets the profile to not use a Bastion, unless the "iTerm_Bastion_use" tag is set.
 
 `Con_username` - The username to add to the connection.
 
@@ -254,7 +286,7 @@ Note the credentials used for AWS, must have the following permissions: "ec2:Des
 Digital Ocean's implementation of VPC is such that there isn't a way to set tags on it (that I have seen).
 On DO, you set a tag by adding it to the instance. The format to be used is: "tag_name:value". Note that there are no spaces between the key and the value.
 Also note, that underscores(_) in the value part of the tag are replaced with spaces, and dashes(-) are replaced with dots(.).
-DO does has one special tag "iTerm_host_name", which changes the node's host name to the value in the tag.
+DO does have one special tag "iTerm_host_name", which changes the node's hostname to the value in the tag.
 Other than that, the tags are the same as for AWS.
 
 For example:
@@ -276,7 +308,7 @@ Again, in general you don't need to change anything in your iTerm configuration.
 The RDP support is based on your MAC's ability to open rdp URIs. That is iTerm will issue something like "open rdp://address-of-instance". Compatible programs are Microsoft Remote Desktop 8/10 available on the app store.
 
 ## Static profiles
-The "Static profiles" feature of this script, allows you to centrally distribute profiles so that you can reference them with the "iTerm_Dynamic_profile_parent_name" tag. For example, the two profiles in the repo, give the "Red Alert" and "Dracula" color schemas with my beloved keyboard shortcuts. They are installed for you in the dynamic profiles automatically, which makes it possible to reference them with the tag and get a clear distinction when you're on prod vs normal servers.
+The "Static profiles" feature of this script, allows you to centrally distribute profiles so that you can reference them with the "iTerm_Dynamic_profile_parent_name" tag. For example, the two profiles in the repo, give the "Red Alert" and "Dracula" color schemes with my beloved keyboard shortcuts. They are installed for you in the dynamic profiles automatically, which makes it possible to reference them with the tag and get a clear distinction when you're on prod vs normal servers.
 The static profiles can also be used as a shim for the cases where you want to distribute profiles that don't come from AWS. For example, you have some VMs on a local ESX. You can create their profiles and save them in the "static" directory, and they will be distributed to the rest of the repo users
 
 The way to add/remove profiles, is to do so in the "iTerm2-static-profiles" directory within the repo. You get the profiles, by creating them the regular iTerm way (as explained below) and then using the "export to json" options at the bottom of the "profiles" tab in preferences.
@@ -319,5 +351,4 @@ It is possible to change the default behavior of the scripts (service and update
 - Using python3 run the script
 
 `python3 ./iTerm-cloud-profile-generator/update-cloud-hosts.py`
-- You need to setup your access keys per the instructions below and then run again. Once that's done, you should see the dynamic profiles populated in iTerm (cmd + O). Windows users, see instructions below.
-
+- You need to set up your access keys per the instructions below and then run again. Once that's done, you should see the dynamic profiles populated in iTerm (cmd + O). Windows users, see instructions below.
