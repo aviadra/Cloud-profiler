@@ -21,8 +21,9 @@ This is the recommended way of running the script. Running it with the below par
 ##### On MacOS
 Running the blow script will get you setup with the example configuration file from the repo if you haven't got one in place.
 ```#!/usr/bin/env bash
+[ -z ${CP_Version+x} ] && CP_Version='latest'
 if [[ ! -e ~/iTerm2-static-profiles || ! -e ~/.iTerm-cloud-profile-generator/config.yaml ]]; then
-    docker create -it --name cloud-profiler-copy aviadra/cp bash
+    docker create -it --name cloud-profiler-copy aviadra/cp:${CP_Version} bash
     if [[ ! -e ~/iTerm2-static-profiles ]]; then
         docker cp cloud-profiler-copy:/opt/CloudProfiler/iTerm2-static-profiles ~/
     fi
@@ -44,7 +45,7 @@ else
             -v ~/Library/Application\ Support/iTerm2/DynamicProfiles/:/home/appuser/Library/Application\ Support/iTerm2/DynamicProfiles/ \
             -v ~/.iTerm-cloud-profile-generator/config.yaml:/home/appuser/.iTerm-cloud-profile-generator/config.yaml \
             -v ~/iTerm2-static-profiles/:/opt/CloudProfile/iTerm2-static-profiles/ \
-            aviadra/cp
+            aviadra/cp:${CP_Version}
     else
         echo "\n\n\nCloud-profiler service already running\n"
     fi

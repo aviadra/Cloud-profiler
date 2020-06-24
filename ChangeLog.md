@@ -1,6 +1,7 @@
 # Change Log
 
 ## v1.7
+Added Startup/setup script.
 Updated DockerFile and dockerignore to use best practices suggested by VScode (no root for example)
 Updated "update" static profile so it used the new "appuser" paths.
 Updated configuration file.
