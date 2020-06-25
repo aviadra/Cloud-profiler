@@ -140,8 +140,8 @@ AWS:
         sts_haim: "arn:aws:iam::701**********:role/iTerm_RO_from_TGT",
       }
 
-#DO:
-#  profiles:
+DO:
+  profiles:
 #    -
 #      name: "The one"
 #      token: "secretspecialuniquesnowflake"
