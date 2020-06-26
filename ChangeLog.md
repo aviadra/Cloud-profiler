@@ -1,5 +1,8 @@
 # Change Log
 
+## v1.7.1
+Changed Startup script to be a bash file in the repo that is DLed using curl.
+
 ## v1.7
 Added Startup/setup script.
 Updated DockerFile and dockerignore to use best practices suggested by VScode (no root for example)
