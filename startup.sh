@@ -8,7 +8,6 @@ SRC_Docker_Image="aviadra/cp:${CP_Version}"
 
 [ -z ${CP_Version+x} ] && CP_Version='latest'
 if [[ ! -e $(eval echo ${Personal_Static_Profiles} ) || ! -e $(eval echo ${Personal_Config_File} ) ]]; then
-    echo 1
     docker create -it --name cloud-profiler-copy ${SRC_Docker_Image} bash
     if [[ ! -e $(eval echo ${Personal_Static_Profiles} ) ]]; then
         docker cp cloud-profiler-copy:${SRC_Static_Profiles} ~/
@@ -21,9 +20,7 @@ if [[ ! -e $(eval echo ${Personal_Static_Profiles} ) || ! -e $(eval echo ${Perso
     fi
     docker rm -f cloud-profiler-copy
 else
-    echo 4
     if [[ -z "$(docker ps -q -f name=cloud-profiler)" ]]; then
-        echo 5
         echo "Starting Cloud-profiler service\n"
         docker run \
             --init \
@@ -36,7 +33,6 @@ else
             -v "$(eval echo ~/${DynamicProfiles_Location}:/home/appuser/${DynamicProfiles_Location} )" \
             ${SRC_Docker_Image}
     else
-        echo 6
         echo -e "Cloud-profiler service already running\n"
     fi
     docker ps -f name=cloud-profiler
