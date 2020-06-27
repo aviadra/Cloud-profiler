@@ -214,7 +214,7 @@
     "Blue Component" : 0,
     "Green Component" : 0.1491314172744751
   },
-  "Initial Text" : "[ -z ${CP_Version+x} ] && CP_Version='latest' ; Personal_Static_Profiles=\"~\/iTerm2-static-profiles\" ; Config_File=\".iTerm-cloud-profile-generator\/config.yaml\" ; Personal_Config_File=\"~\/${Config_File}\" ; SRC_Static_Profiles=\"\/home\/appuser\/iTerm2-static-profiles\" ; DynamicProfiles_Location=\"Library\/Application\\ Support\/iTerm2\/DynamicProfiles\/\" ; SRC_Docker_Image=\"aviadra\/cp:${CP_Version}\" ; docker run --rm --init -e CP_Service=True -v \"$(eval echo ${Personal_Config_File}:\/home\/appuser\/${Config_File} )\" -v \"$(eval echo ${Personal_Static_Profiles}\/:${SRC_Static_Profiles} )\" -v \"$(eval echo ~\/${DynamicProfiles_Location}:\/home\/appuser\/${DynamicProfiles_Location} )\" ${SRC_Docker_Image} && exit 0",
+  "Initial Text" : "[ -z ${CP_Version+x} ] && CP_Version='latest' ; Personal_Static_Profiles=\"~\/iTerm2-static-profiles\" ; Config_File=\".iTerm-cloud-profile-generator\/config.yaml\" ; Personal_Config_File=\"~\/${Config_File}\" ; SRC_Static_Profiles=\"\/home\/appuser\/iTerm2-static-profiles\" ; DynamicProfiles_Location=\"Library\/Application\\ Support\/iTerm2\/DynamicProfiles\/\" ; SRC_Docker_Image=\"aviadra\/cp:${CP_Version}\" ; docker run --rm --init -v \"$(eval echo ${Personal_Config_File}:\/home\/appuser\/${Config_File} )\" -v \"$(eval echo ${Personal_Static_Profiles}\/:${SRC_Static_Profiles} )\" -v \"$(eval echo ~\/${DynamicProfiles_Location}:\/home\/appuser\/${DynamicProfiles_Location} )\" ${SRC_Docker_Image} && exit 0",
   "Scrollback Lines" : 0,
   "Send Code When Idle" : false,
   "Close Sessions On End" : true,
