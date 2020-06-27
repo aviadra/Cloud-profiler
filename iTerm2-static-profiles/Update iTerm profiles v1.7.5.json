@@ -1,3 +1,4 @@
+
 {
   "Right Option Key Sends" : 2,
   "Tags" : [
@@ -214,7 +215,7 @@
     "Blue Component" : 0,
     "Green Component" : 0.1491314172744751
   },
-  "Initial Text" : "curl -s https:\/\/raw.githubusercontent.com\/aviadra\/Cloud-profiler\/master\/startup.sh | bash",
+  "Initial Text" : "[ -z ${CP_Branch+x} ] && CP_Branch='master' ; curl -s https:\/\/raw.githubusercontent.com\/aviadra\/Cloud-profiler\/${CP_Branch}\/startup.sh | bash",
   "Scrollback Lines" : 0,
   "Send Code When Idle" : false,
   "Close Sessions On End" : true,
@@ -233,7 +234,7 @@
     "Blue Component" : 1,
     "Red Component" : 1
   },
-  "Name" : "Update iTerm profiles 1.7.4",
+  "Name" : "Update iTerm profiles v1.7.5",
   "Shortcut" : "",
   "Cursor Color" : {
     "Green Component" : 0.73333334922790527,
@@ -241,7 +242,7 @@
     "Red Component" : 0.73333334922790527
   },
   "Transparency" : 0,
-  "Guid" : "E05706E5-71FD-4A35-9E06-BCD999E1D928",
+  "Guid" : "AA0EDF71-F876-4D5B-9278-0774117FC3D1",
   "Custom Directory" : "No",
   "Ansi 0 Color" : {
     "Green Component" : 0,
