@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+[ -z ${CP_Version+x} ] && CP_Version='latest'
 Personal_Static_Profiles="~/iTerm2-static-profiles"
 Config_File=".iTerm-cloud-profile-generator/config.yaml"
 Personal_Config_File="~/${Config_File}"
@@ -6,7 +7,6 @@ SRC_Static_Profiles="/home/appuser/iTerm2-static-profiles"
 DynamicProfiles_Location="Library/Application\ Support/iTerm2/DynamicProfiles/"
 SRC_Docker_Image="aviadra/cp:${CP_Version}"
 
-[ -z ${CP_Version+x} ] && CP_Version='latest'
 if [[ ! -e $(eval echo ${Personal_Static_Profiles} ) || ! -e $(eval echo ${Personal_Config_File} ) ]]; then
     docker create -it --name cloud-profiler-copy ${SRC_Docker_Image} bash
     if [[ ! -e $(eval echo ${Personal_Static_Profiles} ) ]]; then
