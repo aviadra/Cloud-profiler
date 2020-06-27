@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env zsh
 [ -z ${CP_Version+x} ] && CP_Version='latest'
 CP_Update_Profile_VERSION="v1.7.3"
 Personal_Static_Profiles="~/iTerm2-static-profiles"
@@ -9,7 +9,7 @@ DynamicProfiles_Location="Library/Application\ Support/iTerm2/DynamicProfiles/"
 SRC_Docker_image_base="aviadra/cp"
 SRC_Docker_Image="${SRC_Docker_image_base}:${CP_Version}"
 
-Normal_docker_start{
+Normal_docker_start() {
     echo "Starting Cloud-profiler service\n"
     docker run \
         --init \
@@ -53,7 +53,7 @@ if [[ -z "$(docker ps -q -f name=cloud-profiler)" ]]; then
 else
     echo -e "Cloud-profiler service already running\n"
     echo -e "Checking for updates\n"
-    on_system_digests=$(docker images ${SRC_Docker_image_base} --format "{{.Digest}}")
+    on_system_digests=$(docker images --digests | grep ${SRC_Docker_image_base} | grep $CP_Version | awk '{print $3}')
     latest_version_raw=$( docker pull ${SRC_Docker_Image})
     latest_version_digets="$( echo $latest_version_raw | grep Digest | awk '{print $2}' )"
     if [[ ${latest_version_digets} != ${on_system_digests} ]]; then
@@ -62,10 +62,11 @@ else
       docker stop cloud-profiler
       docker rm cloud-profiler
       Normal_docker_start
+    else
+        echo -e "Issuing ad-hoc run."
+        docker exec \
+            cloud-profiler \
+            python3 update-cloud-hosts.py
     fi
-    echo -e "Issuing ad-hoc run."
-    docker exec \
-        cloud-profiler \
-        python3 update-cloud-hosts.py
 fi
 docker ps -f name=cloud-profiler
