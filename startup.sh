@@ -15,6 +15,7 @@ exit_state() {
     if [[ $? != 0 ]]; then
         echo "Cloud-profiler - Something when wrong with \"$1\"..."
         echo "Aborting."
+        docker rm -f cloud-profiler-copy &> /dev/null
         exit 42
     fi
 }
