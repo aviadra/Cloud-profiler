@@ -1,5 +1,8 @@
 # Change Log
 
+## v1.7.2
+Update profile name changed and the way it works synced with startup script. Also startup script slight change.
+
 ## v1.7.1
 Changed Startup script to be a bash file in the repo that is DLed using curl.
 
