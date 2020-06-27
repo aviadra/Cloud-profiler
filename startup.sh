@@ -9,8 +9,18 @@ DynamicProfiles_Location="Library/Application\ Support/iTerm2/DynamicProfiles/"
 SRC_Docker_image_base="aviadra/cp"
 SRC_Docker_Image="${SRC_Docker_image_base}:${CP_Version}"
 
+echo -e "Cloud-profiler - Welcome to the startup/setup script."
+
+exit_state() {
+    if [[ $? != 0 ]]; then
+        echo "Cloud-profiler - Something when wrong with \"$1\"..."
+        echo "Aborting."
+        exit 42
+    fi
+}
+
 Normal_docker_start() {
-    echo "Starting Cloud-profiler service\n"
+    echo "Cloud-profiler - Starting service\n"
     docker run \
         --init \
         --restart=always \
@@ -20,53 +30,56 @@ Normal_docker_start() {
         -v "$(eval echo ${Personal_Config_File}:/home/appuser/${Config_File} )" \
         -v "$(eval echo ${Personal_Static_Profiles}/:${SRC_Static_Profiles} )" \
         -v "$(eval echo ~/${DynamicProfiles_Location}:/home/appuser/${DynamicProfiles_Location} )" \
-        ${SRC_Docker_Image}
+        ${SRC_Docker_Image} &> /dev/null
+    exit_state "Start service container"
 }
 
 if [[ ! -e $(eval echo ${Personal_Static_Profiles} ) || \
       ! -e $(eval echo ${Personal_Config_File} ) || \
-      ! -e "${Personal_Static_Profiles}/Update iTerm profiles ${CP_Update_Profile_VERSION}.json" ]]
+      ! -e "$( eval echo ${Personal_Static_Profiles}/Update iTerm profiles ${CP_Update_Profile_VERSION}.json )" ]]
 then
+    echo "Cloud-profiler - Besic setup parts missing. Will now setup."
+    echo "Cloud-profiler - Creating the container to copy profiles and config from."
+    echo "Cloud-profiler - This may take a while...."
     docker rm -f cloud-profiler-copy &> /dev/null
-    docker create -it --name cloud-profiler-copy ${SRC_Docker_Image} bash
+    docker create -it --name cloud-profiler-copy ${SRC_Docker_Image} bash &> /dev/null ; exit_state "Create copy container"
     if [[ ! -e $(eval echo ${Personal_Static_Profiles} ) ]]; then
-        docker cp cloud-profiler-copy:${SRC_Static_Profiles} ~/
-        echo -e "We've put a default static profiles directory for you in \"${Personal_Static_Profiles}\"."
+        docker cp cloud-profiler-copy:${SRC_Static_Profiles} ~/ ; exit_state "Copy static profiles from copy container"
+        echo -e "Cloud-profiler - We've put a default static profiles directory for you in \"${Personal_Static_Profiles}\"."
     fi
     if [[ ! -e "$( eval echo ${Personal_Static_Profiles}/Update iTerm profiles ${CP_Update_Profile_VERSION}.json )" ]]; then
         rm -f "$( eval echo "${Personal_Static_Profiles}/Update*" )"
-        docker cp "$( eval echo "cloud-profiler-copy:${SRC_Static_Profiles}/Update iTerm profiles ${CP_Update_Profile_VERSION}.json")" "$(eval echo ${Personal_Static_Profiles})"
-        echo -e "We've updated the \"Update proflile\" in \"${Personal_Static_Profiles}\". It is now at ${CP_Update_Profile_VERSION}"
+        docker cp "$( eval echo "cloud-profiler-copy:${SRC_Static_Profiles}/Update iTerm profiles ${CP_Update_Profile_VERSION}.json")" \
+                  "$(eval echo ${Personal_Static_Profiles})" ; exit_state "Copy Update profile from copy container"
+        echo -e "Cloud-profiler - We've updated the \"Update proflile\" in \"${Personal_Static_Profiles}\". It is now at ${CP_Update_Profile_VERSION}"
     fi
     if [[ ! -e $(eval echo ${Personal_Config_File} ) ]]; then
-        mkdir -p "$(eval dirname ${Personal_Config_File})"
-        docker cp cloud-profiler-copy:/home/appuser/config.yaml "$(eval echo ${Personal_Config_File})"
-        echo -e "We've put a default configuration file for you in \"${Personal_Config_File}\"."
-        echo -e "\nPlease edit it to set your credentials and preferences"
+        mkdir -p "$(eval dirname ${Personal_Config_File})" ; exit_state "Create personal config dir"
+        docker cp cloud-profiler-copy:/home/appuser/config.yaml "$(eval echo ${Personal_Config_File})" ; exit_state "Copy personal config template from copy container"
+        echo -e "Cloud-profiler - We've put a default configuration file for you in \"${Personal_Config_File}\"."
+        echo -e "\nCloud-profiler - Please edit it to set your credentials and preferences"
         exit 0
     fi
-    docker rm -f cloud-profiler-copy &> /dev/null
+    docker rm -f cloud-profiler-copy &> /dev/null ; exit_state "Delete copy container"
 fi
 if [[ -z "$(docker ps -q -f name=cloud-profiler)" ]]; then
-    echo "Starting Cloud-profiler service\n"
     Normal_docker_start
 else
-    echo -e "Cloud-profiler service already running\n"
-    echo -e "Checking for updates\n"
+    echo -e "Cloud-profiler - Service already running\n"
+    echo -e "Cloud-profiler - Checking for updates\n"
     on_system_digests=$(docker images --digests | grep ${SRC_Docker_image_base} | grep $CP_Version | awk '{print $3}')
-    latest_version_raw=$( docker pull ${SRC_Docker_Image})
-    latest_version_digets="$( echo $latest_version_raw | grep Digest | awk '{print $2}' )"
+    latest_version_digets=$( docker pull ${SRC_Docker_Image} | grep Digest | awk '{print $2}' )
     if [[ "${latest_version_digets}" != "${on_system_digests}" ]]; then
-      echo -e "Newer version of container detected.\n"
-      echo -e "Now restarting service for changes to take affect."
-      docker stop cloud-profiler
-      docker rm cloud-profiler
+      echo -e "Cloud-profiler - Newer version of container detected.\n"
+      echo -e "Cloud-profiler - Now restarting service for changes to take affect."
+      docker stop cloud-profiler ; exit_state "Stop service container"
+      docker rm cloud-profiler ; exit_state "Remove old service container"
       Normal_docker_start
     else
-        echo -e "Issuing ad-hoc run."
+        echo -e "Cloud-profiler - Issuing ad-hoc run."
         docker exec \
             cloud-profiler \
-            python3 update-cloud-hosts.py
+            python3 update-cloud-hosts.py ; exit_state "ad-hoc run"
     fi
 fi
-docker ps -f name=cloud-profiler
+docker ps -f name=cloud-profiler ; exit_state "Finding the service profile in docker ps"
