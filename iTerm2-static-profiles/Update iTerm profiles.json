@@ -8,25 +8,31 @@
     "Blue Component" : 0.97647058823529409,
     "Red Component" : 0.74117647058823533
   },
-  "Use Non-ASCII Font" : false,
   "Has Hotkey" : false,
+  "Use Non-ASCII Font" : false,
   "Bold Color" : {
     "Green Component" : 0.90237069129943848,
     "Blue Component" : 0.90237069129943848,
     "Red Component" : 0.90237069129943848
   },
   "Normal Font" : "Monaco 16",
-  "Guid" : "3212349A-E7E1-44EE-AC39-E84CD124DDE0",
-  "Link Color" : {
-    "Red Component" : 0,
-    "Color Space" : "sRGB",
-    "Alpha Component" : 1,
-    "Blue Component" : 0.73423302173614502,
-    "Green Component" : 0.35916060209274292
+  "Ansi 2 Color" : {
+    "Green Component" : 0.98039215686274506,
+    "Blue Component" : 0.4823529411764706,
+    "Red Component" : 0.31372549019607843
+  },
+  "Ansi 3 Color" : {
+    "Green Component" : 0.98039215686274506,
+    "Blue Component" : 0.5490196078431373,
+    "Red Component" : 0.94509803921568625
   },
   "Rows" : 25,
   "Default Bookmark" : "No",
-  "Custom Directory" : "No",
+  "Ansi 4 Color" : {
+    "Green Component" : 0.57647058823529407,
+    "Blue Component" : 0.97647058823529409,
+    "Red Component" : 0.74117647058823533
+  },
   "Cursor Guide Color" : {
     "Red Component" : 0.70213186740875244,
     "Color Space" : "sRGB",
@@ -69,7 +75,7 @@
   "BM Growl" : true,
   "Command" : "",
   "Description" : "Default",
-  "Dynamic Profile Filename" : "",
+  "Dynamic Profile Filename" : "\/Users\/aviadraviv\/Library\/Application Support\/iTerm2\/DynamicProfiles\/statics",
   "Mouse Reporting" : true,
   "Screen" : -1,
   "Selection Color" : {
@@ -208,7 +214,7 @@
     "Blue Component" : 0,
     "Green Component" : 0.1491314172744751
   },
-  "Initial Text" : "if [ -z ${CP_Version+x} ]; then CP_Version='latest' fi ; docker pull aviadra\/cp:${CP_Version} && docker run --rm -v ~\/Library\/Application\\ Support\/iTerm2\/DynamicProfiles\/:\/home/appuser\/Library\/Application\\ Support\/iTerm2\/DynamicProfiles\/ -v ~\/.iTerm-cloud-profile-generator\/config.yaml:\/home/appuser\/.iTerm-cloud-profile-generator\/config.yaml -v ~\/iTerm2-static-profiles\/:\/opt\/CloudProfile\/iTerm2-static-profiles\/ aviadra\/cp:${CP_Version} && exit 0",
+  "Initial Text" : "[ -z ${CP_Version+x} ] && CP_Version='latest' ; Personal_Static_Profiles=\"~\/iTerm2-static-profiles\" ; Config_File=\".iTerm-cloud-profile-generator\/config.yaml\" ; Personal_Config_File=\"~\/${Config_File}\" ; SRC_Static_Profiles=\"\/home\/appuser\/iTerm2-static-profiles\" ; DynamicProfiles_Location=\"Library\/Application\\ Support\/iTerm2\/DynamicProfiles\/\" ; SRC_Docker_Image=\"aviadra\/cp:${CP_Version}\" ; docker run --rm --init -e CP_Service=True -v \"$(eval echo ${Personal_Config_File}:\/home\/appuser\/${Config_File} )\" -v \"$(eval echo ${Personal_Static_Profiles}\/:${SRC_Static_Profiles} )\" -v \"$(eval echo ~\/${DynamicProfiles_Location}:\/home\/appuser\/${DynamicProfiles_Location} )\" ${SRC_Docker_Image} && exit 0",
   "Scrollback Lines" : 0,
   "Send Code When Idle" : false,
   "Close Sessions On End" : true,
@@ -227,30 +233,22 @@
     "Blue Component" : 1,
     "Red Component" : 1
   },
-  "Name" : "Update",
+  "Name" : "Update iTerm profiles",
   "Shortcut" : "",
   "Cursor Color" : {
     "Green Component" : 0.73333334922790527,
     "Blue Component" : 0.73333334922790527,
     "Red Component" : 0.73333334922790527
   },
+  "Transparency" : 0,
+  "Guid" : "E05706E5-71FD-4A35-9E06-BCD999E1D928",
+  "Custom Directory" : "No",
   "Ansi 0 Color" : {
     "Green Component" : 0,
     "Blue Component" : 0,
     "Red Component" : 0
   },
-  "Transparency" : 0,
   "Horizontal Spacing" : 1,
-  "Ansi 3 Color" : {
-    "Green Component" : 0.98039215686274506,
-    "Blue Component" : 0.5490196078431373,
-    "Red Component" : 0.94509803921568625
-  },
-  "Ansi 4 Color" : {
-    "Green Component" : 0.57647058823529407,
-    "Blue Component" : 0.97647058823529409,
-    "Red Component" : 0.74117647058823533
-  },
   "Ansi 5 Color" : {
     "Green Component" : 0.47450980392156861,
     "Blue Component" : 0.77647058823529413,
@@ -276,10 +274,12 @@
     "Blue Component" : 0.33333333333333331,
     "Red Component" : 1
   },
-  "Ansi 2 Color" : {
-    "Green Component" : 0.98039215686274506,
-    "Blue Component" : 0.4823529411764706,
-    "Red Component" : 0.31372549019607843
+  "Link Color" : {
+    "Red Component" : 0,
+    "Color Space" : "sRGB",
+    "Alpha Component" : 1,
+    "Blue Component" : 0.73423302173614502,
+    "Green Component" : 0.35916060209274292
   },
   "Ansi 1 Color" : {
     "Green Component" : 0.3333333432674408,
