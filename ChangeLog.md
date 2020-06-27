@@ -1,5 +1,8 @@
 # Change Log
 
+## v1.7.3
+Update profile is now maintained by the startup script.
+
 ## v1.7.2
 Update profile name changed and the way it works synced with startup script. Also startup script slight change.
 

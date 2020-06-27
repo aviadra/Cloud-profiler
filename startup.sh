@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 [ -z ${CP_Version+x} ] && CP_Version='latest'
-CP_TAG_VERSION="v1.7.3"
+CP_Update_Profile_VERSION="v1.7.3"
 Personal_Static_Profiles="~/iTerm2-static-profiles"
 Config_File=".iTerm-cloud-profile-generator/config.yaml"
 Personal_Config_File="~/${Config_File}"
@@ -10,7 +10,7 @@ SRC_Docker_Image="aviadra/cp:${CP_Version}"
 
 if [[ ! -e $(eval echo ${Personal_Static_Profiles} ) || \
       ! -e $(eval echo ${Personal_Config_File} ) || \
-      ! -e "${Personal_Static_Profiles}/Update iTerm profiles ${CP_TAG_VERSION}.json" ]]
+      ! -e "${Personal_Static_Profiles}/Update iTerm profiles ${CP_Update_Profile_VERSION}.json" ]]
 then
     docker rm -f cloud-profiler-copy &> /dev/null
     docker create -it --name cloud-profiler-copy ${SRC_Docker_Image} bash
@@ -18,10 +18,10 @@ then
         docker cp cloud-profiler-copy:${SRC_Static_Profiles} ~/
         echo -e "We've put a default static profiles directory for you in \"${Personal_Static_Profiles}\"."
     fi
-    if [[ ! -e "$( eval echo ${Personal_Static_Profiles}/Update iTerm profiles ${CP_TAG_VERSION}.json )" ]]; then
+    if [[ ! -e "$( eval echo ${Personal_Static_Profiles}/Update iTerm profiles ${CP_Update_Profile_VERSION}.json )" ]]; then
         rm -f "$( eval echo "${Personal_Static_Profiles}/Update*" )"
-        docker cp "$( eval echo "cloud-profiler-copy:${SRC_Static_Profiles}/Update iTerm profiles ${CP_TAG_VERSION}.json")" "$(eval echo ${Personal_Static_Profiles})"
-        echo -e "We've updated the \"Update proflile\" in \"${Personal_Static_Profiles}\". It is now at ${CP_TAG_VERSION}"
+        docker cp "$( eval echo "cloud-profiler-copy:${SRC_Static_Profiles}/Update iTerm profiles ${CP_Update_Profile_VERSION}.json")" "$(eval echo ${Personal_Static_Profiles})"
+        echo -e "We've updated the \"Update proflile\" in \"${Personal_Static_Profiles}\". It is now at ${CP_Update_Profile_VERSION}"
     fi
     if [[ ! -e $(eval echo ${Personal_Config_File} ) ]]; then
         mkdir -p "$(eval dirname ${Personal_Config_File})"
