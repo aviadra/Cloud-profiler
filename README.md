@@ -19,44 +19,15 @@ As of v1.5, it is possible to run the script using a docker container. You can c
 This is the recommended way of running the script. Running it with the below parameters will have docker ensure that it is always in the background (unless specifically stopped), and the default refresh rate is 5 minutes. The below also maps the configuration directory and iTerm profile directory into the container.
 
 ##### On MacOS
-Running the blow script will get you setup with the example configuration file from the repo if you haven't got one in place.
-```
-#!/usr/bin/env bash
-[ -z ${CP_Version+x} ] && CP_Version='latest'
-if [[ ! -e ~/iTerm2-static-profiles || ! -e ~/.iTerm-cloud-profile-generator/config.yaml ]]; then
-    docker create -it --name cloud-profiler-copy aviadra/cp:${CP_Version} bash
-    if [[ ! -e ~/iTerm2-static-profiles ]]; then
-        docker cp cloud-profiler-copy:/opt/CloudProfiler/iTerm2-static-profiles ~/
-    fi
-    if [[ ! -e ~/.iTerm-cloud-profile-generator/config.yaml ]]; then
-        mkdir -p ~/.iTerm-cloud-profile-generator/
-        docker cp cloud-profiler-copy:/opt/CloudProfiler/config.yaml ~/.iTerm-cloud-profile-generator/config.yaml
-    fi
-    docker rm -f cloud-profiler-copy
-    echo "\n\n\nWe've put a default configuration file for you in \"~/.iTerm-cloud-profile-generator/config.yaml\".\nPlease edit it to set your credentials and preferences"
-else
-    if [[ -z "$(docker ps -q -f name=cloud-profiler)" ]]; then
-        echo "\n\n\nStarting Cloud-profiler service\n"
-        docker run \
-            --init \
-            --restart=always \
-            -d \
-            --name cloud-profiler \
-            -e CP_Service=True \
-            -v ~/Library/Application\ Support/iTerm2/DynamicProfiles/:/home/appuser/Library/Application\ Support/iTerm2/DynamicProfiles/ \
-            -v ~/.iTerm-cloud-profile-generator/config.yaml:/home/appuser/.iTerm-cloud-profile-generator/config.yaml \
-            -v ~/iTerm2-static-profiles/:/opt/CloudProfile/iTerm2-static-profiles/ \
-            aviadra/cp:${CP_Version}
-    else
-        echo "\n\n\nCloud-profiler service already running\n"
-    fi
-    docker ps -f name=cloud-profiler
-fi
-```
+There is now a startup script that should get you going with seting up the static profiles directory and the config file.
+Simply run the "startup.sh" file from the repo:
+
+`curl -s https://raw.githubusercontent.com/aviadra/Cloud-profiler/feature/setup_script/startup.sh`
 
 ##### On Windows
 I'm sorry... you're not a first class citizen... there is no script for you...
 You're going to have to create the config directory and file on your own (help here is welcomed).
+Once they are in place, run:
 
 `docker run --init --restart=always -d -e CP_Windows=True -e CP_Service=True -v "%HOMEDRIVE%%HOMEPATH%"\Cloud_Profiler/:/home/appuserCloud_Profiler/ -v "%HOMEDRIVE%%HOMEPATH%"\.iTerm-cloud-profile-generator/config.yaml:/home/appuser.iTerm-cloud-profile-generator/config.yaml -v "%HOMEDRIVE%%HOMEPATH%"\iTerm2-static-profiles/:/opt/CloudProfile/iTerm2-static-profiles/ aviadra/cp`
 

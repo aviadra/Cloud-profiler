@@ -6,12 +6,12 @@ ENV PYTHONDONTWRITEBYTECODE 1
 # Turns off buffering for easier container logging
 ENV PYTHONUNBUFFERED 1
 
-COPY ./requirements.txt /opt/CloudProfiler/requirements.txt
-WORKDIR /opt/CloudProfiler
-RUN pip install -r requirements.txt
-COPY . /opt/CloudProfiler
 RUN mkdir -p /home/appuser/
-RUN useradd appuser && chown -R appuser /opt/CloudProfiler /home/appuser/
+WORKDIR /home/appuser/
+COPY ./requirements.txt /home/appuser/requirements.txt
+RUN pip install -r requirements.txt
+COPY . /home/appuser/
+RUN useradd appuser && chown -R appuser /home/appuser/
 
 USER appuser
 
