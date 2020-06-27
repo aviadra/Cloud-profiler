@@ -56,7 +56,7 @@ else
     on_system_digests=$(docker images --digests | grep ${SRC_Docker_image_base} | grep $CP_Version | awk '{print $3}')
     latest_version_raw=$( docker pull ${SRC_Docker_Image})
     latest_version_digets="$( echo $latest_version_raw | grep Digest | awk '{print $2}' )"
-    if [[ ${latest_version_digets} != ${on_system_digests} ]]; then
+    if [[ "${latest_version_digets}" != "${on_system_digests}" ]]; then
       echo -e "Newer version of container detected.\n"
       echo -e "Now restarting service for changes to take affect."
       docker stop cloud-profiler
