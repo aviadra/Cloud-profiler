@@ -35,10 +35,7 @@ Normal_docker_start() {
     exit_state "Start service container"
 }
 
-if [[ ! -e $(eval echo ${Personal_Static_Profiles} ) || \
-      ! -e $(eval echo ${Personal_Config_File} ) || \
-      ! -e "$( eval echo ${Personal_Static_Profiles}/Update iTerm profiles ${CP_Update_Profile_VERSION}.json )" ]]
-then
+setup() {
     echo "Cloud-profiler - Besic setup parts missing. Will now setup."
     echo "Cloud-profiler - Creating the container to copy profiles and config from."
     echo "Cloud-profiler - This may take a while...."
@@ -62,6 +59,13 @@ then
         exit 0
     fi
     docker rm -f cloud-profiler-copy &> /dev/null ; exit_state "Delete copy container"
+}
+
+if [[ ! -e $(eval echo ${Personal_Static_Profiles} ) || \
+      ! -e $(eval echo ${Personal_Config_File} ) || \
+      ! -e "$( eval echo ${Personal_Static_Profiles}/Update iTerm profiles ${CP_Update_Profile_VERSION}.json )" ]]
+then
+    setup
 fi
 if [[ -z "$(docker ps -q -f name=cloud-profiler)" ]]; then
     Normal_docker_start
@@ -75,6 +79,7 @@ else
       echo -e "Cloud-profiler - Now restarting service for changes to take affect."
       docker stop cloud-profiler &> /dev/null ; exit_state "Stop service container"
       docker rm cloud-profiler &> /dev/null; exit_state "Remove old service container"
+      setup
       Normal_docker_start
     else
         echo -e "Cloud-profiler - Issuing ad-hoc run."
