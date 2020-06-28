@@ -84,10 +84,10 @@ if [[ -z "$(docker ps -q -f name=cloud-profiler)" ]]; then
     Normal_docker_start
 else
     echo -e "Cloud-profiler - Service already running\n"
-    update_container
     echo -e "Cloud-profiler - Issuing ad-hoc run."
     docker exec \
         cloud-profiler \
         python3 update-cloud-hosts.py ; exit_state "ad-hoc run"
+    update_container
 fi
 docker ps -f name=cloud-profiler ; exit_state "Finding the service profile in docker ps"
