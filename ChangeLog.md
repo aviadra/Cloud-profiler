@@ -1,5 +1,8 @@
 # Change Log
 
+## v1.8
+Meny changes to Startup script: moved to use zsh, heavly using functions and better error handing.
+
 ## v1.7.3
 Update profile is now maintained by the startup script.
 

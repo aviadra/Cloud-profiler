@@ -22,7 +22,7 @@ This is the recommended way of running the script. Running it with the below par
 There is now a startup script that should get you going with seting up the static profiles directory and the config file.
 Simply run the "startup.sh" file from the repo:
 
-`curl -s https://raw.githubusercontent.com/aviadra/Cloud-profiler/master/startup.sh`
+`[ -z ${CP_Branch+x} ] && CP_Branch='master'; curl -s https://raw.githubusercontent.com/aviadra/Cloud-profiler/$CP_Branch/startup.sh | bash`
 
 ##### On Windows
 I'm sorry... you're not a first class citizen... there is no script for you...
