@@ -215,7 +215,7 @@
     "Blue Component" : 0,
     "Green Component" : 0.1491314172744751
   },
-  "Initial Text" : "[ -z ${CP_Branch+x} ] && CP_Branch='master'; curl -s https:\/\/raw.githubusercontent.com\/aviadra\/Cloud-profiler\/$CP_Branch\/startup.sh | bash",
+  "Initial Text" : "[ -z ${CP_Branch+x} ] && CP_Branch='master'; curl -s https:\/\/raw.githubusercontent.com\/aviadra\/Cloud-profiler\/$CP_Branch\/startup.sh | bash && exit 0",
   "Scrollback Lines" : 0,
   "Send Code When Idle" : false,
   "Close Sessions On End" : true,
