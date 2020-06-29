@@ -1,6 +1,6 @@
 #!/usr/bin/env zsh
 [ -z ${CP_Version+x} ] && CP_Version='latest'
-CP_Update_Profile_VERSION="v1.8.1"
+CP_Update_Profile_VERSION="v1.8.2"
 Personal_Static_Profiles="~/iTerm2-static-profiles"
 Config_File=".iTerm-cloud-profile-generator/config.yaml"
 Personal_Config_File="~/${Config_File}"
@@ -20,8 +20,14 @@ exit_state() {
     fi
 }
 
+clear_service_container() {
+    docker stop cloud-profiler &> /dev/null ; exit_state "Stop service container"
+    docker rm cloud-profiler &> /dev/null; exit_state "Remove old service container"
+}
+
 Normal_docker_start() {
     echo "Cloud-profiler - Starting service\n"
+    clear_service_container
     docker run \
         --init \
         --restart=always \
@@ -42,9 +48,9 @@ update_container() {
     if [[ "${latest_version_digets}" != "${on_system_digests}" ]]; then
       echo -e "Cloud-profiler - Newer version of container detected.\n"
       echo -e "Cloud-profiler - Now restarting service for changes to take affect."
-      docker stop cloud-profiler &> /dev/null ; exit_state "Stop service container"
-      docker rm cloud-profiler &> /dev/null; exit_state "Remove old service container"
+      clear_service_container
     fi
+    Normal_docker_start
 }
 
 setup() {
@@ -86,8 +92,7 @@ else
     docker exec \
         cloud-profiler \
         python3 update-cloud-hosts.py ; exit_state "ad-hoc run"
-    update_container
     setup
-    Normal_docker_start
+    update_container
 fi
 docker ps -f name=cloud-profiler ; exit_state "Finding the service profile in docker ps"
