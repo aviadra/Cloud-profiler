@@ -1,6 +1,6 @@
 #!/usr/bin/env zsh
 [ -z ${CP_Version+x} ] && CP_Version='latest'
-CP_Update_Profile_VERSION="v1.8"
+CP_Update_Profile_VERSION="v1.8.1"
 Personal_Static_Profiles="~/iTerm2-static-profiles"
 Config_File=".iTerm-cloud-profile-generator/config.yaml"
 Personal_Config_File="~/${Config_File}"
@@ -44,8 +44,6 @@ update_container() {
       echo -e "Cloud-profiler - Now restarting service for changes to take affect."
       docker stop cloud-profiler &> /dev/null ; exit_state "Stop service container"
       docker rm cloud-profiler &> /dev/null; exit_state "Remove old service container"
-      setup
-      Normal_docker_start
     fi
 }
 
@@ -54,9 +52,9 @@ setup() {
     echo "Cloud-profiler - Creating the container to copy profiles and config from."
     echo "Cloud-profiler - This may take a while...."
     docker rm -f cloud-profiler-copy &> /dev/null
+    update_container
     docker create -it --name cloud-profiler-copy ${SRC_Docker_Image} bash &> /dev/null ; exit_state "Create copy container"
     if [[ ! -e $(eval echo ${Personal_Static_Profiles} ) ]]; then
-        update_container
         docker cp cloud-profiler-copy:${SRC_Static_Profiles} ~/ ; exit_state "Copy static profiles from copy container"
         echo -e "Cloud-profiler - We've put a default static profiles directory for you in \"${Personal_Static_Profiles}\"."
     fi
@@ -89,5 +87,7 @@ else
         cloud-profiler \
         python3 update-cloud-hosts.py ; exit_state "ad-hoc run"
     update_container
+    setup
+    Normal_docker_start
 fi
 docker ps -f name=cloud-profiler ; exit_state "Finding the service profile in docker ps"
