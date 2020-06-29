@@ -1,6 +1,6 @@
 #!/usr/bin/env zsh
 [ -z ${CP_Version+x} ] && CP_Version='latest'
-CP_Update_Profile_VERSION="v1.8.2"
+CP_Update_Profile_VERSION="v1.8.3"
 Personal_Static_Profiles="~/iTerm2-static-profiles"
 Config_File=".iTerm-cloud-profile-generator/config.yaml"
 Personal_Config_File="~/${Config_File}"
@@ -21,8 +21,8 @@ exit_state() {
 }
 
 clear_service_container() {
-    docker stop cloud-profiler &> /dev/null ; exit_state "Stop service container"
-    docker rm cloud-profiler &> /dev/null; exit_state "Remove old service container"
+    docker stop cloud-profiler &> /dev/null
+    docker rm cloud-profiler &> /dev/null
 }
 
 Normal_docker_start() {
@@ -65,7 +65,7 @@ setup() {
         echo -e "Cloud-profiler - We've put a default static profiles directory for you in \"${Personal_Static_Profiles}\"."
     fi
     if [[ ! -e "$( eval echo ${Personal_Static_Profiles}/Update iTerm profiles ${CP_Update_Profile_VERSION}.json )" ]]; then
-        rm -f "$( eval echo "${Personal_Static_Profiles}/Update*" )"
+        rm -f "$( eval echo "${Personal_Static_Profiles}/Update*" )" &> /dev/null
         docker cp "$( eval echo "cloud-profiler-copy:${SRC_Static_Profiles}/Update iTerm profiles ${CP_Update_Profile_VERSION}.json")" \
                   "$(eval echo ${Personal_Static_Profiles})" ; exit_state "Copy Update profile from copy container"
         echo -e "Cloud-profiler - We've updated the \"Update proflile\" in \"${Personal_Static_Profiles}\". It is now at ${CP_Update_Profile_VERSION}"
