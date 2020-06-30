@@ -1,6 +1,6 @@
 #!/usr/bin/env zsh
 [ -z ${CP_Version+x} ] && CP_Version='latest'
-CP_Update_Profile_VERSION="v1.8.3"
+CP_Update_Profile_VERSION="v1.8.4"
 Personal_Static_Profiles="~/iTerm2-static-profiles"
 Config_File=".iTerm-cloud-profile-generator/config.yaml"
 Personal_Config_File="~/${Config_File}"
@@ -48,37 +48,49 @@ update_container() {
     if [[ "${latest_version_digets}" != "${on_system_digests}" ]]; then
       echo -e "Cloud-profiler - Newer version of container detected.\n"
       echo -e "Cloud-profiler - Now restarting service for changes to take affect."
-      clear_service_container
+      Normal_docker_start
     fi
-    Normal_docker_start
 }
 
 setup() {
-    echo "Cloud-profiler - Besic setup parts missing. Will now setup."
-    echo "Cloud-profiler - Creating the container to copy profiles and config from."
-    echo "Cloud-profiler - This may take a while...."
-    docker rm -f cloud-profiler-copy &> /dev/null
     update_container
-    docker create -it --name cloud-profiler-copy ${SRC_Docker_Image} bash &> /dev/null ; exit_state "Create copy container"
-    if [[ ! -e $(eval echo ${Personal_Static_Profiles} ) ]]; then
-        docker cp cloud-profiler-copy:${SRC_Static_Profiles} ~/ ; exit_state "Copy static profiles from copy container"
-        echo -e "Cloud-profiler - We've put a default static profiles directory for you in \"${Personal_Static_Profiles}\"."
+    if [[ ! -e $(eval echo ${Personal_Static_Profiles} ) || \
+        ! -e $(eval echo ${Personal_Config_File} ) || \
+        ! -e "$( eval echo ${Personal_Static_Profiles}/Update iTerm profiles ${CP_Update_Profile_VERSION}.json )" ]] ; then
+        
+        echo "Cloud-profiler - Besic setup parts missing. Will now setup."
+        echo "Cloud-profiler - Creating the container to copy profiles and config from."
+        echo "Cloud-profiler - This may take a while...."
+        docker rm -f cloud-profiler-copy &> /dev/null
+        
+        docker create -it --name cloud-profiler-copy ${SRC_Docker_Image} bash &> /dev/null ; exit_state "Create copy container"
+        if [[ ! -e $(eval echo ${Personal_Static_Profiles} ) ]]; then
+            docker cp cloud-profiler-copy:${SRC_Static_Profiles} ~/ ; exit_state "Copy static profiles from copy container"
+            echo -e "Cloud-profiler - We've put a default static profiles directory for you in \"${Personal_Static_Profiles}\"."
+        fi
+        if [[ ! -e "$( eval echo ${Personal_Static_Profiles}/Update iTerm profiles ${CP_Update_Profile_VERSION}.json )" ]]; then
+            rm -f "$( eval echo "${Personal_Static_Profiles}/Update*" )" &> /dev/null
+            docker cp "$( eval echo "cloud-profiler-copy:${SRC_Static_Profiles}/Update iTerm profiles ${CP_Update_Profile_VERSION}.json")" \
+                    "$(eval echo ${Personal_Static_Profiles})" ; exit_state "Copy Update profile from copy container"
+            echo -e "Cloud-profiler - We've updated the \"Update proflile\" in \"${Personal_Static_Profiles}\". It is now at ${CP_Update_Profile_VERSION}"
+        fi
+        if [[ ! -e $(eval echo ${Personal_Config_File} ) ]]; then
+            mkdir -p "$(eval dirname ${Personal_Config_File})" ; exit_state "Create personal config dir"
+            docker cp cloud-profiler-copy:/home/appuser/config.yaml "$(eval echo ${Personal_Config_File})" ; exit_state "Copy personal config template from copy container"
+            echo -e "Cloud-profiler - We've put a default configuration file for you in \"${Personal_Config_File}\"."
+            echo -e "\nCloud-profiler - Please edit it to set your credentials and preferences"
+            exit 0
+        fi
+        docker rm -f cloud-profiler-copy &> /dev/null ; exit_state "Delete copy container"
     fi
-    if [[ ! -e "$( eval echo ${Personal_Static_Profiles}/Update iTerm profiles ${CP_Update_Profile_VERSION}.json )" ]]; then
-        rm -f "$( eval echo "${Personal_Static_Profiles}/Update*" )" &> /dev/null
-        docker cp "$( eval echo "cloud-profiler-copy:${SRC_Static_Profiles}/Update iTerm profiles ${CP_Update_Profile_VERSION}.json")" \
-                  "$(eval echo ${Personal_Static_Profiles})" ; exit_state "Copy Update profile from copy container"
-        echo -e "Cloud-profiler - We've updated the \"Update proflile\" in \"${Personal_Static_Profiles}\". It is now at ${CP_Update_Profile_VERSION}"
-    fi
-    if [[ ! -e $(eval echo ${Personal_Config_File} ) ]]; then
-        mkdir -p "$(eval dirname ${Personal_Config_File})" ; exit_state "Create personal config dir"
-        docker cp cloud-profiler-copy:/home/appuser/config.yaml "$(eval echo ${Personal_Config_File})" ; exit_state "Copy personal config template from copy container"
-        echo -e "Cloud-profiler - We've put a default configuration file for you in \"${Personal_Config_File}\"."
-        echo -e "\nCloud-profiler - Please edit it to set your credentials and preferences"
-        exit 0
-    fi
-    docker rm -f cloud-profiler-copy &> /dev/null ; exit_state "Delete copy container"
 }
+
+if [[ -z "$(which docker)" ]] ;then
+    echo "Cloud-profiler - We can't seem to find docker on the system :\\"
+    echo "Cloud-profiler - Make it so the \"which\" command can find it and run gain."
+    echo "Cloud-profiler - Goodbye for now..."
+    exit 42
+fi
 
 [[ ! -e $(eval echo ${Personal_Static_Profiles} ) ]] && setup
 [[ ! -e $(eval echo ${Personal_Config_File} ) ]] && setup
@@ -93,6 +105,5 @@ else
         cloud-profiler \
         python3 update-cloud-hosts.py ; exit_state "ad-hoc run"
     setup
-    update_container
 fi
 docker ps -f name=cloud-profiler ; exit_state "Finding the service profile in docker ps"
