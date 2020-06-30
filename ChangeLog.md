@@ -1,5 +1,8 @@
 # Change Log
 
+## v1.8.1
+Changed it so on ad-hoc run, the service is only restarted when a container changes.
+
 ## v1.8
 Meny changes to Startup script: moved to use zsh, heavly using functions and better error handing.
 
