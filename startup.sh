@@ -1,6 +1,6 @@
 #!/usr/bin/env zsh
 [ -z ${CP_Version+x} ] && CP_Version='latest'
-CP_Update_Profile_VERSION="v1.8.4.1"
+CP_Update_Profile_VERSION="v1.8.4.2"
 Personal_Static_Profiles="~/iTerm2-static-profiles"
 Config_File=".iTerm-cloud-profile-generator/config.yaml"
 Personal_Config_File="~/${Config_File}"
@@ -8,6 +8,7 @@ SRC_Static_Profiles="/home/appuser/iTerm2-static-profiles"
 DynamicProfiles_Location="Library/Application\ Support/iTerm2/DynamicProfiles/"
 SRC_Docker_image_base="aviadra/cp"
 SRC_Docker_Image="${SRC_Docker_image_base}:${CP_Version}"
+update_detected="no"
 
 echo -e "Cloud-profiler - Welcome to the startup/setup script."
 
@@ -48,7 +49,7 @@ update_container() {
     if [[ "${latest_version_digets}" != "${on_system_digests}" ]]; then
       echo -e "Cloud-profiler - Newer version of container detected.\n"
       echo -e "Cloud-profiler - Now restarting service for changes to take affect."
-      Normal_docker_start
+      update_detected="yes"
     fi
 }
 
@@ -83,6 +84,7 @@ setup() {
         fi
         docker rm -f cloud-profiler-copy &> /dev/null ; exit_state "Delete copy container"
     fi
+    Normal_docker_start
 }
 
 if [[ -z "$(which docker)" ]] ;then
@@ -104,6 +106,7 @@ else
     docker exec \
         cloud-profiler \
         python3 update-cloud-hosts.py ; exit_state "ad-hoc run"
-    setup
+    update_container
+    [[ "${update_detected}" == "yes" ]] && Normal_docker_start
 fi
 docker ps -f name=cloud-profiler ; exit_state "Finding the service profile in docker ps"
