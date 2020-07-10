@@ -33,6 +33,8 @@ Normal_docker_start() {
         --init \
         --restart=always \
         -d \
+        --log-opt max-size=2m \
+        --log-opt max-file=5 \
         --name cloud-profiler \
         -e CP_Service=True \
         -v "$(eval echo ${Personal_Config_File}:/home/appuser/${Config_File} )" \

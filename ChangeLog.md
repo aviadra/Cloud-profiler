@@ -1,5 +1,8 @@
 # Change Log
 
+## v1.8.2
+Added limmits on the size of the log file.
+
 ## v1.8.1
 Changed it so on ad-hoc run, the service is only restarted when a container changes.
 
