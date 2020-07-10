@@ -1,5 +1,8 @@
 # Change Log
 
+## v1.8.2a
+Cosmetic
+
 ## v1.8.2
 Added limmits on the size of the log file.
 

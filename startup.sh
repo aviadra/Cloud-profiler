@@ -1,6 +1,6 @@
 #!/usr/bin/env zsh
 [ -z ${CP_Version+x} ] && CP_Version='latest'
-CP_Update_Profile_VERSION="v1.8.2"
+CP_Update_Profile_VERSION="v1.8.2a"
 Personal_Static_Profiles="~/iTerm2-static-profiles"
 Config_File=".iTerm-cloud-profile-generator/config.yaml"
 Personal_Config_File="~/${Config_File}"
@@ -27,7 +27,7 @@ clear_service_container() {
 }
 
 Normal_docker_start() {
-    echo "Cloud-profiler - Starting service\n"
+    echo -e "Cloud-profiler - Starting service\n"
     clear_service_container
     docker run \
         --init \
