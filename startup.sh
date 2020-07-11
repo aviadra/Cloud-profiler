@@ -107,7 +107,7 @@ else
     echo -e "Cloud-profiler - Issuing ad-hoc run."
     docker exec \
         cloud-profiler \
-        python3 update-cloud-hosts.py ; exit_state "ad-hoc run"
+          touch cut.tmp ; exit_state "ad-hoc run"
     update_container
     [[ "${update_detected}" == "yes" ]] && Normal_docker_start
 fi
