@@ -758,6 +758,9 @@ def updateHosts(instances,groups):
 
 #MAIN
 if __name__ == '__main__':
+    file = open("marker.tmp", "w") 
+    file.write("mark") 
+    file.close() 
     instance_counter = {}
     script_path = os.path.abspath(__file__)
     script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -831,6 +834,7 @@ if __name__ == '__main__':
         updateMoba(cloud_instances_obj_list)
     else:
         updateTerm(cloud_instances_obj_list)
-
+    
+    os.remove("marker.tmp")
     print(f"\nCreated profiles {json.dumps(instance_counter,sort_keys=True,indent=4, separators=(',', ': '))}\nTotal: {sum(instance_counter.values())}")
     print(f"\nWe wish you calm clouds and a serene path...\n")
