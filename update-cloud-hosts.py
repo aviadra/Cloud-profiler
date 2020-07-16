@@ -835,6 +835,7 @@ if __name__ == '__main__':
     else:
         updateTerm(cloud_instances_obj_list)
     
-    os.remove("marker.tmp")
+    if os.path.exists('marker.tmp'):
+        os.remove("marker.tmp")
     print(f"\nCreated profiles {json.dumps(instance_counter,sort_keys=True,indent=4, separators=(',', ': '))}\nTotal: {sum(instance_counter.values())}")
     print(f"\nWe wish you calm clouds and a serene path...\n")
