@@ -1,5 +1,8 @@
 # Change Log
 
+## v1.8.3
+Update profiles now simply resets the "rest counter" instead of causing an out of turn execution.
+
 ## v1.8.2a
 Cosmetic
 
