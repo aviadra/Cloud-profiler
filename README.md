@@ -12,19 +12,19 @@ This project has some assumptions:
 
 ## How to use
 
-## Docker way (recommended)
+### Docker way (recommended)
 As of v1.5, it is possible to run the script using a docker container. You can choose to build it yourself or pull from docker hub. The instructions will focus on the latter.
 
-### Run as a service
+#### Run as a service
 This is the recommended way of running the script. Running it with the below parameters will have docker ensure that it is always in the background (unless specifically stopped), and the default refresh rate is 5 minutes. The below also maps the configuration directory and iTerm profile directory into the container.
 
-#### Service on MacOS
+##### Service on MacOS
 There is now a startup script that should get you going with seting up the static profiles directory and the config file.
 Simply run the "startup.sh" file from the repo:
 
 `[ -z ${CP_Branch+x} ] && CP_Branch='master'; curl -s https://raw.githubusercontent.com/aviadra/Cloud-profiler/$CP_Branch/startup.sh | bash`
 
-#### Service on Windows
+##### Service on Windows
 I'm sorry... you're not a first class citizen... there is no script for you...
 You're going to have to create the config directory and file on your own (help here is welcomed).
 Once they are in place, run:
