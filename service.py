@@ -17,11 +17,15 @@ LoopInt = LoopInt
 if os.environ.get('CP_Service', False):
     print(f"Cloud_Profiler Service - Running in Service mode.")
     while True:
-        print("Start of loop")
+        print("Clour Profiler Service - Start of loop")
         exec(open("update-cloud-hosts.py").read())
         print(f"Cloud_Profiler Service - Will now rest for {LoopInt} seconds, until the next refresh.")
         for i in progressbar.progressbar(range(LoopInt)):
             time.sleep(1)
+            if os.path.exists("cut.tmp"):
+                os.remove("cut.tmp")
+                print("Clour Profiler Service - Found the reset counter file, so exiting the rest loop.")
+                break
         print("\n")
 else:
     exec(open("update-cloud-hosts.py").read())
