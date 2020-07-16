@@ -68,7 +68,7 @@ Windows bug "missing setting of d, before use" fix.
 
 ## v1.4.1
 Changed Bastion decision (again) so that it works as expected.
-Removed unnecessary space after the ssh command 
+Removed unnecessary space after the ssh command
 
 ## v1.4
 Changed the names of tags one sets on instances to "Cloud_Provider".
