@@ -20,7 +20,6 @@ if os.environ.get('CP_Service', False):
         print("Clour Profiler Service - Start of loop")
         exec(open("update-cloud-hosts.py").read())
         print(f"Cloud_Profiler Service - Will now rest for {LoopInt} seconds, until the next refresh.")
-        # time.sleep(2)
         for i in progressbar.progressbar(range(LoopInt)):
             time.sleep(1)
             if os.path.exists("cut.tmp"):
