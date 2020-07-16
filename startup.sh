@@ -105,7 +105,7 @@ if [[ -z "$(docker ps -q -f name=cloud-profiler)" ]]; then
 else
     echo -e "Cloud-profiler - Service already running\n"
     if [[ -n "$( docker exec cloud-profiler ls marker.tmp 2> /dev/null )" ]] ; then
-        echo "Cloud-profiler - There is already an update in progress..."
+        echo "Cloud-profiler - There is already a profiles refresh in progress..."
         docker logs --since 0.5s -f cloud-profiler 2>&1 |tee >(sed -n "/clouds/ q") | awk '1;/clouds/{exit}'
     else
         echo -e "Cloud-profiler - Issuing ad-hoc run."
