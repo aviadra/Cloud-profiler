@@ -73,7 +73,7 @@ setup() {
             echo -e "Cloud-profiler - We've put a default static profiles directory for you in \"${Personal_Static_Profiles}\"."
         fi
         if [[ ! -e "$( eval echo "${Personal_Static_Profiles}/Update iTerm profiles ${CP_Update_Profile_VERSION}.json" )" ]]; then
-            rm -f ${Personal_Static_Profiles}/Update* &> /dev/null
+            rm -f "${Personal_Static_Profiles}"/Update* &> /dev/null
             docker cp "$( eval echo "cloud-profiler-copy:${SRC_Static_Profiles}/Update iTerm profiles ${CP_Update_Profile_VERSION}.json")" \
                     "$(eval echo "${Personal_Static_Profiles}" )" ; exit_state "Copy Update profile from copy container"
             echo -e "Cloud-profiler - We've updated the \"Update proflile\" in \"${Personal_Static_Profiles}\". It is now at ${CP_Update_Profile_VERSION}"
