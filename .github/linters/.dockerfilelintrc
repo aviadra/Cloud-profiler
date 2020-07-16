@@ -72,7 +72,7 @@ rules:
   label_invalid: on
 
   # Base images should specify a tag to use
-  missing_tag: off
+  missing_tag: on
 
   # Base images should not use the latest tag
   latest_tag: on
