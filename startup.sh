@@ -46,7 +46,8 @@ Normal_docker_start() {
 }
 
 update_container() {
-    echo -e "Cloud-profiler - Checking for updates\n"
+    echo -e "Cloud-profiler - Checking for updates"
+    echo "Cloud-profiler - This may take a while....\n"
     on_system_digests=$(docker images --digests | grep ${SRC_Docker_image_base} | grep $CP_Version | awk '{print $3}')
     latest_version_digets=$( docker pull ${SRC_Docker_Image} | grep Digest | awk '{print $2}' )
     if [[ "${latest_version_digets}" != "${on_system_digests}" ]]; then
