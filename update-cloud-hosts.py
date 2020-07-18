@@ -294,6 +294,10 @@ def fetchEC2Instance(instance, client, groups, instances, instance_source, reser
     Iterm_tags.append(f"InstanceType: {instance['InstanceType']}")
     if instance['PublicDnsName']:
         Iterm_tags.append(f"PublicDnsName: {instance['PublicDnsName']}")
+    if instance['PrivateDnsName']:
+        Iterm_tags.append(f"PrivateDnsName: {instance['PrivateDnsName']}")
+    if instance['ImageId']:
+        Iterm_tags.append(f"ImageId: {instance['ImageId']}")
     
     Iterm_tags_fin = []
     for tag in Iterm_tags:
