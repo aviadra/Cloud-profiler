@@ -2,6 +2,7 @@
 
 ## v1.8.4
 Added the tags "PrivateDnsName" and "ImageId" for AWS instances to be part of the infromation gathered.
+Internal, Added repo linting as github action.
 
 ## v1.8.3
 Update profiles now simply resets the "rest counter" instead of causing an out of turn execution.
