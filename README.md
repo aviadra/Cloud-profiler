@@ -10,21 +10,21 @@ This project has some assumptions:
 - You have [iTerm](https://iterm2.com/) installed when using a Mac.
 - Your system has Docker, or python3 installed (if using the "system install" method).
 
-# How to use
+## How to use
 
-## Docker way (recommended)
+### Docker way (recommended)
 As of v1.5, it is possible to run the script using a docker container. You can choose to build it yourself or pull from docker hub. The instructions will focus on the latter.
 
 #### Run as a service
 This is the recommended way of running the script. Running it with the below parameters will have docker ensure that it is always in the background (unless specifically stopped), and the default refresh rate is 5 minutes. The below also maps the configuration directory and iTerm profile directory into the container.
 
-##### On MacOS
+##### Service on MacOS
 There is now a startup script that should get you going with seting up the static profiles directory and the config file.
 Simply run the "startup.sh" file from the repo:
 
 `[ -z ${CP_Branch+x} ] && CP_Branch='master'; curl -s https://raw.githubusercontent.com/aviadra/Cloud-profiler/$CP_Branch/startup.sh | bash`
 
-##### On Windows
+##### Service on Windows
 I'm sorry... you're not a first class citizen... there is no script for you...
 You're going to have to create the config directory and file on your own (help here is welcomed).
 Once they are in place, run:
@@ -34,14 +34,14 @@ Once they are in place, run:
 #### Run ad-hoc
 It is absolutely possible to run the script on a per-needed basis (a.k.a. "ad-hoc"). To do so, simply issue the same command, only omitting the "-d", "-e CP_Service=True" and "--restart=always" parameters.
 
-##### On MacOS
+##### Ad-hoc on MacOS
 
 As of v1.6.3 the "Update" profile was added to the "static" profiles distributed with the repository. In order to use it, simply call it like any other profile (CMD + O)
 Note: As of v1.6.5, if you set the variable CP_Version (in your zshrc file for example), the update profile will use it to determine which version to use to pull
 
 `docker run --init --rm -v ~/Library/Application\ Support/iTerm2/DynamicProfiles/:/home/appuserLibrary/Application\ Support/iTerm2/DynamicProfiles/ -v ~/.iTerm-cloud-profile-generator/config.yaml:/home/appuser.iTerm-cloud-profile-generator/config.yaml -v ~/iTerm2-static-profiles/:/opt/CloudProfile/iTerm2-static-profiles/ aviadra/cp`
 
-##### On windows
+##### Ad-hoc on windows
 
 `docker run -it --init --rm -e CP_Windows=True -v "%HOMEDRIVE%%HOMEPATH%"\Cloud_Profiler/:/home/appuserCloud_Profiler/ -v "%HOMEDRIVE%%HOMEPATH%"\.iTerm-cloud-profile-generator\config.yaml:/home/appuser.iTerm-cloud-profile-generator/config.yaml -v ~/iTerm2-static-profiles/:/opt/CloudProfile/iTerm2-static-profiles/ aviadra/cp`
 
@@ -49,7 +49,7 @@ Note: While not required, I've added to the above the "[--rm](https://docs.docke
 
 You should be all set, just go to the Configuration section.
 
-# Configuration files
+## Configuration files
 There is a YAML configuration file within the repo that gives the default values for the script behavior.
 On the first run of the script, a personal configuration file is created in `~/.iTerm-cloud-profile-generator/config.yaml`. So, you don't have to fork the repo in order to have your own settings. Settings in the personal file will take precedence over the default ones from the repo file.
 Possible options within the configuration files are noted below.
@@ -57,7 +57,7 @@ Note: For convenience, the following values are accepted for "True": 'True', 'ye
 
 ## Example configuration
 While a valid sample configuration file is provided as a file within the repo, the below configuration is what I actually use as my daily driver (keys have been omitted). For some cases it is easier to copy from here, so here you go.
-```
+```YAML
 Local:
   Static_profiles: "./iTerm2-static-profiles"
   SSH_base_string: "-oStrictHostKeyChecking=no -oUpdateHostKeys=yes -oServerAliveInterval=30 -oAddKeysToAgent=no"
@@ -66,7 +66,7 @@ Local:
   Use_shared_key: False
   Parallel_exec: True
   Skip_stopped: True
-  Badge_info_to_display: 
+  Badge_info_to_display:
     Name: "Formatted"
     Instance_key: True
     InstanceType: True
@@ -168,16 +168,16 @@ Given an array with values, the shown values will be filtered to only show tags 
 
 `Region` - Show the region of the instance.
 
-` SSH_key` - Show the name of the SSH key associated with the instance at creation time.
+`SSH_key` - Show the name of the SSH key associated with the instance at creation time.
 
-` Use_shared_key` - Is the flag of using a shared key set?
+`Use_shared_key` - Is the flag of using a shared key set?
 
 `VPC` - The VPC id of the instance.
 
 
 
 ## AWS options
-These are settings for your AWS account/s. 
+These are settings for your AWS account/s.
 
 `use_awscli_profiles` - The script knows how to yank profiles from a standard awscli configuration. This directive toggles this behavior. The default behavior is to not use awscli profiles, with the value of "False".
 
@@ -192,7 +192,7 @@ These are settings for your AWS account/s.
 `exclude_regions` - This is a list of regions to be skipped from lookup. One might want to populate this list if there are regions that are not used regularly, as skipping them shortens the amount of time the script runs and reduces the amount of API calls to AWS.
 
 ### Profiles
-`profiles` - This is an array of hashes that represents AWS profiles. The structure is: a hyphen to separate the hashes in the array. Each hash has the following keys: "name", "aws_access_key_id and "aws_secret_access_key". See the example in the "repo settings file". 
+`profiles` - This is an array of hashes that represents AWS profiles. The structure is: a hyphen to separate the hashes in the array. Each hash has the following keys: "name", "aws_access_key_id and "aws_secret_access_key". See the example in the "repo settings file".
 Note: The example is deliberately commented out, so that if you don't configure it the script will not encounter errors).
 
 #### STS support
@@ -208,7 +208,7 @@ See the example configuration in the repo configuration file.
 `profiles` - This is an array of hashes that represents DO profiles. The structure is: a hyphen to separate the hashes in the array. Each hash has the following keys: "name" and "token". See the example in the "repo settings file".
 Note: The example is deliberately commented out, so that if you don't configure it the script will not encounter errors).
 
-# Configuration directives from tags and/or configuration files
+## Configuration directives from tags and/or configuration files
 The script can change the end result of the connections/profiles it creates, due to tags discovered on the cloud or directives from the conf files.
 These range from whether to use the public IP for the connection, to should a Bastion be used or what the address of it should be.
 
@@ -247,15 +247,15 @@ Possible directives are:
 
 `SSH_key` - The name of the key to use. If this is not defined, and the "Use_shared_key" is set, the key name on the instance is used.
 
-# Cloud side setup
+## Cloud side setup
 In general, there really isn't anything you "need" to do on the clouds side. With that said, there are Things you can/should set on the cloud side to make the setup more specific.
 
-## AWS setup
+### AWS setup
 On AWS, the default configuration is to push you towards securing your connections and to use a [Bastion](https://docs.aws.amazon.com/quickstart/latest/linux-bastion/architecture.html#bastion-hosts) for everything. This can be changed in the configuration files or using TAGs that you can add to instances and/or VPCs. In general, it is recommended to "tattoo" the "iTerm_Bastion" at the VPC level.
 On AWS you set a tag by adding it to the desired resource, setting the "key" field to the name of the tag and in the "value" field the desired setting.
 Note the credentials used for AWS, must have the following permissions: "ec2:DescribeVpcs", "ec2:GetPasswordData", "ec2:DescribeRegions" and "ec2:DescribeInstances".
 
-## Digital Ocean
+### Digital Ocean
 Digital Ocean's implementation of VPC is such that there isn't a way to set tags on it (that I have seen).
 On DO, you set a tag by adding it to the instance. The format to be used is: "tag_name:value". Note that there are no spaces between the key and the value.
 Also note, that underscores(_) in the value part of the tag are replaced with spaces, and dashes(-) are replaced with dots(.).
@@ -270,25 +270,25 @@ For example:
 
 `Bastion:1-1-1-1`
 
-# MobaXterm setup
+## MobaXterm setup
 The way to get the profiles into Moba is not as automatic as it is for iTerm. With that said, the script will generate a "sessions" file, that you can import manually into Moba, or you can use the [shared sessions feature](https://mobaxterm.mobatek.net/documentation.html#3_1_6).
 The default location of the generated configuration file is "~/Cloud_Profiler/Cloud-profiler-Moba.mxtsessions".
 
-# iTerm setup
+## iTerm setup
 Again, in general you don't need to change anything in your iTerm configuration. With that said, it is recommended that you create in your iTerm, the profiles you're going to reference when using the "iTerm_Dynamic_profile_parent_name" tag. if you don't, nothing major will happen, iTerm will simply use the default profile. However as of v3.3.8 of iTerm, it will throw errors to an error log and will give popups to note it has done so...
 
-## RDP support for MacOS (optional)
+### RDP support for MacOS (optional)
 The RDP support is based on your MAC's ability to open rdp URIs. That is iTerm will issue something like "open rdp://address-of-instance". Compatible programs are Microsoft Remote Desktop 8/10 available on the app store.
 
-## Static profiles
+### Static profiles
 The "Static profiles" feature of this script, allows you to centrally distribute profiles so that you can reference them with the "iTerm_Dynamic_profile_parent_name" tag. For example, the two profiles in the repo, give the "Red Alert" and "Dracula" color schemes with my beloved keyboard shortcuts. They are installed for you in the dynamic profiles automatically, which makes it possible to reference them with the tag and get a clear distinction when you're on prod vs normal servers.
 The static profiles can also be used as a shim for the cases where you want to distribute profiles that don't come from AWS. For example, you have some VMs on a local ESX. You can create their profiles and save them in the "static" directory, and they will be distributed to the rest of the repo users
 
 The way to add/remove profiles, is to do so in the "iTerm2-static-profiles" directory within the repo. You get the profiles, by creating them the regular iTerm way (as explained below) and then using the "export to json" options at the bottom of the "profiles" tab in preferences.
 You can also set this location in the configuration files, if the path "from the repo" if you need to.
 
-## Profile creation within iTerm
-In order to ease the setup, I've set the https://github.com/mbadolato/iTerm2-Color-Schemes, as a submodule, so many color schemes are available "out of the box". 
+### Profile creation within iTerm
+In order to ease the setup, I've set the [iTerm2-Color-Schemes repository: "https://github.com/mbadolato/iTerm2-Color-Schemes"], as a submodule, so many color schemes are available "out of the box".
 The instructions below are the regular iTerm way of creating profiles.
 For example, to create "DRACULA" profile:
 - Create a new profile by clicking the plus (+) sign, in the profiles section of the "preferences".
@@ -301,10 +301,10 @@ Note: The "Red Alert" profile, which I recommend for production servers is part 
 
 We wish you calm clouds and a serene path...
 
-# Appendix
+## Appendix
 These are things that have been written, but do not belong in the spotlight.
 
-# Environment variables
+## Environment variables
 It is possible to change the default behavior of the scripts (service and updater) with environment variables. These can be set on the shell before running the script. When using docker, these can be passed to the container, using the -e parameter (it can be specified multiple times if needed). Possible variables are:
 
 - CP_LoopInterval - This changes the amount of time the script waits between refreshes. The default is 300 (5 minutes).
