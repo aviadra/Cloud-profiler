@@ -16,12 +16,19 @@ from Crypto.Cipher import PKCS1_v1_5
 from Crypto.PublicKey import RSA
 from pathlib import Path
 import platform
+from sshconf import read_ssh_config, empty_ssh_config
 
 
 # Outputs to stdout the list of instances containing the following fields:
 # name          => Instance name formed by the instance class/group and the domain prefix with appropriate cloud provider (aws., DO.,)
 # group         => Group associated with the instance (webapp, vpn, etc.)
 # index         => Index of this instance in the group
+
+def line_prepender(filename, line):
+    with open(filename, 'r+') as f:
+        content = f.read()
+        f.seek(0, 0)
+        f.write(line.rstrip('\r\n') + '\n' + content)
 
 def BadgeMe(instance_key,instance):
     end_badge = []
@@ -724,6 +731,23 @@ def update_statics():
     app_static_profile_handle.close()
     shutil.move(app_static_profile_handle.name,os.path.expanduser(os.path.join(CP_OutputDir, "statics")))
 
+def update_ssh_config(dict_list):
+    ssh_conf_file = empty_ssh_config()
+    for profile_dict in dict_list:
+        for instance in profile_dict['instances']:
+            name = f"{profile_dict['instances'][instance]['Name']}-{instance}",
+            ssh_conf_file.add(
+                name,
+                Hostname=instance,
+                Port=profile_dict["instances"][instance]['Con_port'],
+                User=profile_dict["instances"][instance]['Con_username'],
+                ProxyJump=profile_dict["instances"][instance]['Bastion']
+                )
+            if not profile_dict["instances"][instance]['Con_username']:
+                ssh_conf_file.unset(name, "user")
+            if not profile_dict["instances"][instance]['Bastion']:
+                ssh_conf_file.unset(name, "proxyjump")
+    ssh_conf_file.write(CP_SSH_Config)
 
 
 # Updates the /etc/hosts file with the EC2 private addresses
@@ -762,9 +786,10 @@ def updateHosts(instances,groups):
 
 #MAIN
 if __name__ == '__main__':
-    file = open("marker.tmp", "w") 
-    file.write("mark") 
-    file.close() 
+    file = open("marker.tmp", "w")
+    file.write("mark")
+    file.close()
+
     instance_counter = {}
     script_path = os.path.abspath(__file__)
     script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -838,7 +863,19 @@ if __name__ == '__main__':
         updateMoba(cloud_instances_obj_list)
     else:
         updateTerm(cloud_instances_obj_list)
-    
+        #ssh_config
+        if script_config['Local'].get('SSH_Config_create'):
+            User_SSH_Config = os.path.expanduser("~/.ssh/config")
+            CP_SSH_Config = os.path.expanduser("~/.ssh/cloud-profiler")
+            with open(User_SSH_Config) as f:
+                if f"Include ~/.ssh/cloud-profiler" in f.read():
+                    print("Found ssh_config include directive in user's ssh config file.")
+                else:
+                    print("Did not find ssh_config include directive in user's ssh config file, so adding it.")
+                    line_prepender(User_SSH_Config,"Include ~/.ssh/cloud-profiler")
+            # c = read_ssh_config(CP_SSH_Config)
+            update_ssh_config(cloud_instances_obj_list)
+
     if os.path.exists('marker.tmp'):
         os.remove("marker.tmp")
     print(f"\nCreated profiles {json.dumps(instance_counter,sort_keys=True,indent=4, separators=(',', ': '))}\nTotal: {sum(instance_counter.values())}")
