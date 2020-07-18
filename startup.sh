@@ -29,6 +29,7 @@ clear_service_container() {
 
 Normal_docker_start() {
     echo -e "Cloud-profiler - Starting service\n"
+    echo -e "Cloud-profiler - This may take a while....\n"
     clear_service_container
     docker run \
         --init \
