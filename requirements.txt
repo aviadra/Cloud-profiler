@@ -16,4 +16,4 @@ requests==2.22.0
 PyCryptodome==3.9.4
 inputimeout==1.0.4
 progressbar2==3.47.0
-sshconf==0.0.0
+sshconf==0.2.1
