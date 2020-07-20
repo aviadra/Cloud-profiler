@@ -12,7 +12,6 @@ COPY ./requirements.txt /home/appuser/requirements.txt
 RUN pip3 install -r requirements.txt
 COPY . /home/appuser/
 RUN useradd appuser && chown -R appuser:appuser /home/appuser/
-USER appuser
 RUN apt-get update && apt-get install -y \
     docker.io \
         && rm -rf /var/lib/apt/lists/*
@@ -24,4 +23,5 @@ CMD ["python3", "-m", "ptvsd", "--host", "0.0.0.0", "--port", "5678", "--wait", 
 
 ###Prod
 FROM base AS prod
+USER appuser
 ENTRYPOINT ["python", "./service.py"]
