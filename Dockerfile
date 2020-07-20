@@ -11,9 +11,11 @@ WORKDIR /home/appuser/
 COPY ./requirements.txt /home/appuser/requirements.txt
 RUN pip3 install -r requirements.txt
 COPY . /home/appuser/
-RUN useradd appuser && chown -R appuser /home/appuser/
-
+RUN useradd appuser && chown -R appuser:appuser /home/appuser/
 USER appuser
+RUN apt-get update && apt-get install -y \
+    docker.io \
+        && rm -rf /var/lib/apt/lists/*
 
 #### Debug
 FROM base AS debug
