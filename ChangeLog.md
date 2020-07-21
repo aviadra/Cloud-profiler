@@ -1,5 +1,9 @@
 # Change Log
 
+## v2.0
+Added creating SSH configs and creating docker contexts.
+Updated superlinter version used.
+
 ## v1.8.4
 Added the tags "PrivateDnsName" and "ImageId" for AWS instances to be part of the infromation gathered.
 Internal, Added repo linting as github action.
