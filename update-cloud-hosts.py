@@ -35,21 +35,19 @@ def BadgeMe(instance_key,instance):
     end_badge = []
     Name = instance['Name'].split('.')
     if len(Name) == 4:
-        Name_formatted = f"""Instance name: {Name[3]}
-                            Cloud provIdor: {Name[0]}
-                            Cloud account: {Name[2]}
-                            Account profile: {Name[1]}"""
+        Name_formatted = f"Instance name: {Name[3]} \n" \
+                         f"Cloud provIdor: {Name[0]} \n Cloud account: {Name[2]}" \
+                         f"Account profile: {Name[1]}"
     else:
-        Name_formatted = f"""Instance name: {Name[2]}
-                            Cloud provIdor: {Name[0]}
-                            Account profile: {Name[1]}"""
+        Name_formatted = f"Instance name: {Name[2]}" \
+                         f"Cloud provIdor: {Name[0]}" \
+                         f"Account profile: {Name[1]}"
     all_badge_toggeles = script_config["Local"].get("Badge_info_to_display", False)
     if all_badge_toggeles == False:
-        value_to_return = f"""  {Name_formatted}
-                                InstanceType: {instance['InstanceType']}
-                                Ip_public: {instance['Ip_public']}
-                                Main_IP: {instance_key}
-                            """
+        value_to_return = f"{Name_formatted}" \
+                          f"InstanceType: {instance['InstanceType']}" \
+                          f"Ip_public: {instance['Ip_public']}" \
+                          f"Main_IP: {instance_key}"
     else:
         for badge,toggle in all_badge_toggeles.items():
             if toggle or isinstance(toggle,list):
@@ -370,7 +368,8 @@ def fetchEC2Region(region, profile_name, instances, groups, instance_source, cre
     else:
         client = boto3.client('ec2', region_name=region)
 
-    if script_config['AWS'].get('Skip_stopped', True) == False or script_config['Local'].get('Skip_stopped', True) == False or profile.get('Skip_stopped', True) == False:
+    if script_config['AWS'].get('Skip_stopped', True) == False or script_config['Local'].get('Skip_stopped', True) == False \
+        or profile.get('Skip_stopped', True) == False:
         search_states = ['running', 'pending', 'shutting-down', 'terminated', 'stopping', 'stopped']
     else:
         search_states = ['running']
