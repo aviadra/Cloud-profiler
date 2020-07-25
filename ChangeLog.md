@@ -1,7 +1,8 @@
 # Change Log
 
 ## v2.0
-Added creating SSH configs and creating docker contexts.
+Added creating docker contexts.
+Added preliminary support for creating SSH configs.
 Updated superlinter version used.
 
 ## v1.8.4
