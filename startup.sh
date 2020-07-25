@@ -13,6 +13,16 @@ check_for_updates="true"
 
 echo -e "Cloud-profiler - Welcome to the startup/setup script."
 
+user_waiter() {
+    echo -e "Cloud-profiler - If this is not what you whish to do, CTRL+C to abort."
+    BAR='##################################################'   # this is full bar, e.g. 20 chars
+    for i in {1..50}; do
+        echo -ne "\r${BAR:0:$i}" # print $i chars of $BAR from 0 position
+        sleep .1                 # wait 100ms between "frames"
+    done
+    echo -e "\n"
+}
+
 exit_state() {
     # shellcheck disable=SC2181
     if [[ $? != 0 ]]; then
@@ -51,6 +61,7 @@ Normal_docker_start() {
 ROOT_docker_start() {
     echo -e "Cloud-profiler - Starting service."
     echo -e "Cloud-profiler - NOTE: This that it is starting with ROOT! and mount to the docker socket!\n"
+    user_waiter
     echo -e "Cloud-profiler - This may take a while....\n"
     clear_service_container
     docker run \
@@ -122,6 +133,11 @@ setup() {
     Normal_docker_start
 }
 
+if [[ -z "$(docker images --digests | grep ${SRC_Docker_image_base} | grep $CP_Version | awk '{print $3}')" ]] ; then
+    echo -e "Cloud-profiler - This script will install the \"Cloud Profiler\" service using a docker container."
+    user_waiter
+fi
+
 if [[ -z "$(which docker)" ]] ;then
     echo "Cloud-profiler - We can't seem to find docker on the system :\\"
     echo "Cloud-profiler - Make it so the \"which\" command can find it and run gain."
@@ -134,22 +150,29 @@ fi
 [[ ! -e $(eval echo "${Personal_Config_File}" ) ]] && setup
 [[ ! -e "$( eval echo "${Personal_Static_Profiles}/Update iTerm profiles ${CP_Update_Profile_VERSION}.json" )" ]] && setup
 
-[[ "$( cat ${Personal_Config_File} | grep "Docker_contexts_create" | awk '{print$2}' 2> /dev/null )" != "true" && \
+[[ "$( cat ${Personal_Config_File} | grep -E "^  Docker_contexts_create" | awk '{print$2}' 2> /dev/null )" != "true" && \
       -z "$(docker ps -q -f name=cloud-profiler)" ]] && Normal_docker_start
-[[ "$( cat ${Personal_Config_File} | grep "Docker_contexts_create" | awk '{print$2}' 2> /dev/null )" == "true" && \
-      -z "$(docker ps -q -f name=cloud-profiler)" ]] && echo "Cloud-profiler - Found docker contexts directive" && \
-        ROOT_docker_start  
+if [[ "$( cat ${Personal_Config_File} | grep "^  Docker_contexts_create" | awk '{print$2}' 2> /dev/null )" == "true" ]] ; then
+    echo "Cloud-profiler - Found docker contexts directive"
+      if [[ -z "$(docker ps -q -f name=cloud-profiler)" || \
+            -z "$( docker inspect cloud-profiler | grep /var/run/docker.sock:/var/run/docker.sock 2> /dev/null )" ]] ;then 
+            ROOT_docker_start
+      fi
+fi
 if [[ -n "$(docker ps -q -f name=cloud-profiler)" ]]; then
     echo -e "Cloud-profiler - Service already running\n"
     if [[ -n "$( docker exec cloud-profiler ls marker.tmp 2> /dev/null )" ]] ; then
         echo "Cloud-profiler - There is already a profiles refresh in progress..."
-        docker logs --since 0.5s -f cloud-profiler 2>&1 |tee >(sed -n "/clouds/ q") | awk '1;/clouds/{exit}'
+        echo -e "Cloud-profiler - Tailing logs for freshly started container:\n"
+        docker logs --since 1.5s -f cloud-profiler 2>&1 |tee >(sed -n "/clouds/ q") | awk '1;/clouds/{exit}'
     else
         echo -e "Cloud-profiler - Issuing ad-hoc run."
         docker exec \
             cloud-profiler \
             touch cut.tmp ; exit_state "ad-hoc run"
-        docker logs --since 0.5s -f cloud-profiler 2>&1 | tee >(sed -n "/clouds/ q")| awk '/reset/,/clouds/'
+        echo -e "Cloud-profiler - Tailing logs for already running container:\n"
+        docker logs --since 1.5s -f cloud-profiler 2>&1 | tee >(sed -n "/clouds/ q")| awk '/Start of loop/,/clouds/'
+        echo -e "Cloud-profiler - Tailing logs DONE.\n"
     fi
     [[ ${check_for_updates} == "true" ]] && update_container
     [[ "${update_detected}" == "yes" ]] && Normal_docker_start
