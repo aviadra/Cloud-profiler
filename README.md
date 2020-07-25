@@ -1,7 +1,8 @@
 # Cloud_Profiler
 
 The purpose of this script is to connect to cloud providers and generate profiles for quick SSHing.
-As of v1.3, both iTerm for MacOS and MobaXterm for Windows are supported
+As of v2.0 it can also create SSH config file entries and [Docker contexts | https://docs.docker.com/engine/context/working-with-contexts/] that tunnel over SSH.
+As of v1.3, both iTerm for MacOS and MobaXterm for Windows are supported.
 Currently the supported cloud providers are AWS and Digital Ocean.
 This project is a fork of [gmartinerro](https://gist.github.com/gmartinerro/40831c8874ebb32bc17711af95e1416b), which gave me a good starting point. With that said, this version doesn't change the hosts file, so that it can be run without sudo.
 
@@ -89,6 +90,8 @@ Local:
     SSH_key: False
     Use_shared_key: False
     VPC: True
+  SSH_Config_create: true
+  Docker_contexts_create: true
 
 AWS:
   exclude_regions: ["ap-southeast-1", "ap-southeast-2","sa-east-1","ap-northeast-1","ap-northeast-2","ap-south-1"]
@@ -122,7 +125,11 @@ DO:
 ## Local options
 These are settings that are local to your machine or you want to set globally for all clouds. You can set here most of the same directives as in the "tags" section, except the below ones (they don't make sense anywhere else):
 
-`Static_profiles` - Set the location of the "static profiles" on your computer. The default is to point to where the repo is. When running from a container, this is mapped to a directory on the host, so make sure you’re not changing where the script is looking for it in the container without adjusting your volume mounts.
+`SSH_Config_create` - Toggels the "create ssh config file" behavior. The default is false.
+
+`Docker_contexts_create` - Toggels the "create Docker context behavior. The default is false. Disclamer: Turning this on will cause the container to be run with a root user internally and with a mount to the local docker socket. This may have security implications, so turn this on at your own risk.
+
+`Static_profiles` - Set the location of the "static profiles" on your computer. The default is to point to where the repo is. When running from a container, this is mapped to a directory on the host, so if you change the location, you'll need to adjust your volume mounts.
 
 `SSH_keys_path` - Set the location to get the "shared keys" from. The default is "~/.ssh". Note that when running in a container, that this is not mapped with the above script... This is because I feel that this use case is not as common and would only confuse newcomers. Again, I recommend you use a personal key always for everything… This feature is here for “I have no choice” situations.
 
