@@ -279,7 +279,7 @@ def fetchEC2Instance(instance, client, groups, instances, instance_source, reser
         try:
             ip = instance['NetworkInterfaces'][0]['PrivateIpAddress']
         except IndexError:
-            ip = "No IP found at scan time ¯\_(ツ)_/¯, probably a terminated instance. (Sorry)#"
+            ip = r'No IP found at scan time ¯\_(ツ)_/¯, probably a terminated instance. (Sorry)#'
 
     if name in groups:
         groups[name] = groups[name] + 1
@@ -672,7 +672,7 @@ def updateTerm(dict_list):
 
             if profile_dict["instances"][instance]['Password'][0] and profile_dict["instances"][instance].get('Platform', '') == 'windows':
                     connection_command =    f"echo \"\\nThe Windows password on record is:\\n{profile_dict['instances'][instance]['Password'][1].rstrip()}\\n\\n\" " \
-                                            f"\;echo -n '{profile_dict['instances'][instance]['Password'][1].rstrip()}' | pbcopy; " \
+                                            f"\n;echo -n '{profile_dict['instances'][instance]['Password'][1].rstrip()}' | pbcopy; " \
                                             f'echo \"\\nIt has been sent to your clipboard for easy pasting\\n\\n\";{connection_command}'
 
             elif profile_dict["instances"][instance].get('Platform', '') == 'windows':
