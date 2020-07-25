@@ -16,6 +16,8 @@ from Crypto.Cipher import PKCS1_v1_5
 from Crypto.PublicKey import RSA
 from pathlib import Path
 import platform
+from sshconf import read_ssh_config, empty_ssh_config_file
+import subprocess
 
 
 # Outputs to stdout the list of instances containing the following fields:
@@ -23,25 +25,29 @@ import platform
 # group         => Group associated with the instance (webapp, vpn, etc.)
 # index         => Index of this instance in the group
 
+def line_prepender(filename, line):
+    with open(filename, 'r+') as f:
+        content = f.read()
+        f.seek(0, 0)
+        f.write(line.rstrip('\r\n') + '\n' + content)
+
 def BadgeMe(instance_key,instance):
     end_badge = []
     Name = instance['Name'].split('.')
     if len(Name) == 4:
-        Name_formatted = f"""Instance name: {Name[3]}
-                            Cloud provIdor: {Name[0]}
-                            Cloud account: {Name[2]}
-                            Account profile: {Name[1]}"""
+        Name_formatted = f"Instance name: {Name[3]} \n" \
+                         f"Cloud provIdor: {Name[0]} \n Cloud account: {Name[2]}" \
+                         f"Account profile: {Name[1]}"
     else:
-        Name_formatted = f"""Instance name: {Name[2]}
-                            Cloud provIdor: {Name[0]}
-                            Account profile: {Name[1]}"""
+        Name_formatted = f"Instance name: {Name[2]}" \
+                         f"Cloud provIdor: {Name[0]}" \
+                         f"Account profile: {Name[1]}"
     all_badge_toggeles = script_config["Local"].get("Badge_info_to_display", False)
     if all_badge_toggeles == False:
-        value_to_return = f"""  {Name_formatted}
-                                InstanceType: {instance['InstanceType']}
-                                Ip_public: {instance['Ip_public']}
-                                Main_IP: {instance_key}
-                            """
+        value_to_return = f"{Name_formatted}" \
+                          f"InstanceType: {instance['InstanceType']}" \
+                          f"Ip_public: {instance['Ip_public']}" \
+                          f"Main_IP: {instance_key}"
     else:
         for badge,toggle in all_badge_toggeles.items():
             if toggle or isinstance(toggle,list):
@@ -173,6 +179,7 @@ def getDOInstances(profile):
         
         Password = [False, ""]
         Iterm_tags = []
+        Docker_context = settingResolver('Docker_context',drop, {}, "DO", False)
         Instance_use_Ip_public = settingResolver('Use_Ip_public',drop, {}, "DO", True)
         Instance_use_Bastion = settingResolver('Use_bastion',drop, {}, "DO", False)
         Or_host_name=settingResolver('Host_name',drop,{},"DO", False)
@@ -208,25 +215,28 @@ def getDOInstances(profile):
                     Iterm_tags.append(tag)
         
         Iterm_tags += f"ip: {ip}",f"Name: {drop.name}"
-        instances[ip] = {'Name':instance_source + '.' + drop_name,
-                        'Group': drop_name,
-                        'Index':groups[drop.name],
-                        'Dynamic_profile_parent_name': Dynamic_profile_parent_name,
-                        'Iterm_tags': Iterm_tags, 'InstanceType': drop.size['slug'],
-                        'Con_username': Con_username,
-                        'Bastion_Con_username': Bastion_Con_username,
-                        'Con_port': Con_port,
-                        'Bastion_Con_port': Bastion_Con_port,
-                        'Id': drop.id,
-                        'SSH_key': SSH_key,
-                        'Use_shared_key': Use_shared_key,
-                        'Login_command': Login_command,
-                        'Instance_use_Bastion': Instance_use_Bastion,
-                        'Bastion': Bastion,
-                        'Instance_use_Ip_public': Instance_use_Ip_public,
-                        'Ip_public': Public_ip,
-                        'Password': Password,
-                        'Region': drop.region['name']}
+        instances[ip] = {
+            'Name':instance_source + '.' + drop_name,
+            'Group': drop_name,
+            'Index':groups[drop.name],
+            'Dynamic_profile_parent_name': Dynamic_profile_parent_name,
+            'Iterm_tags': Iterm_tags, 'InstanceType': drop.size['slug'],
+            'Con_username': Con_username,
+            'Bastion_Con_username': Bastion_Con_username,
+            'Con_port': Con_port,
+            'Bastion_Con_port': Bastion_Con_port,
+            'Id': drop.id,
+            'SSH_key': SSH_key,
+            'Use_shared_key': Use_shared_key,
+            'Login_command': Login_command,
+            'Instance_use_Bastion': Instance_use_Bastion,
+            'Bastion': Bastion,
+            'Instance_use_Ip_public': Instance_use_Ip_public,
+            'Ip_public': Public_ip,
+            'Password': Password,
+            'Region': drop.region['name'],
+            'Docker_context': Docker_context
+            }
         print(f'instance_source: {ip}\t\t{instance_source}. {drop_name}\t\tassociated Bastion: "{str(Bastion)}"')
     
     cloud_instances_obj_list.append({"instance_source": instance_source, "groups": groups, "instances":instances})
@@ -237,6 +247,7 @@ def fetchEC2Instance(instance, client, groups, instances, instance_source, reser
     Iterm_tags = []
     Password = [False, ""]
 
+    Docker_context = settingResolver('Docker_context', instance, vpc_data_all,'AWS', False)
     Instance_use_Bastion = settingResolver('Use_bastion', instance, vpc_data_all,'AWS', False)
     Instance_use_Ip_public = settingResolver('Use_Ip_public', instance, vpc_data_all,'AWS', False)
     SSH_key = settingResolver('SSH_key', instance, vpc_data_all,'AWS', instance.get('KeyName',False))
@@ -268,7 +279,7 @@ def fetchEC2Instance(instance, client, groups, instances, instance_source, reser
         try:
             ip = instance['NetworkInterfaces'][0]['PrivateIpAddress']
         except IndexError:
-            ip = "No IP found at scan time ¯\_(ツ)_/¯, probably a terminated instance. (Sorry)#"
+            ip = r'No IP found at scan time ¯\_(ツ)_/¯, probably a terminated instance. (Sorry)#'
 
     if name in groups:
         groups[name] = groups[name] + 1
@@ -316,27 +327,30 @@ def fetchEC2Instance(instance, client, groups, instances, instance_source, reser
         data = base64.b64decode(response['PasswordData'])
         Password = decrypt(data, os.path.join(script_config["Local"].get('SSH_keys_path', '.'),SSH_key))
     
-    instances[ip] = {'Name': instance_source + '.' + name,
-                     'Index': groups[name],
-                     'Group': name,
-                     'Bastion': Bastion,
-                     'VPC': instance.get('VpcId', ""),
-                     'Instance_use_Ip_public': Instance_use_Ip_public,
-                     'Instance_use_Bastion': Instance_use_Bastion,
-                     'Ip_public': Public_ip,
-                     'Dynamic_profile_parent_name': Dynamic_profile_parent_name, 'Iterm_tags': Iterm_tags_fin,
-                     'InstanceType': instance['InstanceType'],
-                     'Con_username': Con_username,
-                     'Bastion_Con_username': Bastion_Con_username,
-                     'Con_port': Con_port,
-                     'Bastion_Con_port': Bastion_Con_port,
-                     'Id': instance['InstanceId'],
-                     'SSH_key': SSH_key,
-                     'Use_shared_key': Use_shared_key,
-                     'Login_command': Login_command,
-                     'Platform': instance.get('Platform', ''),
-                     'Password': Password,
-                     'Region': instance['Placement']['AvailabilityZone'][:-1]}
+    instances[ip] = {
+        'Name': instance_source + '.' + name,
+        'Index': groups[name],
+        'Group': name,
+        'Bastion': Bastion,
+        'VPC': instance.get('VpcId', ""),
+        'Instance_use_Ip_public': Instance_use_Ip_public,
+        'Instance_use_Bastion': Instance_use_Bastion,
+        'Ip_public': Public_ip,
+        'Dynamic_profile_parent_name': Dynamic_profile_parent_name, 'Iterm_tags': Iterm_tags_fin,
+        'InstanceType': instance['InstanceType'],
+        'Con_username': Con_username,
+        'Bastion_Con_username': Bastion_Con_username,
+        'Con_port': Con_port,
+        'Bastion_Con_port': Bastion_Con_port,
+        'Id': instance['InstanceId'],
+        'SSH_key': SSH_key,
+        'Use_shared_key': Use_shared_key,
+        'Login_command': Login_command,
+        'Platform': instance.get('Platform', ''),
+        'Password': Password,
+        'Region': instance['Placement']['AvailabilityZone'][:-1],
+        'Docker_context': Docker_context
+        }
     return (ip + "\t" + instance['Placement']['AvailabilityZone'] + "\t" + instance_source + "." + name + "\t\t associated Bastion: \"" + str(Bastion) + "\"")
 
 
@@ -354,7 +368,8 @@ def fetchEC2Region(region, profile_name, instances, groups, instance_source, cre
     else:
         client = boto3.client('ec2', region_name=region)
 
-    if script_config['AWS'].get('Skip_stopped', True) == False or script_config['Local'].get('Skip_stopped', True) == False or profile.get('Skip_stopped', True) == False:
+    if script_config['AWS'].get('Skip_stopped', True) == False or script_config['Local'].get('Skip_stopped', True) == False \
+        or profile.get('Skip_stopped', True) == False:
         search_states = ['running', 'pending', 'shutting-down', 'terminated', 'stopping', 'stopped']
     else:
         search_states = ['running']
@@ -657,7 +672,7 @@ def updateTerm(dict_list):
 
             if profile_dict["instances"][instance]['Password'][0] and profile_dict["instances"][instance].get('Platform', '') == 'windows':
                     connection_command =    f"echo \"\\nThe Windows password on record is:\\n{profile_dict['instances'][instance]['Password'][1].rstrip()}\\n\\n\" " \
-                                            f"\;echo -n '{profile_dict['instances'][instance]['Password'][1].rstrip()}' | pbcopy; " \
+                                            f"\n;echo -n '{profile_dict['instances'][instance]['Password'][1].rstrip()}' | pbcopy; " \
                                             f'echo \"\\nIt has been sent to your clipboard for easy pasting\\n\\n\";{connection_command}'
 
             elif profile_dict["instances"][instance].get('Platform', '') == 'windows':
@@ -709,7 +724,7 @@ def update_statics():
     app_static_profile_handle = open(os.path.expanduser(os.path.join(CP_OutputDir, ".statics")),"wt")
     path_to_Static_profiles = os.path.expanduser(script_config["Local"]['Static_profiles'])
     
-    for root, dirs, files in os.walk(path_to_Static_profiles, topdown=False):
+    for root, _ , files in os.walk(path_to_Static_profiles, topdown=False):
         for name in files:
             if name == '.DS_Store':
                 print(f'Static profiles, skipping ".DS_Store"')
@@ -724,6 +739,75 @@ def update_statics():
     app_static_profile_handle.close()
     shutil.move(app_static_profile_handle.name,os.path.expanduser(os.path.join(CP_OutputDir, "statics")))
 
+def Docker_contexts_creator(dict_list):
+    current_contexts = subprocess.run(
+        ["docker", "context", "ls", "-q"],
+        check=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        )
+    for profile_dict in dict_list:
+        for instance in profile_dict['instances']:
+            if profile_dict["instances"][instance]['Docker_context']:
+                context_name = f"{profile_dict['instances'][instance]['Name']}-{instance}"
+                RAW_Iterm_tags = str(profile_dict['instances'][instance]['Iterm_tags']).strip('[]')
+                if profile_dict["instances"][instance]['Name'] not in current_contexts.stdout.decode('utf-8'):
+                    print(f"Creating on Docker context for {context_name}")
+                    try:
+                        subprocess.run(
+                            [
+                                "docker",
+                                "context",
+                                "create",
+                                context_name,
+                                "--docker",
+                                f"host=ssh://{context_name}",
+                                "--description",
+                                RAW_Iterm_tags
+                            ],
+                            check=True,
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE,
+                            )
+                    except subprocess.CalledProcessError as err:
+                        print('ERROR: There was en problem when creating the Docker context.\n', err)
+                else:
+                    print(f"Updating on Docker context for {context_name}")
+                    try:
+                        subprocess.run(
+                            [
+                                "docker",
+                                "context",
+                                "update",
+                                context_name,
+                                "--description",
+                                RAW_Iterm_tags
+                            ],
+                            check=True,
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE,
+                            )
+                    except subprocess.CalledProcessError as err:
+                        print('ERROR: There was en problem when updating the Docker context.\n', err)
+            
+
+def update_ssh_config(dict_list):
+    ssh_conf_file = empty_ssh_config_file()
+    for profile_dict in dict_list:
+        for instance in profile_dict['instances']:
+            name = f"{profile_dict['instances'][instance]['Name']}-{instance}",
+            ssh_conf_file.add(
+                name,
+                Hostname=instance,
+                Port=profile_dict["instances"][instance]['Con_port'],
+                User=profile_dict["instances"][instance]['Con_username'],
+                ProxyJump=profile_dict["instances"][instance]['Bastion']
+                )
+            if not profile_dict["instances"][instance]['Con_username']:
+                ssh_conf_file.unset(name, "user")
+            if not profile_dict["instances"][instance]['Bastion']:
+                ssh_conf_file.unset(name, "proxyjump")
+    ssh_conf_file.write(CP_SSH_Config)
 
 
 # Updates the /etc/hosts file with the EC2 private addresses
@@ -762,9 +846,10 @@ def updateHosts(instances,groups):
 
 #MAIN
 if __name__ == '__main__':
-    file = open("marker.tmp", "w") 
-    file.write("mark") 
-    file.close() 
+    file = open("marker.tmp", "w")
+    file.write("mark")
+    file.close()
+
     instance_counter = {}
     script_path = os.path.abspath(__file__)
     script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -838,7 +923,20 @@ if __name__ == '__main__':
         updateMoba(cloud_instances_obj_list)
     else:
         updateTerm(cloud_instances_obj_list)
-    
+        #ssh_config
+        if script_config['Local'].get('SSH_Config_create'):
+            User_SSH_Config = os.path.expanduser("~/.ssh/config")
+            CP_SSH_Config = os.path.expanduser("~/.ssh/cloud-profiler")
+            with open(User_SSH_Config) as f:
+                if f"Include ~/.ssh/cloud-profiler" in f.read():
+                    print("Found ssh_config include directive for CP in user's ssh config file, so leaving it as is.")
+                else:
+                    print("Did not find include directive  for CP in user's ssh config file, so adding it.")
+                    line_prepender(User_SSH_Config,"Include ~/.ssh/cloud-profiler")
+            update_ssh_config(cloud_instances_obj_list)
+        if script_config['Local'].get('Docker_contexts_create'):
+            Docker_contexts_creator(cloud_instances_obj_list)
+
     if os.path.exists('marker.tmp'):
         os.remove("marker.tmp")
     print(f"\nCreated profiles {json.dumps(instance_counter,sort_keys=True,indent=4, separators=(',', ': '))}\nTotal: {sum(instance_counter.values())}")
