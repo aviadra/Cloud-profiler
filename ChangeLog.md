@@ -1,5 +1,8 @@
 # Change Log
 
+## v2.0.1
+Fixed windows detection typo
+
 ## v2.0
 Added creating docker contexts.
 Added preliminary support for creating SSH configs.

@@ -626,7 +626,7 @@ def updateTerm(dict_list):
                 ip_for_connection = instance
 
             
-            if profile_dict["instances"][instance].get('platform', False) == 'windows':
+            if profile_dict["instances"][instance].get('Platform', False) == 'windows':
                 if not profile_dict["instances"][instance]['Con_username']:
                     Con_username = "Administrator"
 
