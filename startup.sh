@@ -98,16 +98,17 @@ setup() {
     [[ ${check_for_updates} == "true" ]] && update_container
     if [[ ! -e $(eval echo "${Personal_Static_Profiles}" ) || \
         ! -e $(eval echo "${Personal_Config_File}" ) || \
-        ! -e ${HOME}/.ssh/config || \
-        ! -e "$( eval echo "${Personal_Static_Profiles}/Update iTerm profiles ${CP_Update_Profile_VERSION}.json" )" ]] ; then
+        ! -f ${HOME}/.ssh/config || \
+        ! -f "$( eval echo "${Personal_Static_Profiles}/Update iTerm profiles ${CP_Update_Profile_VERSION}.json" )" ]] ; then
         
         echo "Cloud-profiler - Besic setup parts missing. Will now setup."
         echo "Cloud-profiler - Creating the container to copy profiles and config from."
         echo "Cloud-profiler - This may take a while...."
         docker rm -f cloud-profiler-copy &> /dev/null
         
-        if [[ ! -e ${HOME}/.ssh/config ]]; then
+        if [[ ! -f ${HOME}/.ssh/config ]]; then
             echo "Cloud-profiler - There was no SSH config, so creating one"
+            [[ ! -d ${HOME}/.ssh/ ]] && mkdir -p ${HOME}/.ssh/ ; exit_state "Create user's ssh config directory"
             touch ${HOME}/.ssh/config ; exit_state "Create user default SSH config file"
         fi
         docker create -it --name cloud-profiler-copy ${SRC_Docker_Image} bash &> /dev/null ; exit_state "Create copy container"
