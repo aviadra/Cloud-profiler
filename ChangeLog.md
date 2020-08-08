@@ -1,5 +1,8 @@
 # Change Log
 
+## v2.0.2
+Fixed SSH config directory error for new users that don't have any configuration yet.
+
 ## v2.0.1
 Fixed windows detection typo
 
