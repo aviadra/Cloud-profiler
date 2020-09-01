@@ -15,9 +15,8 @@ import base64
 from inputimeout import inputimeout, TimeoutOccurred
 from Crypto.Cipher import PKCS1_v1_5
 from Crypto.PublicKey import RSA
-from pathlib import Path
 import platform
-from sshconf import read_ssh_config, empty_ssh_config_file
+from sshconf import empty_ssh_config_file
 import subprocess
 
 
@@ -850,15 +849,36 @@ def update_ssh_config(dict_list):
     ssh_conf_file.write(CP_SSH_Config)
 
 
-def aws_profiles_from_config_file(script_config, instance_counter, cloud_instances_obj_list):
-    print(f"the script config is:{script_config}")
-    for profile in script_config['AWS']['profiles']:
+def role_arn(args):
+    pass
+
+
+def aws_profiles_from_config_file(script_config_f, instance_counter_f, cloud_instances_obj_list_f):
+    for profile in script_config_f['AWS']['profiles']:
         print(f"Working on {profile['name']}")
         if isinstance(profile.get("role_arns", False), dict):
-            for role_arn in profile["role_arns"]:
-                getEC2Instances(profile, role_arn, instance_counter, script_config, cloud_instances_obj_list)
+            processes = []
+            for role_arn_s in profile["role_arns"]:
+                p = mp.Process(
+                    target=getEC2Instances,
+                    args=(
+                        [
+                            profile,
+                            role_arn_s,
+                            instance_counter_f,
+                            script_config_f,
+                            cloud_instances_obj_list_f
+                        ]
+                    )
+                )
+                p.start()
+                processes.append(p)
+
+            for process in processes:
+                process.join()
+
         else:
-            getEC2Instances(profile, instance_counter, script_config, cloud_instances_obj_list)
+            getEC2Instances(profile, instance_counter_f, script_config_f, cloud_instances_obj_list_f)
 
 
 def aws_profiles_from_awscli_config(script_config):
@@ -974,11 +994,11 @@ if __name__ == '__main__':
                 name="aws_profiles_from_config_file",
                 target=aws_profiles_from_config_file,
                 args=(
-                    [
-                        script_config,
-                        instance_counter,
-                        cloud_instances_obj_list
-                    ]
+                        [
+                            script_config,
+                            instance_counter,
+                            cloud_instances_obj_list
+                        ]
                 )
             )
             p2.start()
