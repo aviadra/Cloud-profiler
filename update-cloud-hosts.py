@@ -979,18 +979,20 @@ if __name__ == '__main__':
         username = getpass.getuser()
         config = configparser.ConfigParser()
 
+        p_list = []
         # Static profiles iterator
-        p1 = mp.Process(
+        p = mp.Process(
                 name="update_statics",
                 target=update_statics,
                 args=([CP_OutputDir, script_config])
             )
-        p1.start()
+        p.start()
+        p_list.append(p)
 
         # AWS profiles iterator
         if script_config['AWS'].get('profiles', False):
             # aws_profiles_from_config_file(script_config)
-            p2 = mp.Process(
+            p = mp.Process(
                 name="aws_profiles_from_config_file",
                 target=aws_profiles_from_config_file,
                 args=(
@@ -1001,21 +1003,23 @@ if __name__ == '__main__':
                         ]
                 )
             )
-            p2.start()
+            p.start()
+            p_list.append(p)
 
-        # # AWS profiles iterator from config file
-        # if script_config['AWS'].get('use_awscli_profiles', False):
-        #     p1 = Process(target=aws_profiles_from_awscli_config, args=script_config)
-        #     p1.start()
+        # AWS profiles iterator from config file
+        if script_config['AWS'].get('use_awscli_profiles', False):
+            p = mp.Process(target=aws_profiles_from_awscli_config, args=script_config)
+            p.start()
+            p_list.append(p)
 
         # DO profiles iterator
         if script_config['DO'].get('profiles', False):
-            p3 = mp.Process(target=DO_Worker, args=([script_config, instance_counter, cloud_instances_obj_list]))
-            p3.start()
+            p = mp.Process(target=DO_Worker, args=([script_config, instance_counter, cloud_instances_obj_list]))
+            p.start()
+            p_list.append(p)
 
-        p1.join()
-        p2.join()
-        p3.join()
+        for p in p_list:
+            p.join()
 
         if platform.system() == 'Windows' or os.environ.get('CP_Windows', False):
             updateMoba(cloud_instances_obj_list)
