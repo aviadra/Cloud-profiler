@@ -1106,4 +1106,9 @@ if __name__ == '__main__':
 
         if os.path.exists('marker.tmp'):
             os.remove("marker.tmp")
+        jcounter = json.dumps(instance_counter.copy(), sort_keys=True, indent=4, separators=(',', ': '))
+        jcounter_tot = sum(instance_counter.values())
+        print(
+            f"\nCreated profiles {jcounter}\nTotal: {jcounter_tot}"
+        )
         print(f"\nWe wish you calm clouds and a serene path...\n")
