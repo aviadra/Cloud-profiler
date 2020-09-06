@@ -1,12 +1,16 @@
 # Change Log
 
+## v3.0 - Bakusaiga
+Switched to using multiprocessing (instead of threads), dramatically improving the execution time, as processes don't share the boto client connection state.
+Fixed all pycharm suggestions for cleaner code.
+
 ## v2.0.2
 Fixed SSH config directory error for new users that don't have any configuration yet.
 
 ## v2.0.1
 Fixed windows detection typo
 
-## v2.0
+## v2.0 - Kaze no Kizu
 Added creating docker contexts.
 Added preliminary support for creating SSH configs.
 Updated superlinter version used.
@@ -50,7 +54,7 @@ Updated documentation.
 ## v1.6.5
 Added CP_Version variable, which if set (in your zshrc file for example) will be used to determine which version to use to pull
 
-## v1.6.4
+## v1.6.4 - Bankotsu
 You get capitalisation, and you get capitalisation... everybody gets CAPITALISATION!!! ＼(｀0´)／
 Added Login_command to be executed right after login to the remote system. (Useful for automatically "sudo -i")
 
@@ -65,8 +69,8 @@ Bumped python base version to latest
 Removed install of time update as it seems to not work in a container
 Some README updates due to improved docker usage.
 
-## v1.6
-Docker for windows support is now first class citizen.
+## v1.6 - Sōryūha
+Docker for windows support is now a first class citizen.
 Moved to use multi-stage builds.
 Fixed STS issue when system user has spaces.
 STS assume role exception now gives the actual exception message from boto.
@@ -75,7 +79,7 @@ Now syncing container time with NTP before running, due to Windows finicky behav
 ## v1.5.1
 Changed Docker base to use "python:slim-buster". This reduced the image size from 1.13G to 392M. \m/ (>_<) \m/
 
-## v1.5
+## v1.5 - Tokijin
 Docker support :)
 Changed placement of the profiles to be atomic due to change in iTerm 3.8.8[#8679](https://gitlab.com/gnachman/iterm2/issues/8679).
 Windows bug "missing setting of d, before use" fix.
@@ -95,7 +99,7 @@ Added setting Bastion username and port
 Changed repo/project name from "iTerm-cloud-profile-generator" to "Cloud_Profiler"
 
 
-## v1.3
+## v1.3 - Bankai
 Now supporting running on windows and creating "MobaXterm" profiles (test on v12.4)
 Moved to use PEP 498 with f strings
 
@@ -125,7 +129,7 @@ Fixed Bastion decision (again).
 Added PyCryptodome to requirements.
 
 
-## v1.0.1
+## v1.0.1 - Shikay
 Added the ability to block the use of a Bastion, by setting the tag iTerm_bastion to the value of "no".
 Corrected DO bug not using Bastion.
 Added self-healing for usage of random port by detecting an already established tunnel and killing it before trying to connect if the variable is already set.

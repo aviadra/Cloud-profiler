@@ -1,23 +1,25 @@
 #!/usr/local/bin/python
 # coding: UTF-8
 
-import getpass
-import boto3
-import configparser
-import json
-import os
-import yaml
-import digitalocean
-import shutil
-import concurrent.futures
-import multiprocessing as mp
 import base64
-from inputimeout import inputimeout, TimeoutOccurred
+import concurrent.futures
+import configparser
+import getpass
+import json
+import multiprocessing as mp
+import os
+import platform
+import shutil
+import subprocess
+from typing import Union
+
+import boto3
+import digitalocean
+import yaml
 from Crypto.Cipher import PKCS1_v1_5
 from Crypto.PublicKey import RSA
-import platform
+from inputimeout import inputimeout, TimeoutOccurred
 from sshconf import empty_ssh_config_file
-import subprocess
 
 
 def line_prepender(filename, line):
@@ -85,8 +87,15 @@ def decrypt(ciphertext, keyfile):
     return [True, plaintext]
 
 
-def setting_resolver(setting, instance, vpc_data_all, caller_type='AWS', setting_value=None, profile=None,
-                     resolver_script_config=None) -> object:
+def setting_resolver(
+        setting: str,
+        instance: any,
+        vpc_data_all: dict,
+        caller_type: object = 'AWS',
+        setting_value: Union[dict, int, str, bool] = None,
+        profile: dict = None,
+        resolver_script_config: dict = None
+) -> Union[dict, int, str, bool]:
     """
 
     :rtype: object
@@ -119,7 +128,7 @@ def setting_resolver(setting, instance, vpc_data_all, caller_type='AWS', setting
     return setting_value
 
 
-def get_do_tag_value(tags, q_tag, q_tag_value):
+def get_do_tag_value(tags, q_tag, q_tag_value) -> Union[int, str]:
     for tag in tags:
         if ':' in tag and ('iTerm' in tag or 'Cloud_Profiler' in tags):
             tag_key, tag_value = tag.split(':')
@@ -129,7 +138,7 @@ def get_do_tag_value(tags, q_tag, q_tag_value):
     return q_tag_value
 
 
-def get_tag_value(tags, q_tag, sg=None, q_tag_value=False):
+def get_tag_value(tags, q_tag, sg=None, q_tag_value=False) -> Union[bool, int, str]:
     for tag in tags:
         if 'iTerm_' in tag.get('Key', ''):
             tag['Key'] = tag['Key'].rpartition('iTerm_')[2]
@@ -526,10 +535,11 @@ def get_ec2_instances(
                     )
                     if assumed_role_object['ResponseMetadata']['HTTPStatusCode'] == 200:
                         break
-                except ResourceWarning:
+                except Exception as e:
                     retry -= 1
                     if retry == 0:
                         print(f'Sorry, was unable to "login" to {profile_name} using STS + MFA.')
+                        print(f"The exception was:\n{e}")
                         return
                     else:
                         pass
@@ -554,8 +564,9 @@ def get_ec2_instances(
 
     try:
         ec2_regions = [region['RegionName'] for region in client.describe_regions()['Regions']]
-    except ResourceWarning:
+    except Exception as e:
         print(f'Was unable to retrieve information for "regions" in account "{profile_name}", so it was skipped.')
+        print(f"The exception was:\n{e}")
         return
 
     if ec2_script_config["Local"].get('Parallel_exec', True):
