@@ -98,7 +98,7 @@ def setting_resolver(
 ) -> Union[dict, int, str, bool]:
     """
 
-    :rtype: object
+    :rtype: Union[dict, int, str, bool]
     """
     if profile is None:
         profile = []
