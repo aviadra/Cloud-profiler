@@ -569,32 +569,16 @@ def get_ec2_instances(
         print(f"The exception was:\n{e}")
         return
 
-    if ec2_script_config["Local"].get('Parallel_exec', True):
-        with concurrent.futures.ProcessPoolExecutor() as executor:
-            [
-                executor.submit(
-                    fetch_ec2_region,
-                    region,
-                    profile_name,
-                    instances,
-                    groups,
-                    instance_source,
-                    credentials,
-                    profile,
-                    ec2_script_config
-                ) for region in ec2_regions
-            ]
-    else:
-        for region in ec2_regions:
-            fetch_ec2_region(
-                region,
-                instances,
-                groups,
-                instance_source,
-                credentials,
-                profile,
-                ec2_script_config
-            )
+    for region in ec2_regions:
+        fetch_ec2_region(
+            region,
+            instances,
+            groups,
+            instance_source,
+            credentials,
+            profile,
+            ec2_script_config
+        )
 
     for ip in instances:
         instance = instances[ip]
