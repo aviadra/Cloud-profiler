@@ -11,7 +11,7 @@ import os
 import platform
 import shutil
 import subprocess
-from typing import Union
+from typing import Union, Dict, Any
 
 import boto3
 import digitalocean
@@ -397,7 +397,7 @@ def fetch_ec2_region(
         credentials=None,
         profile=None,
         fetch_script_config=None
-):
+) -> None:
     if region in fetch_script_config['AWS']['exclude_regions']:
         print(f'{instance_source}: region "{region}", is in excluded list')
         return
@@ -477,15 +477,17 @@ def get_mfa_func(profile, mfa_role_arn):
 
 
 def get_ec2_instances(
-        profile: Union[dict,str] = None,
-        ec2_role_arn: object = None,
-        ec2_instance_counter: object = None,
-        ec2_script_config: object = None,
-        ec2_cloud_instances_obj_list: object = None
-) -> list:
+        profile: Union[dict, str] = None,
+        ec2_role_arn: str = None,
+        ec2_instance_counter: dict = None,
+        ec2_script_config: dict = None,
+        ec2_cloud_instances_obj_list: list = None
+) -> None:
     """
 
-    :param ec2_cloud_instances_obj_list:
+    :type ec2_instance_counter: dict
+    :type ec2_role_arn: str
+    :param ec2_cloud_instances_obj_list: list
     :param ec2_script_config:
     :param ec2_instance_counter:
     :param ec2_role_arn:
@@ -983,7 +985,7 @@ if __name__ == '__main__':
     file.close()
 
     with mp.Manager() as manager:
-        instance_counter = manager.dict()
+        instance_counter: Dict[Any, Any] = manager.dict()
         cloud_instances_obj_list = manager.list()
 
         # instance_counter = {}
