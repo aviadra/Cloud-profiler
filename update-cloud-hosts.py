@@ -433,35 +433,20 @@ def fetch_ec2_region(
     if response.get('Reservations', False):
         for reservation in response['Reservations']:
             for instance in reservation['Instances']:
-                if fetch_script_config["Local"].get('Parallel_exec', True):
-                    with concurrent.futures.ProcessPoolExecutor() as executor:
-                        future = executor.submit(
-                            fetch_ec2_instance,
-                            instance,
-                            client,
-                            groups,
-                            instances,
-                            instance_source,
-                            reservation,
-                            vpc_data_all,
-                            profile,
-                            fetch_script_config
-                        )
-                        return_value = future.result()
-                        print(f'{instance_source}: {return_value}')
-                else:
-                    print(
-                        fetch_ec2_instance(
-                            instance,
-                            client,
-                            groups,
-                            instances,
-                            instance_source,
-                            vpc_data_all,
-                            profile,
-                            fetch_script_config
-                        )
+                with concurrent.futures.ThreadPoolExecutor() as executor:
+                    future = executor.submit(
+                        fetch_ec2_instance,
+                        instance,
+                        client,
+                        groups,
+                        instances,
+                        instance_source,
+                        vpc_data_all,
+                        profile,
+                        fetch_script_config
                     )
+                    return_value = future.result()
+                    print(f'{instance_source}: {return_value}')
     else:
         print(f'{instance_source}: No instances found in {region}')
 
