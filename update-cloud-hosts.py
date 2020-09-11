@@ -477,13 +477,20 @@ def get_mfa_func(profile, mfa_role_arn):
 
 
 def get_ec2_instances(
-        profile,
-        ec2_role_arn=None,
-        ec2_instance_counter=None,
-        ec2_script_config=None,
-        ec2_cloud_instances_obj_list=None
-):
+        profile: Union[dict,str] = None,
+        ec2_role_arn: object = None,
+        ec2_instance_counter: object = None,
+        ec2_script_config: object = None,
+        ec2_cloud_instances_obj_list: object = None
+) -> list:
+    """
 
+    :param ec2_cloud_instances_obj_list:
+    :param ec2_script_config:
+    :param ec2_instance_counter:
+    :param ec2_role_arn:
+    :type profile: dict
+    """
     groups = {}
     instances = {}
     credentials = False
