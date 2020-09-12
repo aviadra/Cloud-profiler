@@ -1,5 +1,9 @@
 # Change Log
 
+## v3.0.1
+Parallel_exec bug - This was set to False when I developed and skewed my results :\
+Changed the way we handle the creation of ssh config.
+
 ## v3.0 - Bakusaiga
 Switched to using multiprocessing (instead of threads), dramatically improving the execution time, as processes don't share the boto client connection state.
 Fixed all pycharm suggestions for cleaner code.

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 [ -z ${CP_Version+x} ] && CP_Version='latest'
-CP_Update_Profile_VERSION="v3.0"
+CP_Update_Profile_VERSION="v3.0.1"
 Personal_Static_Profiles="${HOME}/iTerm2-static-profiles"
 Config_File=".iTerm-cloud-profile-generator/config.yaml"
 Personal_Config_File="${HOME}/${Config_File}"
@@ -26,7 +26,7 @@ user_waiter() {
 exit_state() {
     # shellcheck disable=SC2181
     if [[ $? != 0 ]]; then
-        echo "Cloud-profiler - Something when wrong with \"$1\"..."
+        echo "Cloud-profiler - Something went wrong with \"$1\"..."
         echo "Aborting."
         docker rm -f cloud-profiler-copy &> /dev/null
         exit 42
@@ -108,7 +108,9 @@ setup() {
         
         if [[ ! -f ${HOME}/.ssh/config ]]; then
             echo "Cloud-profiler - There was no SSH config, so creating one"
-            [[ ! -d ${HOME}/.ssh/ ]] && mkdir -p ${HOME}/.ssh/ ; exit_state "Create user's ssh config directory"
+            if [[ ! -d ${HOME}/.ssh/ ]]; then
+              mkdir -p ${HOME}/.ssh/ ; exit_state "Create user's ssh config directory"
+            fi
             touch ${HOME}/.ssh/config ; exit_state "Create user default SSH config file"
         fi
         docker create -it --name cloud-profiler-copy ${SRC_Docker_Image} bash &> /dev/null ; exit_state "Create copy container"

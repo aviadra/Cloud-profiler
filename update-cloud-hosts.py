@@ -11,7 +11,7 @@ import os
 import platform
 import shutil
 import subprocess
-from typing import Union
+from typing import Union, Dict, Any
 
 import boto3
 import digitalocean
@@ -397,7 +397,7 @@ def fetch_ec2_region(
         credentials=None,
         profile=None,
         fetch_script_config=None
-):
+) -> None:
     if region in fetch_script_config['AWS']['exclude_regions']:
         print(f'{instance_source}: region "{region}", is in excluded list')
         return
@@ -433,35 +433,20 @@ def fetch_ec2_region(
     if response.get('Reservations', False):
         for reservation in response['Reservations']:
             for instance in reservation['Instances']:
-                if fetch_script_config["Local"].get('Parallel_exec', True):
-                    with concurrent.futures.ProcessPoolExecutor() as executor:
-                        future = executor.submit(
-                            fetch_ec2_instance,
-                            instance,
-                            client,
-                            groups,
-                            instances,
-                            instance_source,
-                            reservation,
-                            vpc_data_all,
-                            profile,
-                            fetch_script_config
-                        )
-                        return_value = future.result()
-                        print(f'{instance_source}: {return_value}')
-                else:
-                    print(
-                        fetch_ec2_instance(
-                            instance,
-                            client,
-                            groups,
-                            instances,
-                            instance_source,
-                            vpc_data_all,
-                            profile,
-                            fetch_script_config
-                        )
+                with concurrent.futures.ThreadPoolExecutor() as executor:
+                    future = executor.submit(
+                        fetch_ec2_instance,
+                        instance,
+                        client,
+                        groups,
+                        instances,
+                        instance_source,
+                        vpc_data_all,
+                        profile,
+                        fetch_script_config
                     )
+                    return_value = future.result()
+                    print(f'{instance_source}: {return_value}')
     else:
         print(f'{instance_source}: No instances found in {region}')
 
@@ -492,13 +477,22 @@ def get_mfa_func(profile, mfa_role_arn):
 
 
 def get_ec2_instances(
-        profile,
-        ec2_role_arn=None,
-        ec2_instance_counter=None,
-        ec2_script_config=None,
-        ec2_cloud_instances_obj_list=None
-):
+        profile: Union[dict, str] = None,
+        ec2_role_arn: str = None,
+        ec2_instance_counter: dict = None,
+        ec2_script_config: dict = None,
+        ec2_cloud_instances_obj_list: list = None
+) -> None:
+    """
 
+    :type ec2_instance_counter: dict
+    :type ec2_role_arn: str
+    :param ec2_cloud_instances_obj_list: list
+    :param ec2_script_config:
+    :param ec2_instance_counter:
+    :param ec2_role_arn:
+    :type profile: dict
+    """
     groups = {}
     instances = {}
     credentials = False
@@ -569,32 +563,16 @@ def get_ec2_instances(
         print(f"The exception was:\n{e}")
         return
 
-    if ec2_script_config["Local"].get('Parallel_exec', True):
-        with concurrent.futures.ProcessPoolExecutor() as executor:
-            [
-                executor.submit(
-                    fetch_ec2_region,
-                    region,
-                    profile_name,
-                    instances,
-                    groups,
-                    instance_source,
-                    credentials,
-                    profile,
-                    ec2_script_config
-                ) for region in ec2_regions
-            ]
-    else:
-        for region in ec2_regions:
-            fetch_ec2_region(
-                region,
-                instances,
-                groups,
-                instance_source,
-                credentials,
-                profile,
-                ec2_script_config
-            )
+    for region in ec2_regions:
+        fetch_ec2_region(
+            region,
+            instances,
+            groups,
+            instance_source,
+            credentials,
+            profile,
+            ec2_script_config
+        )
 
     for ip in instances:
         instance = instances[ip]
@@ -1007,7 +985,7 @@ if __name__ == '__main__':
     file.close()
 
     with mp.Manager() as manager:
-        instance_counter = manager.dict()
+        instance_counter: Dict[Any, Any] = manager.dict()
         cloud_instances_obj_list = manager.list()
 
         # instance_counter = {}
