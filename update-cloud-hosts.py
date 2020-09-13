@@ -22,6 +22,35 @@ from inputimeout import inputimeout, TimeoutOccurred
 from sshconf import empty_ssh_config_file
 
 
+class InstanceProfile:
+    """This is an instance profile"""
+    def __init__(self):
+        self.Name = ""
+        self.Group = ""
+        self.Index = 0
+        self.Dynamic_profile_parent_name = ""
+        self.iterm_tags = ""
+        self.Con_username = ""
+        self.Bastion_Con_username = ""
+        self.Con_port = 22
+        self.Bastion_Con_port = 22
+        self.Id = 0
+        self.SSH_key = ""
+        self.Use_shared_key = False
+        self.Login_command = ""
+        self.Instance_use_Bastion = False
+        self.Bastion = ""
+        self.instance_use_ip_public = False
+        self.Ip_public = ""
+        self.Password = ""
+        self.Region = ""
+        self.Docker_contexts_create = False
+
+
+x = InstanceProfile()
+print(x)
+
+
 def line_prepender(filename, line):
     with open(filename, 'r+') as file_to_append_to:
         content = file_to_append_to.read()
