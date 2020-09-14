@@ -25,6 +25,7 @@ from sshconf import empty_ssh_config_file
 class InstanceProfile:
     """This is an instance profile"""
     def __init__(self):
+        self.iterm_tags_fin = []
         self.Name = ""
         self.Group = ""
         self.Index = 0
@@ -45,10 +46,24 @@ class InstanceProfile:
         self.Password = ""
         self.Region = ""
         self.Docker_contexts_create = False
+        self.instance_source = ""
+        self.instance_flat_sgs = ""
+        self.instance_flat_tags = ""
+        self.iterm_tags = []
+
+    def iterm_tags_fin_constructor(self):
+        for tag in self.iterm_tags:
+            if ',' in tag:
+                for shard in tag.split(','):
+                    if shard.strip():
+                        self.iterm_tags_fin.append(shard)
+            else:
+                self.iterm_tags_fin.append(tag)
 
 
-x = InstanceProfile()
-print(x)
+example_obj = InstanceProfile()
+example_obj.iterm_tags = 'common_-_grafana: sg-0667450a2a83d23cf,grafana: sg-0e443333e2fb81cb1,hyver-internal: sg-1c456166,Access from Jumphost or Jenkins slave: sg-04a357a3b336e91f9,staging_grafana: sg-045910b86c64b4b89,'
+print(example_obj.iterm_tags_fin_constructor())
 
 
 def line_prepender(filename, line):
