@@ -1,5 +1,10 @@
 # Change Log
 
+## v3.0.3
+Traces of the old version leaked in and cause ppl to get the double guid error.
+This version is mainly to force the deletion of all update profiles with the issue.
+Also, removed the guid from the update profile all together, so this will not happen again.
+
 ## v3.0.2 - How the mighty have fallen (leaving VScode)
 Now actually using threads within the subprocesses and Parallel_exec is no longer used (not even for debugging... thank you intellij)
 
