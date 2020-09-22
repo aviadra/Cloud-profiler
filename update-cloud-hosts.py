@@ -123,9 +123,8 @@ def q_tag_flat(tags, badge_tag_to_display):
 def decrypt(ciphertext, keyfile):
     if not os.path.isfile(os.path.expanduser(keyfile)):
         return [False, f"Decryption key not found at {keyfile}."]
-    finput = open(os.path.expanduser(keyfile))
-    fkey = RSA.importKey(finput.read())
-    finput.close()
+    with open(os.path.expanduser(keyfile)) as finput:
+        fkey = RSA.importKey(finput.read())
     cipher = PKCS1_v1_5.new(fkey)
     plaintext = cipher.decrypt(ciphertext).decode('utf-8')
     return [True, plaintext]
@@ -522,7 +521,7 @@ def get_mfa_func(profile, mfa_role_arn):
 
 def get_ec2_instances(
         profile: Union[dict, str] = None,
-        ec2_role_arn: str = None,
+        ec2_role_arn: Union[int, slice] = None,
         ec2_instance_counter: dict = None,
         ec2_script_config: dict = None,
         ec2_cloud_instances_obj_list: list = None
@@ -716,9 +715,8 @@ def update_moba(dict_list):
                 profiles += profile
             bookmark_counter += 1
 
-    handle = open(os.path.expanduser(os.path.join(CP_OutputDir, 'Cloud-profiler-Moba.mxtsessions')), 'wt')
-    handle.write(profiles)
-    handle.close()
+    with open(os.path.expanduser(os.path.join(CP_OutputDir, 'Cloud-profiler-Moba.mxtsessions')), 'wt') as handle:
+        handle.write(profiles)
 
 
 def update_term(dict_list):
@@ -844,9 +842,16 @@ def update_term(dict_list):
             profiles.append(profile)
 
         profiles = {"Profiles": profiles}
-        handle = open(os.path.expanduser(os.path.join(CP_OutputDir, "." + profile_dict["instance_source"])), 'wt')
-        handle.write(json.dumps(profiles, sort_keys=True, indent=4, separators=(',', ': ')))
-        handle.close()
+        with open(
+                os.path.expanduser(
+                    os.path.join(
+                        CP_OutputDir,
+                        f".{profile_dict['instance_source']}"
+                        )
+                ),
+                'wt'
+        ) as handle:
+            handle.write(json.dumps(profiles, sort_keys=True, indent=4, separators=(',', ': ')))
         head_tail = os.path.split(handle.name)
         rename_target = head_tail[1][1:]
         os.rename(handle.name, os.path.join(head_tail[0], rename_target))
@@ -854,20 +859,19 @@ def update_term(dict_list):
 
 def update_statics(cp_output_dir, us_script_config):
     profiles = []
-    app_static_profile_handle = open(os.path.expanduser(os.path.join(cp_output_dir, ".statics")), "wt")
-    path_to_static_profiles = os.path.expanduser(us_script_config["Local"]['Static_profiles'])
+    with open(os.path.expanduser(os.path.join(cp_output_dir, ".statics")), "wt") as app_static_profile_handle:
+        path_to_static_profiles = os.path.expanduser(us_script_config["Local"]['Static_profiles'])
 
-    for root, _, files in os.walk(path_to_static_profiles, topdown=False):
-        for name in files:
-            if name == '.DS_Store':
-                continue
-            print(f'Working on static profile: {name}')
-            static_profile_handle = open(os.path.join(root, name))
-            profiles.append(json.load(static_profile_handle))
+        for root, _, files in os.walk(path_to_static_profiles, topdown=False):
+            for name in files:
+                if name == '.DS_Store':
+                    continue
+                print(f'Working on static profile: {name}')
+                static_profile_handle = open(os.path.join(root, name))
+                profiles.append(json.load(static_profile_handle))
 
-    profiles = {"Profiles": profiles}
-    app_static_profile_handle.write(json.dumps(profiles, sort_keys=True, indent=4, separators=(',', ': ')))
-    app_static_profile_handle.close()
+        profiles = {"Profiles": profiles}
+        app_static_profile_handle.write(json.dumps(profiles, sort_keys=True, indent=4, separators=(',', ': ')))
     shutil.move(app_static_profile_handle.name, os.path.expanduser(os.path.join(cp_output_dir, "statics")))
 
 
@@ -979,7 +983,10 @@ def aws_profiles_from_awscli_config(aws_script_config):
         for i in config.sections():
             if i not in aws_script_config['AWS']['exclude_accounts']:
                 print(f'Working on AWS profile from credentials file: {i}')
-                get_ec2_instances(i, instance_counter, aws_script_config)
+                get_ec2_instances(profile=i,
+                                  ec2_instance_counter=instance_counter,
+                                  ec2_script_config=aws_script_config
+                                  )
 
 
 def do_worker(do_script_config, do_instance_counter, do_cloud_instances_obj_list):
@@ -992,41 +999,38 @@ def do_worker(do_script_config, do_instance_counter, do_cloud_instances_obj_list
 # /etc/hosts must include the list of EC2 instances between two lines: the first contains '# AWS EC2' 
 # and the last a single # character.
 def update_hosts(instances):
-    handle = open('/etc/hosts')
-    lines = handle.read().splitlines()
-    handle.close()
+    with open('/etc/hosts') as handle:
+        lines = handle.read().splitlines()
     state = False
 
-    hout = open('/etc/hosts', 'wt')
+    with open('/etc/hosts', 'wt')as hout:
 
-    start_delimiter = "# AWS EC2"
-    end_delimiter = "#"
+        start_delimiter = "# AWS EC2"
+        end_delimiter = "#"
 
-    for line in lines:
-        if line == start_delimiter:
-            state = True
-            continue
-        if state and line == end_delimiter:
-            state = False
-            continue
-        if not state:
-            hout.write(line + "\n")
+        for line in lines:
+            if line == start_delimiter:
+                state = True
+                continue
+            if state and line == end_delimiter:
+                state = False
+                continue
+            if not state:
+                hout.write(line + "\n")
 
-    hout.write(start_delimiter + "\n")
-    for ip in instances:
-        instance = instances[ip]
-        name = instance['name']
-        hout.write(ip + "\t" + name + "\n")
+        hout.write(start_delimiter + "\n")
+        for ip in instances:
+            instance = instances[ip]
+            name = instance['name']
+            hout.write(ip + "\t" + name + "\n")
 
-    hout.write(end_delimiter + "\n")
-    hout.close()
+        hout.write(end_delimiter + "\n")
 
 
 # MAIN
 if __name__ == '__main__':
-    file = open("marker.tmp", "w")
-    file.write("mark")
-    file.close()
+    with open("marker.tmp", "w") as file:
+        file.write("mark")
 
     with mp.Manager() as manager:
         instance_counter: Dict[Any, Any] = manager.dict()
