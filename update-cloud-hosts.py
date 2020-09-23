@@ -24,6 +24,7 @@ from sshconf import empty_ssh_config_file
 
 class InstanceProfile:
     """This is an instance profile"""
+
     def __init__(self):
         self.Name = ""
         self.Group = ""
@@ -244,8 +245,8 @@ def get_do_instances(profile, do_instance_counter, do_script_config, do_cloud_in
         iterm_tags = []
         docker_context = setting_resolver('Docker_contexts_create', drop, {}, "DO", False, profile, do_script_config)
         instance_use_ip_public = setting_resolver(
-                                    'instance_use_ip_public', drop, {}, "DO", True, profile, do_script_config
-                                    )
+            'instance_use_ip_public', drop, {}, "DO", True, profile, do_script_config
+        )
         instance_use_bastion = setting_resolver('Use_bastion', drop, {}, "DO", False, profile, do_script_config)
         or_host_name = setting_resolver('Host_name', drop, {}, "DO", False, profile, do_script_config)
         bastion = setting_resolver('Bastion', drop, {}, "DO", False, profile, do_script_config)
@@ -730,47 +731,43 @@ def update_term(obj_list):
             group = machine.Group
 
             connection_command = "ssh"
-# TODO continue to convert from dict to objs
-            tags = ["Account: " + profile_dict["instance_source"], instance]
-            for tag in profile_dict["instances"][instance]['iterm_tags']:
+            # TODO continue to convert from dict to objs
+            tags = [f"Account: {machine.instance_source}, {machine.ip}"]
+            for tag in machine.iterm_tags:
                 tags.append(tag)
-            if profile_dict["groups"].get(group, 0) > 1:
+            if machine.Group.get(group, 0) > 1:
                 tags.append(group)
 
-            if "Sorry" in instance:
+            if "Sorry" in machine.ip:
                 connection_command = "echo"
-                ip_for_connection = instance
-            elif profile_dict["instances"][instance].get('instance_use_ip_public', False) or not \
-                    profile_dict["instances"][instance]['Bastion']:
-                ip_for_connection = profile_dict["instances"][instance]['Ip_public']
+                ip_for_connection = machine.ip
+            elif machine.instance_use_ip_public or not machine.Bastion:
+                ip_for_connection = machine.Ip_public
             else:
-                ip_for_connection = instance
+                ip_for_connection = machine.ip
 
-            if profile_dict["instances"][instance].get('Platform', False) == 'windows':
-                if not profile_dict["instances"][instance]['Con_username']:
+            if machine.Platform == 'windows':
+                if not machine.Con_username:
                     con_username = "Administrator"
 
             connection_command = f"{connection_command} {ip_for_connection}"
 
-            if profile_dict["instances"][instance]['Bastion'] \
-                    and not profile_dict["instances"][instance]['instance_use_ip_public'] \
-                    or profile_dict["instances"][instance]['Instance_use_Bastion']:
+            if machine.Bastion \
+                    and not machine.instance_use_ip_public \
+                    or machine.Instance_use_Bastion:
 
-                if profile_dict['instances'][instance]['Bastion_Con_username']:
-                    bastion_connection_command = f"{profile_dict['instances'][instance]['Bastion_Con_username']}@" \
-                                                 f"{profile_dict['instances'][instance]['Bastion']}"
+                if machine.Bastion_Con_username:
+                    bastion_connection_command = f"{machine.Bastion_Con_username}@{machine.Bastion}"
                 else:
-                    bastion_connection_command = f"{profile_dict['instances'][instance]['Bastion']}"
+                    bastion_connection_command = f"{machine.Bastion}"
 
-                if profile_dict['instances'][instance]['Bastion_Con_port'] and \
-                        profile_dict['instances'][instance]['Bastion_Con_port'] != 22:
-                    bastion_connection_command = f"{bastion_connection_command}:" \
-                                                 f"{profile_dict['instances'][instance]['Bastion_Con_port']}"
+                if machine.Bastion_Con_port and \
+                        machine.Bastion_Con_port != 22:
+                    bastion_connection_command = f"{bastion_connection_command}:{machine.Bastion_Con_port}"
 
                 connection_command = f"{connection_command} -J {bastion_connection_command}"
 
-                if not profile_dict["instances"][instance]['Con_username'] and \
-                        profile_dict["instances"][instance].get('Platform', False) == 'windows':
+                if not machine.Con_username and machine.Platform == 'windows':
                     connection_command = f"function random_unused_port {{ local port=$( echo " \
                                          f"$((2000 + ${{RANDOM}} % 65000))); (echo " \
                                          f">/dev/tcp/127.0.0.1/$port) &> /dev/null ; if [[ $? != 0 ]] ; then export " \
@@ -780,60 +777,57 @@ def update_term(obj_list):
                                          f" then kill -9 $( ps aux | grep \"ssh -f\" | grep -v grep " \
                                          f"| awk \'{{print $2}}\' ) ; else random_unused_port; fi ;ssh -f -o " \
                                          f"ExitOnForwardFailure=yes -L ${{RANDOM_PORT}}:{ip_for_connection}:" \
-                                         f"{profile_dict['instances'][instance].get('con_port_windows', 3389)} " \
+                                         f"{machine.con_port_windows} " \
                                          f"{bastion_connection_command} sleep 10 ; open " \
                                          f"'rdp://full%20address=s:127.0.0.1:'\"${{RANDOM_PORT}}\"'" \
                                          f"&audiomode=i:2&disable%20themes=i:0&screen%20mode%20id=i:1&use%20multimon" \
                                          f":i:0&username:s:{con_username}" \
                                          f"&desktopwidth=i:1024&desktopheight=i:768'"
-            elif profile_dict["instances"][instance].get('Platform', False) == 'windows':
-                con_username = profile_dict["instances"][instance]['Con_username']
+            elif machine.Platform == 'windows':
+                con_username = machine.Con_username
                 connection_command = f"open 'rdp://full%20address=s:{ip_for_connection}:" \
-                                     f"{profile_dict['instances'][instance].get('con_port_windows', 3389)}" \
+                                     f"{machine.con_port_windows}" \
                                      f"&audiomode=i:2&disable%20themes=i:0&screen%20mode%20id=i:1&use%20multimon" \
                                      f":i:0&username:s:{con_username}" \
                                      f"&desktopwidth=i:1024&desktopheight=i:768'"
 
-            if profile_dict["instances"][instance]['Password'][0] and profile_dict["instances"][instance].get(
-                    'Platform', '') == 'windows':
+            if machine.Password[0] and machine.Platform == 'windows':
                 connection_command = f"echo \"\\nThe Windows password on record is:\\n" \
-                                     f"{profile_dict['instances'][instance]['Password'][1].rstrip()}\\n\\n\" " \
-                                     f"\n;echo -n '{profile_dict['instances'][instance]['Password'][1].rstrip()}' "\
-                                     f"| pbcopy; echo \"\\nIt has been sent to your clipboard for easy pasting\\n\\n\""\
+                                     f"{machine.Password[1].rstrip()}\\n\\n\" " \
+                                     f"\n;echo -n '{machine.Password[1].rstrip()}' " \
+                                     f"|pbcopy; echo \"\\nIt has been sent to your clipboard for easy pasting\\n\\n\"" \
                                      f";{connection_command}"
 
-            elif profile_dict["instances"][instance].get('Platform', '') == 'windows':
+            elif machine.Platform == 'windows':
                 connection_command = f'echo \"\\nThe Windows password could not be decrypted...\\n' \
                                      f"The only hint we have is:{connection_command}\\n\\n\";" \
-                                     f"\n{str(profile_dict['instances'][instance]['Password'][1])}"
+                                     f"\n{str(machine.Password[1])}"
 
-            if profile_dict["instances"][instance].get('Platform', '') != 'windows':
+            if machine.Platform != 'windows':
                 connection_command = f"{connection_command} {script_config['Local']['SSH_base_string']}"
 
-                if profile_dict["instances"][instance]['Con_username']:
-                    connection_command = f"{connection_command} -l "\
+                if machine.Con_username:
+                    connection_command = f"{connection_command} -l " \
                                          f"{profile_dict['instances'][instance]['Con_username']}"
 
-                if profile_dict["instances"][instance]['Con_port']:
-                    connection_command = f"{connection_command} -p {profile_dict['instances'][instance]['Con_port']}"
+                if machine.Con_port:
+                    connection_command = f"{connection_command} -p {machine.Con_port}"
 
-                if profile_dict["instances"][instance]['SSH_key'] and \
-                        profile_dict["instances"][instance]['use_shared_key']:
+                if machine.SSH_key and machine.use_shared_key:
                     connection_command = f"{connection_command} -i {script_config['Local'].get('ssh_keys_path', '.')}" \
-                                         f"/{profile_dict['instances'][instance]['SSH_key']}"
+                                         f"/{machine.SSH_key}"
 
-                if profile_dict["instances"][instance]['Login_command']:
-                    connection_command = f"{connection_command} -t " \
-                                         f"{profile_dict['instances'][instance]['Login_command']}"
+                if machine.Login_command:
+                    connection_command = f"{connection_command} -t {machine.Login_command}"
 
-            if profile_dict["instances"][instance]['Dynamic_profile_parent_name']:
-                dynamic_profile_parent_name = profile_dict["instances"][instance]['Dynamic_profile_parent_name']
+            if machine.Dynamic_profile_parent_name:
+                dynamic_profile_parent_name = machine.Dynamic_profile_parent_name
             else:
                 dynamic_profile_parent_name = 'Default'
 
-            profile = {"Name": profile_dict["instances"][instance]['Name'],
-                       "Guid": f"{profile_dict['instance_source']}-{str(profile_dict['instances'][instance]['Id'])}",
-                       "Badge Text": f"{badgeme(instance, profile_dict['instances'][instance])}",
+            profile = {"Name": machine.Name,
+                       "Guid": f"{machine.instance_source}-{str(machine.Id)}",
+                       "Badge Text": f"{badgeme(machine.ip, profile_dict['instances'][instance])}",
                        "Tags": tags,
                        "Dynamic Profile Parent Name": dynamic_profile_parent_name,
                        "Custom Command": "Yes",
@@ -848,7 +842,7 @@ def update_term(obj_list):
                     os.path.join(
                         CP_OutputDir,
                         f".{profile_dict['instance_source']}"
-                        )
+                    )
                 ),
                 'wt'
         ) as handle:
