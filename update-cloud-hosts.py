@@ -25,12 +25,10 @@ from sshconf import empty_ssh_config_file
 class InstanceProfile:
     """This is an instance profile"""
     def __init__(self):
-        self.iterm_tags_fin = []
         self.Name = ""
         self.Group = ""
         self.Index = 0
         self.Dynamic_profile_parent_name = ""
-        self.iterm_tags = ""
         self.Con_username = ""
         self.Bastion_Con_username = ""
         self.Con_port = 22
@@ -49,21 +47,20 @@ class InstanceProfile:
         self.instance_source = ""
         self.instance_flat_sgs = ""
         self.instance_flat_tags = ""
+        self._iterm_tags_fin = []
         self.iterm_tags = []
 
-    def iterm_tags_fin_constructor(self):
+    @property
+    def iterm_tags_fin(self):
+        print("Getting value...")
         for tag in self.iterm_tags:
             if ',' in tag:
                 for shard in tag.split(','):
                     if shard.strip():
-                        self.iterm_tags_fin.append(shard)
+                        self._iterm_tags_fin.append(shard)
             else:
-                self.iterm_tags_fin.append(tag)
-
-
-example_obj = InstanceProfile()
-example_obj.iterm_tags = 'common_-_grafana: sg-0667450a2a83d23cf,grafana: sg-0e443333e2fb81cb1,hyver-internal: sg-1c456166,Access from Jumphost or Jenkins slave: sg-04a357a3b336e91f9,staging_grafana: sg-045910b86c64b4b89,'
-print(example_obj.iterm_tags_fin_constructor())
+                self._iterm_tags_fin.append(tag)
+        return self._iterm_tags_fin
 
 
 def line_prepender(filename, line):
@@ -228,6 +225,7 @@ def get_do_instances(profile, do_instance_counter, do_script_config, do_cloud_in
     instance_source = "DO." + profile['name']
     groups = {}
     instances = {}
+    machines_class_list = []
     # global instance_counter
 
     do_instance_counter[instance_source] = 0
@@ -235,6 +233,7 @@ def get_do_instances(profile, do_instance_counter, do_script_config, do_cloud_in
     my_droplets = do_manager.get_all_droplets()
 
     for drop in my_droplets:
+        machine = InstanceProfile()
         if (do_script_config['DO'].get('Skip_stopped', True)
             and do_script_config['Local'].get('Skip_stopped', True)
             and profile.get('Skip_stopped', True)) \
@@ -283,31 +282,33 @@ def get_do_instances(profile, do_instance_counter, do_script_config, do_cloud_in
                     iterm_tags.append(tag)
 
         iterm_tags += f"ip: {ip}", f"Name: {drop.name}"
-        instances[ip] = {
-            'Name': instance_source + '.' + drop_name,
-            'Group': drop_name,
-            'Index': groups[drop.name],
-            'Dynamic_profile_parent_name': dynamic_profile_parent_name,
-            'iterm_tags': iterm_tags, 'InstanceType': drop.size['slug'],
-            'Con_username': con_username,
-            'Bastion_Con_username': bastion_con_username,
-            'Con_port': con_port,
-            'Bastion_Con_port': bastion_con_port,
-            'Id': drop.id,
-            'SSH_key': ssh_key,
-            'Use_shared_key': use_shared_key,
-            'Login_command': login_command,
-            'Instance_use_Bastion': instance_use_bastion,
-            'Bastion': bastion,
-            'instance_use_ip_public': instance_use_ip_public,
-            'Ip_public': public_ip,
-            'Password': password,
-            'Region': drop.region['name'],
-            'Docker_contexts_create': docker_context
-        }
-        print(f'instance_source: {ip}\t\t{instance_source}. {drop_name}\t\tassociated bastion: "{str(bastion)}"')
+        machine.ip = ip
+        machine.Name = f"{instance_source}.{drop_name}"
+        machine.Group = drop_name
+        machine.Index = groups[drop.name]
+        machine.Dynamic_profile_parent_name = dynamic_profile_parent_name
+        machine.iterm_tags = iterm_tags
+        machine.InstanceType = drop.size['slug']
+        machine.Con_username = con_username
+        machine.Bastion_Con_port = bastion_con_port
+        machine.Id = drop.id
+        machine.SSH_key = ssh_key
+        machine.Use_shared_key = use_shared_key
+        machine.Login_command = login_command
+        machine.Instance_use_Bastion = instance_use_bastion
+        machine.Bastion = bastion
+        machine.instance_use_ip_public = instance_use_ip_public
+        machine.Ip_public = public_ip
+        machine.Password = password
+        machine.Region = drop.region['name']
+        machine.Docker_contexts_create = docker_context
+        machine.instance_source = instance_source
 
-    do_cloud_instances_obj_list.append({"instance_source": instance_source, "groups": groups, "instances": instances})
+        print(
+            f'instance_source: {machine.instance_source}. {machine.Name}\tassociated bastion: "{str(machine.Bastion)}"'
+        )
+
+        do_cloud_instances_obj_list.append(machine)
 
 
 def fetch_ec2_instance(instance, client, groups, instances, instance_source, vpc_data_all, profile,
@@ -719,17 +720,17 @@ def update_moba(dict_list):
         handle.write(profiles)
 
 
-def update_term(dict_list):
+def update_term(obj_list):
     con_username = None
 
-    for profile_dict in dict_list:
+    for profile_dict in obj_list:
         profiles = []
-        for instance in profile_dict['instances']:
-            instance_counter[profile_dict['instance_source']] += 1
-            group = profile_dict["instances"][instance]['Group']
+        for machine in obj_list:
+            instance_counter[machine.instance_source] += 1
+            group = machine.Group
 
             connection_command = "ssh"
-
+# TODO continue to convert from dict to objs
             tags = ["Account: " + profile_dict["instance_source"], instance]
             for tag in profile_dict["instances"][instance]['iterm_tags']:
                 tags.append(tag)
@@ -1085,33 +1086,33 @@ if __name__ == '__main__':
         p.start()
         p_list.append(p)
 
-        # AWS profiles iterator
-        if script_config['AWS'].get('profiles', False):
-            # aws_profiles_from_config_file(script_config)
-            p = mp.Process(
-                name="aws_profiles_from_config_file",
-                target=aws_profiles_from_config_file,
-                args=(
-                    script_config,
-                    instance_counter,
-                    cloud_instances_obj_list
-                )
-            )
-            p.start()
-            p_list.append(p)
-
-        # AWS profiles iterator from config file
-        if script_config['AWS'].get('use_awscli_profiles', False):
-            p = mp.Process(
-                target=aws_profiles_from_awscli_config,
-                args=(
-                    script_config,
-                    instance_counter,
-                    cloud_instances_obj_list
-                )
-            )
-            p.start()
-            p_list.append(p)
+        # # AWS profiles iterator
+        # if script_config['AWS'].get('profiles', False):
+        #     # aws_profiles_from_config_file(script_config)
+        #     p = mp.Process(
+        #         name="aws_profiles_from_config_file",
+        #         target=aws_profiles_from_config_file,
+        #         args=(
+        #             script_config,
+        #             instance_counter,
+        #             cloud_instances_obj_list
+        #         )
+        #     )
+        #     p.start()
+        #     p_list.append(p)
+        #
+        # # AWS profiles iterator from config file
+        # if script_config['AWS'].get('use_awscli_profiles', False):
+        #     p = mp.Process(
+        #         target=aws_profiles_from_awscli_config,
+        #         args=(
+        #             script_config,
+        #             instance_counter,
+        #             cloud_instances_obj_list
+        #         )
+        #     )
+        #     p.start()
+        #     p_list.append(p)
 
         # DO profiles iterator
         if script_config['DO'].get('profiles', False):
