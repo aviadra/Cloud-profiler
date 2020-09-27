@@ -136,6 +136,9 @@ setup() {
     Normal_docker_start
 }
 
+# Legacy cleaner
+find "$(eval echo "${HOME}/${DynamicProfiles_Location}")" -type f -not -name '*.json' -delete
+
 if [[ -z "$(docker images --digests | grep ${SRC_Docker_image_base} | grep $CP_Version | awk '{print $3}')" ]] ; then
     echo -e "Cloud-profiler - This script will install the \"Cloud Profiler\" service using a docker container."
     user_waiter
