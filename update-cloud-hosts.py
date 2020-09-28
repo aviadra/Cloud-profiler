@@ -68,7 +68,7 @@ class InstanceProfile:
 
     @property
     def badge(self):
-        badge_to_return =[]
+        badge_to_return = []
         _name = self.name.split('.')
         if len(_name) == 4:
             name_formatted = f"Machine name: {_name[3]}\n" \
@@ -309,6 +309,8 @@ def get_do_instances(profile, do_instance_counter, do_script_config, do_cloud_in
         machine.region = drop.region['name']
         machine.docker_contexts_create = docker_context
         machine.instance_source = instance_source
+        machine.provider_long = "DigitalOcean"
+        machine.provider_short = "DO"
 
         print(
             f'instance_source: {machine.instance_source}. {machine.name}\tassociated bastion: "{str(machine.bastion)}"'
@@ -445,10 +447,10 @@ def fetch_ec2_instance(
     machine.docker_context = docker_context
     machine.instance_source = instance_source
     machine.ip = ip
+    machine.provider_long = "Amazon_Web_Services"
+    machine.provider_short = "AWS"
 
     return machine
-    # return (ip + "\tmmmmmmm" + instance['Placement'][
-    #     'AvailabilityZone'] + "\t" + instance_source + "." + name + "\t\t associated bastion: \"" + str(bastion) + "\"")
 
 
 def fetch_ec2_region(
@@ -644,10 +646,32 @@ def get_ec2_instances(
 
 
 # TODO convert to objects
-def update_moba(dict_list):
+def update_moba(obj_list):
     bookmark_counter = 1
 
-    for d in dict_list:
+
+    region_list = []
+    provider_list = {}
+    for obj in obj_list:
+        region_list.append(obj.region)
+        provider_list[obj.provider_short] = obj.provider_long
+
+    print(provider_list)
+    region_list = list(dict.fromkeys(region_list))
+    print(region_list)
+
+    obj_by_region = {}
+    for p_name in provider_list.keys():
+        if not p_name in obj_by_region:
+            obj_by_region[p_name] = []
+
+        for obj in obj_list:
+            if obj.provider_short == p_name:
+                obj_by_region[p_name].append(obj)
+
+
+
+    for machine in obj_list:
         if 'instance_by_region' in d:
             for dkey, instance in d['instances'].items():
                 if not instance['Region'] in d['instance_by_region']:
