@@ -50,7 +50,7 @@ Normal_docker_start() {
     --log-opt max-file=5 \
     --name cloud-profiler \
     -e CP_Service=True \
-    -v ${HOME}/.ssh/:/home/appuser/.ssh/ \
+    -v "${HOME}"/.ssh/:/home/appuser/.ssh/ \
     -v "$(eval echo "${Personal_Config_File}:/home/appuser/${Config_File}" )" \
     -v "$(eval echo "${Personal_Static_Profiles}/:${SRC_Static_Profiles}" )" \
     -v "$(eval echo "${HOME}/${DynamicProfiles_Location}:/home/appuser/${DynamicProfiles_Location}" )" \
@@ -73,7 +73,7 @@ ROOT_docker_start() {
     --log-opt max-file=5 \
     --name cloud-profiler \
     -e CP_Service=True \
-    -v ${HOME}/.ssh/:/root/.ssh/ \
+    -v "${HOME}"/.ssh/:/root/.ssh/ \
     -v "$(eval echo "${Personal_Config_File}:/root/${Config_File}" )" \
     -v "$(eval echo "${Personal_Static_Profiles}/:${SRC_Static_Profiles}" )" \
     -v "$(eval echo "${HOME}/${DynamicProfiles_Location}:/root/${DynamicProfiles_Location}" )" \
@@ -109,9 +109,9 @@ setup() {
     if [[ ! -f ${HOME}/.ssh/config ]]; then
       echo "Cloud-profiler - There was no SSH config, so creating one"
       if [[ ! -d ${HOME}/.ssh/ ]]; then
-        mkdir -p ${HOME}/.ssh/ ; exit_state "Create user's ssh config directory"
+        mkdir -p "${HOME}"/.ssh/ ; exit_state "Create user's ssh config directory"
       fi
-      touch ${HOME}/.ssh/config ; exit_state "Create user default SSH config file"
+      touch "${HOME}"/.ssh/config ; exit_state "Create user default SSH config file"
     fi
     docker create -it --name cloud-profiler-copy ${SRC_Docker_Image} bash &> /dev/null ; exit_state "Create copy container"
     if [[ ! -e $(eval "echo ${Personal_Static_Profiles}" ) ]]; then
@@ -138,9 +138,6 @@ setup() {
   Normal_docker_start
 }
 
-# Legacy cleaner
-find "$(eval echo "${HOME}/${DynamicProfiles_Location}")" -type f -not -name '*.json' -delete
-
 if [[ -z "$(docker images --digests | grep ${SRC_Docker_image_base} | grep $CP_Version | awk '{print $3}')" ]] ; then
   echo -e "Cloud-profiler - This script will install the \"Cloud Profiler\" service using a docker container."
   user_waiter
@@ -160,9 +157,9 @@ if [[ ! -e "$(eval echo "${Personal_Static_Profiles}/Update iTerm profiles ${CP_
   setup
 fi
 
-[[ "$( cat ${Personal_Config_File} | grep -E "^  Docker_contexts_create" | awk '{print$2}' 2>/dev/null )" != "true" && \
+[[ "$( cat "${Personal_Config_File}" | grep -E "^  Docker_contexts_create" | awk '{print$2}' 2>/dev/null )" != "true" && \
     -z "$(docker ps -q -f name=cloud-profiler)" ]] && Normal_docker_start
-if [[ "$( cat ${Personal_Config_File} | grep "^  Docker_contexts_create" | awk '{print$2}' 2> /dev/null )" == "true" ]] ; then
+if [[ "$( cat "${Personal_Config_File}" | grep "^  Docker_contexts_create" | awk '{print$2}' 2> /dev/null )" == "true" ]] ; then
   echo "Cloud-profiler - Found docker contexts directive"
     if [[ -z "$(docker ps -q -f name=cloud-profiler)" || \
           -z "$( docker inspect cloud-profiler | grep /var/run/docker.sock:/var/run/docker.sock 2> /dev/null )" ]] ;then

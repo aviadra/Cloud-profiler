@@ -852,7 +852,7 @@ def update_term(obj_list):
                 os.path.expanduser(
                     os.path.join(
                         CP_OutputDir,
-                        f".CP-{cloud_providor}.json"
+                        f".CP-{cloud_providor}-{VERSION}.json"
                     )
                 ),
                 'wt'
@@ -864,9 +864,9 @@ def update_term(obj_list):
         profiles = []
 
 
-def update_statics(cp_output_dir, us_script_config):
+def update_statics(cp_output_dir, us_script_config, _version):
     profiles = []
-    with open(os.path.expanduser(os.path.join(cp_output_dir, ".CP-statics.json")), "wt") as app_static_profile_handle:
+    with open(os.path.expanduser(os.path.join(cp_output_dir, f".CP-statics-{_version}.json")), "wt") as app_static_profile_handle:
         path_to_static_profiles = os.path.expanduser(us_script_config["Local"]['Static_profiles'])
 
         for root, _, files in os.walk(path_to_static_profiles, topdown=False):
@@ -879,7 +879,7 @@ def update_statics(cp_output_dir, us_script_config):
 
         profiles = {"Profiles": profiles}
         app_static_profile_handle.write(json.dumps(profiles, sort_keys=True, indent=4, separators=(',', ': ')))
-    shutil.move(app_static_profile_handle.name, os.path.expanduser(os.path.join(cp_output_dir, "CP-statics.json")))
+    shutil.move(app_static_profile_handle.name, os.path.expanduser(os.path.join(cp_output_dir, f"CP-statics-{_version}.json")))
 
 
 def docker_contexts_creator(dict_list):
@@ -1036,6 +1036,7 @@ def update_hosts(instances):
 
 # MAIN
 if __name__ == '__main__':
+    VERSION = "v4.0"
     with open("marker.tmp", "w") as file:
         file.write("mark")
 
@@ -1061,6 +1062,14 @@ if __name__ == '__main__':
 
         if not os.path.isdir(os.path.expanduser(CP_OutputDir)):
             os.makedirs(os.path.expanduser(CP_OutputDir))
+
+        # Clean legacy
+        for entry in os.scandir(os.path.expanduser(CP_OutputDir)):
+            if not entry.is_dir(follow_symlinks=False):
+                if "CP" not in entry.name or \
+                   VERSION not in entry.name or \
+                    ("CP" in entry.name and VERSION not in entry.name):
+                        os.remove(entry)
 
         # From user home directory
         script_config = {}
@@ -1089,7 +1098,7 @@ if __name__ == '__main__':
         p = mp.Process(
             name="update_statics",
             target=update_statics,
-            args=(CP_OutputDir, script_config)
+            args=(CP_OutputDir, script_config, VERSION,)
         )
         p.start()
         p_list.append(p)
