@@ -54,6 +54,8 @@ class InstanceProfile:
         self.platform = False
         self.tags = []
         self.con_port_windows = 3389
+        self.instancetype= ""
+        self.ip = ""
 
     @property
     def iterm_tags_fin(self):
@@ -82,7 +84,7 @@ class InstanceProfile:
         all_badge_toggles = self.script_config["Local"].get("Badge_info_to_display", None)
         if not all_badge_toggles:
             value_to_return = f"{name_formatted}" \
-                              f"InstanceType: {self.InstanceType}" \
+                              f"InstanceType: {self.instancetype}" \
                               f"Ip_public: {self.ip_public}" \
                               f"Main_IP: {self.ip}"
         else:
@@ -267,6 +269,8 @@ def get_do_instances(profile, do_instance_counter, do_script_config, do_cloud_in
                                                        do_script_config)
         public_ip = drop.ip_address
 
+        machine.con_port = con_port
+        machine.bastion_con_username = bastion_con_username
         if or_host_name:
             drop_name = or_host_name
         else:
@@ -323,7 +327,6 @@ def fetch_ec2_instance(
         instance,
         client,
         groups,
-        instances,
         instance_source,
         vpc_data_all,
         profile,
@@ -504,7 +507,6 @@ def fetch_ec2_region(
                         instance,
                         client,
                         groups,
-                        instances,
                         instance_source,
                         vpc_data_all,
                         profile,
@@ -649,113 +651,77 @@ def get_ec2_instances(
 def update_moba(obj_list):
     bookmark_counter = 1
 
-
-    region_list = []
-    provider_list = {}
-    for obj in obj_list:
-        region_list.append(obj.region)
-        provider_list[obj.provider_short] = obj.provider_long
-
-    print(provider_list)
-    region_list = list(dict.fromkeys(region_list))
-    print(region_list)
-
-    obj_by_region = {}
-    for p_name in provider_list.keys():
-        if not p_name in obj_by_region:
-            obj_by_region[p_name] = []
-
-        for obj in obj_list:
-            if obj.provider_short == p_name:
-                obj_by_region[p_name].append(obj)
-
-
-
-    for machine in obj_list:
-        if 'instance_by_region' in d:
-            for dkey, instance in d['instances'].items():
-                if not instance['Region'] in d['instance_by_region']:
-                    d['instance_by_region'][instance['Region']] = []
-                instance['ip'] = dkey
-                d['instance_by_region'][instance['Region']].append(instance)
-        else:
-            d['instance_by_region'] = {}
-    del d
-
     profiles = "[Bookmarks]\nSubRep=\nImgNum=42"
+    for machine in obj_list:
 
-    for profile_dict in dict_list:
-        for region in profile_dict['instance_by_region']:
-            profiles += f"""\n[Bookmarks_{bookmark_counter}]
-                        SubRep={profile_dict["instance_source"]}\\{region}\nImgNum=41\n"""
-            for instance in profile_dict['instance_by_region'][region]:
-                instance_counter[profile_dict['instance_source']] += 1
-                short_name = instance['Name'].rpartition('.')[2]
-                group = instance['Group']
+        instance_counter[machine.instance_source] += 1
 
-                connection_command = f"{short_name}= "
+        profiles += f"""\n[Bookmarks_{bookmark_counter}]
+                    SubRep={machine.provider_short}\\{machine.instance_source}\\{machine.region}\nImgNum=41\n"""
 
-                tags = ["Account: " + profile_dict["instance_source"], str(instance['Id'])]
-                for tag in instance['iterm_tags']:
-                    tags.append(tag)
-                if profile_dict["groups"].get(group, 0) > 1:
-                    tags.append(group)
+        short_name = machine.name.rpartition('.')[2]
 
-                if "Sorry" in instance:
-                    connection_command = "echo"
-                    ip_for_connection = instance
-                elif instance.get('instance_use_ip_public', False) or not instance['Bastion']:
-                    ip_for_connection = instance['Ip_public']
-                else:
-                    ip_for_connection = instance['ip']
+        connection_command = f"{short_name}= "
 
-                if instance['Con_username']:
-                    con_username = instance['Con_username']
-                else:
-                    con_username = '<default>'
+        tags = ["Account: " + machine.instance_source, str(machine.id)]
+        for tag in machine.iterm_tags:
+            tags.append(tag)
 
-                if instance.get('platform', '') == 'windows':
-                    if not instance['Con_username']:
-                        con_username = "Administrator"
-                    connection_type = "#91#4%"
-                else:
-                    connection_type = "#109#0%"
+        if "Sorry" in machine.ip:
+            connection_command = "echo"
+            ip_for_connection = machine.ip
+        elif machine.instance_use_ip_public or not machine.bastion:
+            ip_for_connection = machine.ip_public
+        else:
+            ip_for_connection = machine.ip
 
-                if (instance['Bastion'] and not instance['instance_use_ip_public']) \
-                        or instance['Instance_use_Bastion']:
+        if machine.con_username:
+            con_username = machine.con_username
+        else:
+            con_username = '<default>'
 
-                    bastion_for_profile = instance['Bastion']
-                else:
-                    bastion_for_profile = ''
+        if machine.platform == 'windows':
+            if not machine.con_username:
+                con_username = "Administrator"
+            connection_type = "#91#4%"
+        else:
+            connection_type = "#109#0%"
 
-                if instance['SSH_key'] and instance['use_shared_key']:
-                    shard_key_path = os.path.join(connection_command, os.path.expanduser(
-                        script_config["Local"].get('ssh_keys_path', '.')), instance['SSH_key'])
-                else:
-                    shard_key_path = ''
-                tags = ','.join(tags)
-                if instance['Bastion_Con_port'] != 22:
-                    bastion_port = instance['Bastion_Con_port']
-                else:
-                    bastion_port = ''
-                if instance['Bastion_Con_username']:
-                    bastion_user = instance['Bastion_Con_username']
-                else:
-                    bastion_user = ''
-                if instance['Login_command']:
-                    login_command = instance['Login_command']
-                else:
-                    login_command = ''
-                profile = (
-                    f"\n{short_name}= {connection_type}{ip_for_connection}%{instance['Con_port']}%"
-                    f"{con_username}%%-1%-1%{login_command}%{bastion_for_profile}%{bastion_port}%{bastion_user}%0%"
-                    f"0%0%{shard_key_path}%%"
-                    f"-1%0%0%0%%1080%%0%0%1#MobaFont%10%0%0%0%15%236,"
-                    f"236,236%30,30,30%180,180,192%0%-1%0%%xterm%-1%"
-                    f"-1%_Std_Colors_0_%80%24%0%1%-1%<none>%%0#0# {tags}\n"
-                )
-                profiles += profile
-            bookmark_counter += 1
+        if (machine.bastion and not machine.instance_use_ip_public) \
+                or machine.instance_use_bastion:
+
+            bastion_for_profile = machine.bastion
+        else:
+            bastion_for_profile = ''
+
+        if machine.ssh_key and machine.use_shared_key:
+            shard_key_path = os.path.join(connection_command, os.path.expanduser(
+                script_config["Local"].get('ssh_keys_path', '.')), machine.ssh_key)
+        else:
+            shard_key_path = ''
+        tags = ','.join(tags)
+        if machine.bastion_con_port != 22:
+            bastion_port = machine.bastion_con_port
+        else:
+            bastion_port = ''
+        if machine.bastion_con_username:
+            bastion_user = machine.con_username
+        else:
+            bastion_user = ''
+        if machine.login_command:
+            login_command = machine.login_command.replace('"', "").replace("|","__PIPE__").replace("#","__DIEZE__")
+        else:
+            login_command = ''
+        profile = (
+            f"\n{short_name}= {connection_type}{ip_for_connection}%{machine.con_port}%"
+            f"{con_username}%%-1%-1%{login_command}%{bastion_for_profile}%{bastion_port}%{bastion_user}%0%"
+            f"0%0%{shard_key_path}%%"
+            f"-1%0%0%0%%1080%%0%0%1#MobaFont%10%0%0%0%15%236,"
+            f"236,236%30,30,30%180,180,192%0%-1%0%%xterm%-1%"
+            f"-1%_Std_Colors_0_%80%24%0%1%-1%<none>%%0#0# {tags}\n"
+        )
+        profiles += profile
+        bookmark_counter += 1
 
     with open(os.path.expanduser(os.path.join(CP_OutputDir, 'Cloud-profiler-Moba.mxtsessions')), 'wt') as handle:
         handle.write(profiles)
@@ -764,6 +730,17 @@ def update_moba(obj_list):
 def update_term(obj_list):
     con_username = None
     profiles = []
+
+    p_region_list = {}
+    for obj in cloud_instances_obj_list:
+        if not obj.provider_short in p_region_list:
+            p_region_list[obj.provider_short] = {}
+        if not obj.instance_source in p_region_list[obj.provider_short]:
+            p_region_list[obj.provider_short][obj.instance_source] = {}
+        if not obj.region in p_region_list[obj.provider_short][obj.instance_source]:
+            p_region_list[obj.provider_short][obj.instance_source][obj.region] = []
+        p_region_list[obj.provider_short][obj.instance_source][obj.region].append(obj)
+
 
     for cloud_providor, instance_sources in obj_list.items():
         for instance_source, regions in instance_sources.items():
@@ -877,7 +854,7 @@ def update_term(obj_list):
                 os.path.expanduser(
                     os.path.join(
                         CP_OutputDir,
-                        f".{cloud_providor}.json"
+                        f".CP-{cloud_providor}.json"
                     )
                 ),
                 'wt'
@@ -891,7 +868,7 @@ def update_term(obj_list):
 
 def update_statics(cp_output_dir, us_script_config):
     profiles = []
-    with open(os.path.expanduser(os.path.join(cp_output_dir, ".statics.json")), "wt") as app_static_profile_handle:
+    with open(os.path.expanduser(os.path.join(cp_output_dir, ".CP-statics.json")), "wt") as app_static_profile_handle:
         path_to_static_profiles = os.path.expanduser(us_script_config["Local"]['Static_profiles'])
 
         for root, _, files in os.walk(path_to_static_profiles, topdown=False):
@@ -904,7 +881,7 @@ def update_statics(cp_output_dir, us_script_config):
 
         profiles = {"Profiles": profiles}
         app_static_profile_handle.write(json.dumps(profiles, sort_keys=True, indent=4, separators=(',', ': ')))
-    shutil.move(app_static_profile_handle.name, os.path.expanduser(os.path.join(cp_output_dir, "statics.json")))
+    shutil.move(app_static_profile_handle.name, os.path.expanduser(os.path.join(cp_output_dir, "CP-statics.json")))
 
 
 def docker_contexts_creator(dict_list):
@@ -1153,26 +1130,14 @@ if __name__ == '__main__':
             p.start()
             p_list.append(p)
 
-
         """Wait for all processes (cloud providers) to finish before moving on"""
         for p in p_list:
             p.join()
 
-
-        p_region_list = {}
-        for obj in cloud_instances_obj_list:
-            if not obj.provider_short in p_region_list:
-                p_region_list[obj.provider_short] = {}
-            if not obj.instance_source in p_region_list[obj.provider_short]:
-                p_region_list[obj.provider_short][obj.instance_source] = {}
-            if not obj.region in p_region_list[obj.provider_short][obj.instance_source]:
-                p_region_list[obj.provider_short][obj.instance_source][obj.region] = []
-            p_region_list[obj.provider_short][obj.instance_source][obj.region].append(obj)
-
         if platform.system() == 'Windows' or os.environ.get('CP_Windows', False):
             update_moba(cloud_instances_obj_list)
         else:
-            update_term(p_region_list)
+            update_term(cloud_instances_obj_list)
             # ssh_config
             if script_config['Local'].get('SSH_Config_create'):
                 User_SSH_Config = os.path.expanduser("~/.ssh/config")
