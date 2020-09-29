@@ -23,9 +23,11 @@ from sshconf import empty_ssh_config_file
 
 
 class InstanceProfile:
+    script_config = {}
     """This is an instance profile"""
 
     def __init__(self):
+
         self.name = ""
         self.group = ""
         self.index = 0
@@ -54,7 +56,7 @@ class InstanceProfile:
         self.platform = False
         self.tags = []
         self.con_port_windows = 3389
-        self.instancetype= ""
+        self.instancetype = ""
         self.ip = ""
 
     @property
@@ -106,7 +108,7 @@ class InstanceProfile:
                     if isinstance(toggle, list) and len(toggle) != 0:
                         badge_to_return.append(q_tag_flat(self.iterm_tags, toggle))
                     if isinstance(toggle, list) and len(toggle) == 0:
-                        badge_to_return(f"{self.iterm_tags}")
+                        badge_to_return = f"{self.iterm_tags}"
             value_to_return = '\n'.join(filter(lambda x: x != "", badge_to_return))
         return value_to_return
 
@@ -458,7 +460,6 @@ def fetch_ec2_instance(
 
 def fetch_ec2_region(
         region,
-        instances,
         groups,
         instance_source,
         credentials=None,
@@ -565,7 +566,6 @@ def get_ec2_instances(
     :type profile: dict
     """
     groups = {}
-    instances = {}
     credentials = False
     assumed_role_object = None
 
@@ -637,7 +637,6 @@ def get_ec2_instances(
     for region in ec2_regions:
         fetch_ec2_region(
             region,
-            instances,
             groups,
             instance_source,
             credentials,
@@ -709,7 +708,7 @@ def update_moba(obj_list):
         else:
             bastion_user = ''
         if machine.login_command:
-            login_command = machine.login_command.replace('"', "").replace("|","__PIPE__").replace("#","__DIEZE__")
+            login_command = machine.login_command.replace('"', "").replace("|", "__PIPE__").replace("#", "__DIEZE__")
         else:
             login_command = ''
         profile = (
@@ -732,17 +731,16 @@ def update_term(obj_list):
     profiles = []
 
     p_region_list = {}
-    for obj in cloud_instances_obj_list:
-        if not obj.provider_short in p_region_list:
+    for obj in obj_list:
+        if obj.provider_short not in p_region_list:
             p_region_list[obj.provider_short] = {}
-        if not obj.instance_source in p_region_list[obj.provider_short]:
+        if obj.instance_source not in p_region_list[obj.provider_short]:
             p_region_list[obj.provider_short][obj.instance_source] = {}
-        if not obj.region in p_region_list[obj.provider_short][obj.instance_source]:
+        if obj.region not in p_region_list[obj.provider_short][obj.instance_source]:
             p_region_list[obj.provider_short][obj.instance_source][obj.region] = []
         p_region_list[obj.provider_short][obj.instance_source][obj.region].append(obj)
 
-
-    for cloud_providor, instance_sources in obj_list.items():
+    for cloud_providor, instance_sources in p_region_list.items():
         for instance_source, regions in instance_sources.items():
             for region in regions:
                 for machine in regions[region]:
