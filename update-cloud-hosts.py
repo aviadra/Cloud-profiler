@@ -736,11 +736,6 @@ def update_term(obj_list):
         if obj.provider_short not in p_region_list:
             p_region_list[obj.provider_short] = []
         p_region_list[obj.provider_short].append(obj)
-        # if obj.instance_source not in p_region_list[obj.provider_short]:
-        #     p_region_list[obj.provider_short][obj.instance_source] = {}
-        # if obj.region not in p_region_list[obj.provider_short][obj.instance_source]:
-        #     p_region_list[obj.provider_short][obj.instance_source][obj.region] = []
-        # p_region_list[obj.provider_short][obj.instance_source][obj.region].append(obj)
 
     for cloud_providor, machines in p_region_list.items():
         for machine in machines:
@@ -1069,14 +1064,6 @@ if __name__ == '__main__':
         if not os.path.isdir(os.path.expanduser(CP_OutputDir)):
             os.makedirs(os.path.expanduser(CP_OutputDir))
 
-        # Clean legacy
-        for entry in os.scandir(os.path.expanduser(CP_OutputDir)):
-            if not entry.is_dir(follow_symlinks=False):
-                if "CP" not in entry.name or \
-                   VERSION not in entry.name or \
-                   ("CP" in entry.name and VERSION not in entry.name):
-                    os.remove(entry)
-
         # From user home directory
         script_config = {}
         script_config_user = {}
@@ -1098,6 +1085,15 @@ if __name__ == '__main__':
 
         username = getpass.getuser()
         config = configparser.ConfigParser()
+
+        # Clean legacy
+        if script_config["Local"].get("CNC", True):
+            for entry in os.scandir(os.path.expanduser(CP_OutputDir)):
+                if not entry.is_dir(follow_symlinks=False):
+                    if "CP" not in entry.name or \
+                            VERSION not in entry.name or \
+                            ("CP" in entry.name and VERSION not in entry.name):
+                        os.remove(entry)
 
         p_list = []
         # Static profiles iterator
