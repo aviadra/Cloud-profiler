@@ -1,7 +1,11 @@
 # Cloud_Profiler
 
 The purpose of this script is to connect to cloud providers and generate profiles for quick SSHing.
-As of v2.0 it can also create SSH config file entries and [Docker contexts | https://docs.docker.com/engine/context/working-with-contexts/] that tunnel over SSH.
+
+As of v3.0.2, I have switched from using VScode to using [IDAE](https://www.jetbrains.com/?from=https://github.com/aviadra/Cloud-profiler). They have been kind by providing me with a free "all pack" license and I have found it to be a better tool for Python multiprocessor/multithreaded development. As well as very helpful with adhering to styling guides (like PEP8, but much more). 
+
+As of v2.0 it can also create SSH config file entries and [Docker contexts](https://docs.docker.com/engine/context/working-with-contexts/) that tunnel over SSH.
+
 As of v1.3, both iTerm for MacOS and MobaXterm for Windows are supported.
 Currently the supported cloud providers are AWS and Digital Ocean.
 This project is a fork of [gmartinerro](https://gist.github.com/gmartinerro/40831c8874ebb32bc17711af95e1416b), which gave me a good starting point. With that said, this version doesn't change the hosts file, so that it can be run without sudo.
@@ -52,8 +56,8 @@ You should be all set, just go to the Configuration section.
 
 ## Configuration files
 There is a YAML configuration file within the repo that gives the default values for the script behavior.
-On the first run of the script, a personal configuration file is created in `~/.iTerm-cloud-profile-generator/config.yaml`. So, you don't have to fork the repo in order to have your own settings. Settings in the personal file will take precedence over the default ones from the repo file.
-Possible options within the configuration files are noted below.
+On the first run of the script, if a personal configuration is missing, it will be created in `~/.iTerm-cloud-profile-generator/config.yaml`. So, you don't have to fork the repo in order to have your own settings. Settings in the personal file will take precedence over the default ones from the repo file.
+See below for possible options of the configuration file.
 Note: For convenience, the following values are accepted for "True": 'True', 'yes' and 'y', and for "False: 'False', 'no' and 'n'.
 
 ## Example configuration
@@ -90,8 +94,9 @@ Local:
     SSH_key: False
     Use_shared_key: False
     VPC: True
-  SSH_Config_create: true
-  Docker_contexts_create: true
+  SSH_Config_create: True
+  Docker_contexts_create: True
+  CNC: True
 
 AWS:
   exclude_regions: ["ap-southeast-1", "ap-southeast-2","sa-east-1","ap-northeast-1","ap-northeast-2","ap-south-1"]
@@ -102,7 +107,6 @@ AWS:
   Skip_stopped: True
   exclude_accounts: []
   use_awscli_profiles: False
-  update_hosts: False
   profiles:
     -
       name: "Company_TGT"
@@ -111,7 +115,7 @@ AWS:
       role_arns: {
         sts_oper: "arn:aws:iam::438**********:role/iTerm_RO_from_TGT",
         sts_devops: "arn:aws:iam::168**********:role/iTerm_RO_from_TGT",
-        sts_haim: "arn:aws:iam::701**********:role/iTerm_RO_from_TGT",
+        sts_client1: "arn:aws:iam::701**********:role/iTerm_RO_from_TGT",
       }
 
 DO:
@@ -124,6 +128,8 @@ DO:
 
 ## Local options
 These are settings that are local to your machine or you want to set globally for all clouds. You can set here most of the same directives as in the "tags" section, except the below ones (they don't make sense anywhere else):
+
+`CNC` - Added in version 4.0, and short for [command and conquer](https://www.ea.com/games/command-and-conquer) (no affiliation), Toggels the "dominate the dynamic profiles directory". When this is turned on, files in the iTerm dynamic profiles directory that don't comply with CP's format are deleted. The default behaviour is "on", as I have yet to have met anyone who both uses my script and populates this directory with their own stuff.   
 
 `SSH_Config_create` - Toggels the "create ssh config file" behavior. The default is false.
 
@@ -156,8 +162,6 @@ It is possible to change the order of the items in the badge, by simply reorderi
 `Con_username` - The username used to connect to the instance.
 
 `Dynamic_profile_parent_name` - The name of the Dynamic profile parent name.
-
-`Group` - The group the instance belongs to.
 
 `Id` - The instance ID
 

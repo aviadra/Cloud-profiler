@@ -1002,39 +1002,6 @@ def do_worker(do_script_config, do_instance_counter, do_cloud_instances_obj_list
         print(f"Working on {profile['name']}")
         get_do_instances(profile, do_instance_counter, do_script_config, do_cloud_instances_obj_list)
 
-
-# Updates the /etc/hosts file with the EC2 private addresses
-# /etc/hosts must include the list of EC2 instances between two lines: the first contains '# AWS EC2' 
-# and the last a single # character.
-def update_hosts(instances):
-    with open('/etc/hosts') as handle:
-        lines = handle.read().splitlines()
-    state = False
-
-    with open('/etc/hosts', 'wt')as hout:
-
-        start_delimiter = "# AWS EC2"
-        end_delimiter = "#"
-
-        for line in lines:
-            if line == start_delimiter:
-                state = True
-                continue
-            if state and line == end_delimiter:
-                state = False
-                continue
-            if not state:
-                hout.write(line + "\n")
-
-        hout.write(start_delimiter + "\n")
-        for ip in instances:
-            instance = instances[ip]
-            name = instance['name']
-            hout.write(ip + "\t" + name + "\n")
-
-        hout.write(end_delimiter + "\n")
-
-
 # MAIN
 if __name__ == '__main__':
     VERSION = "v4.0"
