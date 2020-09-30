@@ -732,120 +732,120 @@ def update_term(obj_list):
 
     p_region_list = {}
     for obj in obj_list:
+
         if obj.provider_short not in p_region_list:
-            p_region_list[obj.provider_short] = {}
-        if obj.instance_source not in p_region_list[obj.provider_short]:
-            p_region_list[obj.provider_short][obj.instance_source] = {}
-        if obj.region not in p_region_list[obj.provider_short][obj.instance_source]:
-            p_region_list[obj.provider_short][obj.instance_source][obj.region] = []
-        p_region_list[obj.provider_short][obj.instance_source][obj.region].append(obj)
+            p_region_list[obj.provider_short] = []
+        p_region_list[obj.provider_short].append(obj)
+        # if obj.instance_source not in p_region_list[obj.provider_short]:
+        #     p_region_list[obj.provider_short][obj.instance_source] = {}
+        # if obj.region not in p_region_list[obj.provider_short][obj.instance_source]:
+        #     p_region_list[obj.provider_short][obj.instance_source][obj.region] = []
+        # p_region_list[obj.provider_short][obj.instance_source][obj.region].append(obj)
 
-    for cloud_providor, instance_sources in p_region_list.items():
-        for instance_source, regions in instance_sources.items():
-            for region in regions:
-                for machine in regions[region]:
-                    instance_counter[machine.instance_source] += 1
-                    connection_command = "ssh"
-                    machine.tags = [f"Account: {machine.instance_source}, {machine.ip}"]
-                    for tag in machine.iterm_tags:
-                        machine.tags.append(tag)
+    for cloud_providor, machines in p_region_list.items():
+        for machine in machines:
+            instance_counter[machine.instance_source] += 1
+            connection_command = "ssh"
+            machine.tags = [f"Account: {machine.instance_source}, {machine.ip}"]
+            for tag in machine.iterm_tags:
+                machine.tags.append(tag)
 
-                    if "Sorry" in machine.ip:
-                        connection_command = "echo"
-                        ip_for_connection = machine.ip
-                    elif machine.instance_use_ip_public or not machine.bastion:
-                        ip_for_connection = machine.ip_public
-                    else:
-                        ip_for_connection = machine.ip
+            if "Sorry" in machine.ip:
+                connection_command = "echo"
+                ip_for_connection = machine.ip
+            elif machine.instance_use_ip_public or not machine.bastion:
+                ip_for_connection = machine.ip_public
+            else:
+                ip_for_connection = machine.ip
 
-                    if machine.platform == 'windows':
-                        if not machine.con_username:
-                            con_username = "Administrator"
+            if machine.platform == 'windows':
+                if not machine.con_username:
+                    con_username = "Administrator"
 
-                    connection_command = f"{connection_command} {ip_for_connection}"
+            connection_command = f"{connection_command} {ip_for_connection}"
 
-                    if machine.bastion \
-                            and not machine.instance_use_ip_public \
-                            or machine.instance_use_bastion:
+            if machine.bastion \
+                    and not machine.instance_use_ip_public \
+                    or machine.instance_use_bastion:
 
-                        if machine.bastion_con_username:
-                            bastion_connection_command = f"{machine.bastion_con_username}@{machine.bastion}"
-                        else:
-                            bastion_connection_command = f"{machine.bastion}"
+                if machine.bastion_con_username:
+                    bastion_connection_command = f"{machine.bastion_con_username}@{machine.bastion}"
+                else:
+                    bastion_connection_command = f"{machine.bastion}"
 
-                        if machine.bastion_con_port and \
-                                machine.bastion_con_port != 22:
-                            bastion_connection_command = f"{bastion_connection_command}:{machine.bastion_con_port}"
+                if machine.bastion_con_port and \
+                        machine.bastion_con_port != 22:
+                    bastion_connection_command = f"{bastion_connection_command}:{machine.bastion_con_port}"
 
-                        connection_command = f"{connection_command} -J {bastion_connection_command}"
+                connection_command = f"{connection_command} -J {bastion_connection_command}"
 
-                        if not machine.con_username and machine.platform == 'windows':
-                            connection_command = f"function random_unused_port {{ local port=$( echo " \
-                                                 f"$((2000 + ${{RANDOM}} % 65000))); (echo " \
-                                                 f">/dev/tcp/127.0.0.1/$port) &> /dev/null ; if [[ $? != 0 ]] ; then export " \
-                                                 f"RANDOM_PORT=$port; else random_unused_port ;fi }}; " \
-                                                 f"if [[ -n ${{RANDOM_PORT+x}} && -n \"$( ps aux | grep \"ssh -f\" " \
-                                                 f"| grep -v grep | awk \'{{print $2}}\' )\" ]]; " \
-                                                 f" then kill -9 $( ps aux | grep \"ssh -f\" | grep -v grep " \
-                                                 f"| awk \'{{print $2}}\' ) ; else random_unused_port; fi ;ssh -f -o " \
-                                                 f"ExitOnForwardFailure=yes -L ${{RANDOM_PORT}}:{ip_for_connection}:" \
-                                                 f"{machine.con_port_windows} " \
-                                                 f"{bastion_connection_command} sleep 10 ; open " \
-                                                 f"'rdp://full%20address=s:127.0.0.1:'\"${{RANDOM_PORT}}\"'" \
-                                                 f"&audiomode=i:2&disable%20themes=i:0&screen%20mode%20id=i:1&use%20multimon" \
-                                                 f":i:0&username:s:{con_username}" \
-                                                 f"&desktopwidth=i:1024&desktopheight=i:768'"
-                    elif machine.platform == 'windows':
-                        con_username = machine.con_username
-                        connection_command = f"open 'rdp://full%20address=s:{ip_for_connection}:" \
-                                             f"{machine.con_port_windows}" \
-                                             f"&audiomode=i:2&disable%20themes=i:0&screen%20mode%20id=i:1&use%20multimon" \
-                                             f":i:0&username:s:{con_username}" \
-                                             f"&desktopwidth=i:1024&desktopheight=i:768'"
+                if not machine.con_username and machine.platform == 'windows':
+                    connection_command = f"function random_unused_port {{ local port=$( echo " \
+                                         f"$((2000 + ${{RANDOM}} % 65000))); (echo " \
+                                         f">/dev/tcp/127.0.0.1/$port) &> /dev/null ; if [[ $? != 0 ]] ; then export " \
+                                         f"RANDOM_PORT=$port; else random_unused_port ;fi }}; " \
+                                         f"if [[ -n ${{RANDOM_PORT+x}} && -n \"$( ps aux | grep \"ssh -f\" " \
+                                         f"| grep -v grep | awk \'{{print $2}}\' )\" ]]; " \
+                                         f" then kill -9 $( ps aux | grep \"ssh -f\" | grep -v grep " \
+                                         f"| awk \'{{print $2}}\' ) ; else random_unused_port; fi ;ssh -f -o " \
+                                         f"ExitOnForwardFailure=yes -L ${{RANDOM_PORT}}:{ip_for_connection}:" \
+                                         f"{machine.con_port_windows} " \
+                                         f"{bastion_connection_command} sleep 10 ; open " \
+                                         f"'rdp://full%20address=s:127.0.0.1:'\"${{RANDOM_PORT}}\"'" \
+                                         f"&audiomode=i:2&disable%20themes=i:0&screen%20mode%20id=i:1&use%20multimon" \
+                                         f":i:0&username:s:{con_username}" \
+                                         f"&desktopwidth=i:1024&desktopheight=i:768'"
+            elif machine.platform == 'windows':
+                con_username = machine.con_username
+                connection_command = f"open 'rdp://full%20address=s:{ip_for_connection}:" \
+                                     f"{machine.con_port_windows}" \
+                                     f"&audiomode=i:2&disable%20themes=i:0&screen%20mode%20id=i:1&use%20multimon" \
+                                     f":i:0&username:s:{con_username}" \
+                                     f"&desktopwidth=i:1024&desktopheight=i:768'"
 
-                    if machine.password[0] and machine.platform == 'windows':
-                        connection_command = f"echo \"\\nThe Windows password on record is:\\n" \
-                                             f"{machine.password[1].rstrip()}\\n\\n\" " \
-                                             f"\n;echo -n '{machine.password[1].rstrip()}' " \
-                                             f"|pbcopy; echo \"\\nIt has been sent to your clipboard for easy pasting\\n\\n\"" \
-                                             f";{connection_command}"
+            if machine.password[0] and machine.platform == 'windows':
+                connection_command = f"echo \"\\nThe Windows password on record is:\\n" \
+                                     f"{machine.password[1].rstrip()}\\n\\n\" " \
+                                     f"\n;echo -n '{machine.password[1].rstrip()}' " \
+                                     f"|pbcopy; echo \"\\nIt has been sent to your clipboard for easy pasting\\n\\n\"" \
+                                     f";{connection_command}"
 
-                    elif machine.platform == 'windows':
-                        connection_command = f'echo \"\\nThe Windows password could not be decrypted...\\n' \
-                                             f"The only hint we have is:{connection_command}\\n\\n\";" \
-                                             f"\n{str(machine.password[1])}"
+            elif machine.platform == 'windows':
+                connection_command = f'echo \"\\nThe Windows password could not be decrypted...\\n' \
+                                     f"The only hint we have is:{connection_command}\\n\\n\";" \
+                                     f"\n{str(machine.password[1])}"
 
-                    if machine.platform != 'windows':
-                        connection_command = f"{connection_command} {script_config['Local']['SSH_base_string']}"
+            if machine.platform != 'windows':
+                connection_command = f"{connection_command} {script_config['Local']['SSH_base_string']}"
 
-                        if machine.con_username:
-                            connection_command = f"{connection_command} -l {machine.con_username}"
+                if machine.con_username:
+                    connection_command = f"{connection_command} -l {machine.con_username}"
 
-                        if machine.con_port:
-                            connection_command = f"{connection_command} -p {machine.con_port}"
+                if machine.con_port:
+                    connection_command = f"{connection_command} -p {machine.con_port}"
 
-                        if machine.ssh_key and machine.use_shared_key:
-                            connection_command = f"{connection_command} -i {script_config['Local'].get('ssh_keys_path', '.')}" \
-                                                 f"/{machine.ssh_key}"
+                if machine.ssh_key and machine.use_shared_key:
+                    connection_command = f"{connection_command} -i {script_config['Local'].get('ssh_keys_path', '.')}" \
+                                         f"/{machine.ssh_key}"
 
-                        if machine.login_command:
-                            connection_command = f"{connection_command} -t {machine.login_command}"
+                if machine.login_command:
+                    connection_command = f"{connection_command} -t {machine.login_command}"
 
-                    if machine.dynamic_profile_parent_name:
-                        profile_dynamic_profile_parent_name = machine.dynamic_profile_parent_name
-                    else:
-                        profile_dynamic_profile_parent_name = 'Default'
+            if machine.dynamic_profile_parent_name:
+                profile_dynamic_profile_parent_name = machine.dynamic_profile_parent_name
+            else:
+                profile_dynamic_profile_parent_name = 'Default'
 
-                    profile = {"Name": machine.name,
-                               "Guid": f"{machine.instance_source}-{str(machine.id)}",
-                               "Badge Text": machine.badge,
-                               "Tags": machine.tags,
-                               "Dynamic Profile Parent Name": profile_dynamic_profile_parent_name,
-                               "Custom Command": "Yes",
-                               "Initial Text": connection_command
-                               }
+            profile = {"Name": machine.name,
+                       "Guid": f"{machine.instance_source}-{str(machine.id)}",
+                       "Badge Text": machine.badge,
+                       "Tags": machine.tags,
+                       "Dynamic Profile Parent Name": profile_dynamic_profile_parent_name,
+                       "Custom Command": "Yes",
+                       "Initial Text": connection_command
+                       }
 
-                    profiles.append(profile)
+            profiles.append(profile)
 
         p_profiles = {"Profiles": profiles}
         with open(
@@ -866,7 +866,8 @@ def update_term(obj_list):
 
 def update_statics(cp_output_dir, us_script_config, _version):
     profiles = []
-    with open(os.path.expanduser(os.path.join(cp_output_dir, f".CP-statics-{_version}.json")), "wt") as app_static_profile_handle:
+    with open(os.path.expanduser(os.path.join(cp_output_dir, f".CP-statics-{_version}.json")), "wt") \
+            as app_static_profile_handle:
         path_to_static_profiles = os.path.expanduser(us_script_config["Local"]['Static_profiles'])
 
         for root, _, files in os.walk(path_to_static_profiles, topdown=False):
@@ -879,7 +880,12 @@ def update_statics(cp_output_dir, us_script_config, _version):
 
         profiles = {"Profiles": profiles}
         app_static_profile_handle.write(json.dumps(profiles, sort_keys=True, indent=4, separators=(',', ': ')))
-    shutil.move(app_static_profile_handle.name, os.path.expanduser(os.path.join(cp_output_dir, f"CP-statics-{_version}.json")))
+    shutil.move(
+        app_static_profile_handle.name, os.path.expanduser(
+            os.path.join(
+                cp_output_dir, f"CP-statics-{_version}.json")
+        )
+    )
 
 
 def docker_contexts_creator(dict_list):
@@ -1068,8 +1074,8 @@ if __name__ == '__main__':
             if not entry.is_dir(follow_symlinks=False):
                 if "CP" not in entry.name or \
                    VERSION not in entry.name or \
-                    ("CP" in entry.name and VERSION not in entry.name):
-                        os.remove(entry)
+                   ("CP" in entry.name and VERSION not in entry.name):
+                    os.remove(entry)
 
         # From user home directory
         script_config = {}
