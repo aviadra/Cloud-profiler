@@ -2,7 +2,7 @@
 
 The purpose of this script is to connect to cloud providers and generate profiles for quick SSHing.
 
-As of v3.0.2, I have switched from using VScode to using [IDAE](https://www.jetbrains.com/?from=https://github.com/aviadra/Cloud-profiler). They have been kind by providing me with a free "all pack" license and I have found it to be a better tool for Python multiprocessor/multithreaded development. As well as very helpful with adhering to styling guides (like PEP8, but much more). 
+As of v3.0.2, it is with a heavy heart, that I have switched from using VScode to using [IDAE](https://www.jetbrains.com/?from=https://github.com/aviadra/Cloud-profiler). After I asked, they have kindly provided me with a free "all pack" license and I have found it to be a better tool for Python multiprocessor/multithreaded development. As well as very helpful with adhering to styling guides (like PEP8, but much more). 
 
 As of v2.0 it can also create SSH config file entries and [Docker contexts](https://docs.docker.com/engine/context/working-with-contexts/) that tunnel over SSH.
 
