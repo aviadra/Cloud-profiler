@@ -1,6 +1,6 @@
 # Change Log
 
-## v4.0
+## v4.0 - Daiyōkai (in a "class" of my own :)
 Moved to using a "class" for the machines profiles instead of a nested dict ＼(｀0´)／.
 
 Added "legacy cleaner"/"dynamic profile file versioner", to remove all files that don't match the current version. 
