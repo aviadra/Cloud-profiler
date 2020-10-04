@@ -1059,8 +1059,7 @@ if __name__ == '__main__':
             for entry in os.scandir(os.path.expanduser(CP_OutputDir)):
                 if not entry.is_dir(follow_symlinks=False):
                     if "CP" not in entry.name or \
-                            VERSION not in entry.name or \
-                            ("CP" in entry.name and VERSION not in entry.name):
+                            VERSION not in entry.name:
                         os.remove(entry)
 
         p_list = []
