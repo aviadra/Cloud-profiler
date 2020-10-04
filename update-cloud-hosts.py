@@ -101,8 +101,8 @@ class InstanceProfile:
                     if badge_to_see and self.password[1] != "":
                         badge_to_return.append(f"{badge_to_see}: {self.password[1]}")
                     if badge_to_see \
-                            and not badge_to_see == "password"\
-                            and not badge_to_see == "Instance_key"\
+                            and not badge_to_see == "password" \
+                            and not badge_to_see == "Instance_key" \
                             and not badge_to_see == "Iterm_tags_prefixs":
                         badge_to_return.append(f"{badge_to_see}: {str(instance_dict[badge_to_see.lower()])}")
                     if isinstance(toggle, list) and len(toggle) != 0:
@@ -1001,6 +1001,7 @@ def do_worker(do_script_config, do_instance_counter, do_cloud_instances_obj_list
     for profile in do_script_config['DO']['profiles']:
         print(f"Working on {profile['name']}")
         get_do_instances(profile, do_instance_counter, do_script_config, do_cloud_instances_obj_list)
+
 
 # MAIN
 if __name__ == '__main__':
