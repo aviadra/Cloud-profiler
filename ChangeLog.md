@@ -5,7 +5,7 @@ Moved to using a "class" for the machines profiles instead of a nested dict ＼(
 
 Added "legacy cleaner"/"dynamic profile file versioner", to remove all files that don't match the current version. 
 
-Many linting fixes with the help of [IDAE](https://www.jetbrains.com/?from=https://github.com/aviadra/Cloud-profiler).
+Many linting fixes with the help of [IDEA](https://www.jetbrains.com/?from=https://github.com/aviadra/Cloud-profiler).
 
 Removed the "update_hosts" and "groups" features, that were imported from the original [gist by gmartinerro](https://gist.github.com/gmartinerro/40831c8874ebb32bc17711af95e1416b). 
 
