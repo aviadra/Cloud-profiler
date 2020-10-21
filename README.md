@@ -6,13 +6,13 @@ As of v3.0.2, it is with a heavy heart, that I have switched from using VScode t
 
 As of v2.0 it can also create SSH config file entries and [Docker contexts](https://docs.docker.com/engine/context/working-with-contexts/) that tunnel over SSH.
 
-As of v1.3, both iTerm for MacOS and MobaXterm for Windows are supported.
-Currently the supported cloud providers are AWS and Digital Ocean.
+As of v1.3, both **iTerm** for MacOS and **MobaXterm** for Windows, are supported.
+Currently, the supported cloud providers are AWS and Digital Ocean.
 This project is a fork of [gmartinerro](https://gist.github.com/gmartinerro/40831c8874ebb32bc17711af95e1416b), which gave me a good starting point. With that said, this version doesn't change the hosts file, so that it can be run without sudo.
 
 This project has some assumptions:
 - The script runs on either MacOS (tested only on Catalina and Mojave) or Windows (tested on windows 10).
-- You have [iTerm](https://iterm2.com/) installed when using a Mac.
+- You have [iTerm](https://iterm2.com/) installed, when using a Mac.
 - Your system has Docker, or python3 installed (if using the "system install" method).
 
 ## How to use
