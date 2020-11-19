@@ -1,5 +1,8 @@
 # Change Log
 
+## v4.0.1 - Tsuriboshi (Suspending Star)
+Changed it so the tag we're looking for, can be anywhere in the tag we get from AWS.
+
 ## v4.0 - Daiyōkai (in a "class" of my own :)
 Moved to using a "class" for the machines profiles instead of a nested dict ＼(｀0´)／.
 
