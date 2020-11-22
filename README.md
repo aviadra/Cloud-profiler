@@ -110,7 +110,7 @@ Local:
     Bastion_Con_username: False
     Con_port: False
     Con_username: False
-    Dynamic_profile_parent_name: False
+    dynamic_profile_parent: False
     Group: False
     Id: False
     Instance_use_Bastion: False
@@ -211,7 +211,7 @@ in order to get a line braked list of the name information.
 
 `Con_username` - The username used to connect to the instance.
 
-`Dynamic_profile_parent_name` - The name of the Dynamic profile parent name.
+`dynamic_profile_parent` - The name of the Dynamic profile parent name.
 
 `Id` - The instance ID
 
@@ -398,7 +398,7 @@ The default location of the generated configuration file is "~/Cloud_Profiler/Cl
 ## iTerm setup
 Again, in general you don't need to change anything in your iTerm configuration.
 With that said, it is recommended that you create in your iTerm,
-the profiles you're going to reference when using the "iTerm_Dynamic_profile_parent_name" tag.
+the profiles you're going to reference when using the "iTerm_dynamic_profile_parent" tag.
 If you don't, nothing major will happen, iTerm will simply use the default profile.
 However as of v3.3.8 of iTerm, it will throw errors to an error log and will give popups to note it has done so...
 
@@ -409,7 +409,7 @@ along others.
 
 ### Static profiles
 The "Static profiles" feature of this script,
-allows you to centrally distribute profiles so that you can reference them with the "iTerm_Dynamic_profile_parent_name"
+allows you to centrally distribute profiles so that you can reference them with the "iTerm_dynamic_profile_parent"
 tag. For example, the two profiles in the repo,
 give the "Red Alert" and "Dracula" color schemes with my beloved keyboard shortcuts.
 They are installed for you in the dynamic profiles automatically,
@@ -437,7 +437,7 @@ For example, to create "DRACULA" profile:
 - Choose "Dracula.itermcolors".
 - Now the "DRACULA" schema is select-able in the dropdown list.
 Note: The "Red Alert" profile, which I recommend for production servers is part of the "Static profiles",
-so you can just use it by making it the value of the "iTerm_Dynamic_profile_parent_name" tag.
+so you can just use it by making it the value of the "iTerm_dynamic_profile_parent" tag.
 
 We wish you calm clouds and a serene path...
 
