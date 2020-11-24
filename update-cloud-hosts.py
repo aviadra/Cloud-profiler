@@ -31,7 +31,7 @@ class InstanceProfile:
         self.name = ""
         self.group = ""
         self.index = 0
-        self.dynamic_profile_parent_name = ""
+        self.dynamic_profile_parent = ""
         self.con_username = ""
         self.bastion_con_username = ""
         self.con_port = 22
@@ -206,7 +206,7 @@ def get_tag_value(tags, q_tag, sg=None, q_tag_value=False) -> Union[bool, int, s
                 q_tag_value = ''
             q_tag_value += tag['GroupName'] + ': ' + tag['GroupId'] + ","
         else:
-            if tag['Key'].casefold() == q_tag.casefold():
+            if q_tag.casefold() in tag['Key'].casefold():
                 q_tag_value = tag['Value']
                 if tag['Value'] == 'True'.casefold() or tag['Value'] == "yes".casefold() or \
                         tag['Value'] == "y".casefold():
@@ -267,7 +267,7 @@ def get_do_instances(profile, do_instance_counter, do_script_config, do_cloud_in
         ssh_key = setting_resolver('SSH_key', drop, {}, "DO", False, profile, do_script_config)
         use_shared_key = setting_resolver('use_shared_key', drop, {}, "DO", False, profile, do_script_config)
         login_command = setting_resolver('Login_command', drop, {}, "DO", False, profile, do_script_config)
-        dynamic_profile_parent_name = setting_resolver('Dynamic_profile_parent_name', drop, {}, "DO", False, profile,
+        dynamic_profile_parent = setting_resolver('dynamic_profile_parent', drop, {}, "DO", False, profile,
                                                        do_script_config)
         public_ip = drop.ip_address
 
@@ -298,7 +298,7 @@ def get_do_instances(profile, do_instance_counter, do_script_config, do_cloud_in
         machine.name = f"{instance_source}.{drop_name}"
         machine.group = drop_name
         machine.index = groups[drop.name]
-        machine.dynamic_profile_parent_name = dynamic_profile_parent_name
+        machine.dynamic_profile_parent = dynamic_profile_parent
         machine.iterm_tags = iterm_tags
         machine.instancetype = drop.size['slug']
         machine.con_username = con_username
@@ -358,7 +358,7 @@ def fetch_ec2_instance(
     bastion_con_port = setting_resolver('Bastion_Con_port', instance, vpc_data_all, 'AWS', 22, profile,
                                         fetch_script_config)
     bastion = setting_resolver("bastion", instance, vpc_data_all, 'AWS', False, profile, fetch_script_config)
-    dynamic_profile_parent_name = setting_resolver('Dynamic_profile_parent_name', instance, vpc_data_all, 'AWS', False,
+    dynamic_profile_parent = setting_resolver('dynamic_profile_parent', instance, vpc_data_all, 'AWS', False,
                                                    profile, fetch_script_config)
     instance_vpc_flat_tags = vpc_data(instance.get('VpcId', ''), "flat", vpc_data_all)
     instance_flat_sgs = ''
@@ -435,7 +435,7 @@ def fetch_ec2_instance(
     machine.instance_use_ip_public = instance_use_ip_public
     machine.instance_use_bastion = instance_use_bastion
     machine.ip_public = public_ip
-    machine.dynamic_profile_parent_name = dynamic_profile_parent_name
+    machine.dynamic_profile_parent = dynamic_profile_parent
     machine.iterm_tags = iterm_tags_fin
     machine.instancetype = instance['InstanceType']
     machine.con_username = con_username
@@ -646,7 +646,6 @@ def get_ec2_instances(
         )
 
 
-# TODO convert to objects
 def update_moba(obj_list):
     bookmark_counter = 1
 
@@ -826,16 +825,16 @@ def update_term(obj_list):
                 if machine.login_command:
                     connection_command = f"{connection_command} -t {machine.login_command}"
 
-            if machine.dynamic_profile_parent_name:
-                profile_dynamic_profile_parent_name = machine.dynamic_profile_parent_name
+            if machine.dynamic_profile_parent:
+                profile_dynamic_profile_parent = machine.dynamic_profile_parent
             else:
-                profile_dynamic_profile_parent_name = 'Default'
+                profile_dynamic_profile_parent = 'Default'
 
             profile = {"Name": machine.name,
                        "Guid": f"{machine.instance_source}-{str(machine.id)}",
                        "Badge Text": machine.badge,
                        "Tags": machine.tags,
-                       "Dynamic Profile Parent Name": profile_dynamic_profile_parent_name,
+                       "Dynamic Profile Parent Name": profile_dynamic_profile_parent,
                        "Custom Command": "Yes",
                        "Initial Text": connection_command
                        }
@@ -1005,7 +1004,7 @@ def do_worker(do_script_config, do_instance_counter, do_cloud_instances_obj_list
 
 # MAIN
 if __name__ == '__main__':
-    VERSION = "v4.0"
+    VERSION = "v4.0.1"
     with open("marker.tmp", "w") as file:
         file.write("mark")
 

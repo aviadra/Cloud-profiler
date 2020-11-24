@@ -1,5 +1,10 @@
 # Change Log
 
+## v4.0.1 - Tsuriboshi (Suspending Star)
+Changed it so the tag we're looking for, can be anywhere in the tag we get from AWS.
+The tag "dynamic_profile_parent_name" was changed to "dynamic_profile_parent", in order to not collide with the "Name"
+tag.
+
 ## v4.0 - Daiyōkai (in a "class" of my own :)
 Moved to using a "class" for the machines profiles instead of a nested dict ＼(｀0´)／.
 
@@ -7,7 +12,8 @@ Added "legacy cleaner"/"dynamic profile file versioner", to remove all files tha
 
 Many linting fixes with the help of [IDEA](https://www.jetbrains.com/?from=https://github.com/aviadra/Cloud-profiler).
 
-Removed the "update_hosts" and "groups" features, that were imported from the original [gist by gmartinerro](https://gist.github.com/gmartinerro/40831c8874ebb32bc17711af95e1416b). 
+Removed the "update_hosts" and "groups" features, that were imported from the original
+[gist by gmartinerro](https://gist.github.com/gmartinerro/40831c8874ebb32bc17711af95e1416b). 
 
 ## v3.0.3
 Traces of the old version leaked in and cause ppl to get the double guid error.
@@ -17,7 +23,8 @@ This version is mainly to force the deletion of all update profiles with the iss
 Also, removed the guid from the update profile all together, so this will not happen again.
 
 ## v3.0.2 - How the mighty have fallen (leaving VScode)
-Now actually using threads within the subprocesses and Parallel_exec is no longer used (not even for debugging... thank you intellij)
+Now actually using threads within the subprocesses and Parallel_exec is no longer used (not even for debugging...
+thank you Intellij)
 
 Adjusted changelog to look more like it should (now that I have a builtin preview with intellij) 
 
@@ -28,7 +35,8 @@ Changed the way we handle the creation of ssh config.
 
 ## v3.0 - Bakusaiga
 Started using intellij Pycharm and IDEA.
-Switched to using multiprocessing (instead of threads), dramatically improving the execution time, as processes don't share the boto client connection state.
+Switched to using multiprocessing (instead of threads), dramatically improving the execution time,
+as processes don't share the boto client connection state.
 
 Fixed all pycharm suggestions for cleaner code.
 
@@ -124,7 +132,8 @@ Changed Docker base to use "python:slim-buster". This reduced the image size fro
 ## v1.5 - Tokijin
 Docker support :)
 
-Changed placement of the profiles to be atomic due to change in iTerm 3.8.8[#8679](https://gitlab.com/gnachman/iterm2/issues/8679).
+Changed placement of the profiles to be atomic due to change in iTerm 3.8.8
+[#8679](https://gitlab.com/gnachman/iterm2/issues/8679).
 
 Windows bug "missing setting of d, before use" fix.
 
@@ -155,7 +164,8 @@ Moved to use PEP 498 with f strings
 ## v1.2
 Now supporting AWS STS configurations.
 
-Changed session name to indicate that it was created by the script with which user and on what machine (for easy blaming via logs :)
+Changed session name to indicate that it was created by the script with which user and on what machine
+(for easy blaming via logs :)
 
 Added the source of the instance to the Guid, to deliberately show duplicate configurations.
 
@@ -177,9 +187,11 @@ Fixed "skip stopped" instances logic, and now supporting setting in config files
 ## v1.1
 Moved DO section to be below generic functions.
 
-Added function to decrypt the password for Windows instance copied from [tinkerbotfoo](https://gist.github.com/tinkerbotfoo/337df5bd1faff777fb52).
+Added function to decrypt the password for Windows instance copied from
+[tinkerbotfoo](https://gist.github.com/tinkerbotfoo/337df5bd1faff777fb52).
 
-Changed settingResolver to return True or False answers only, adjusted "generic tag extracting" funcs to match, and aligned all "if"s.
+Changed settingResolver to return True or False answers only, adjusted "generic tag extracting" funcs to match,
+and aligned all "if"s.
 
 Added ability to set the skip stopped for AWS at the profile level.
 
@@ -195,6 +207,7 @@ Added the ability to block the use of a Bastion, by setting the tag iTerm_bastio
 
 Corrected DO bug not using Bastion.
 
-Added self-healing for usage of random port by detecting an already established tunnel and killing it before trying to connect if the variable is already set.
+Added self-healing for usage of random port by detecting an already established tunnel and killing it before trying to
+connect if the variable is already set.
 
 Added ability to run without parallelization (mainly for debugging)
