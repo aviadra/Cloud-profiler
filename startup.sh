@@ -6,7 +6,12 @@ Config_File=".iTerm-cloud-profile-generator/config.yaml"
 Personal_Config_File="${HOME}/${Config_File}"
 SRC_Static_Profiles="/home/appuser/iTerm2-static-profiles"
 DynamicProfiles_Location="Library/Application\ Support/iTerm2/DynamicProfiles/"
-Shard_Key_Path="${HOME}/Downloads"
+if [[ -e ${HOME}/${Config_File} ]]; then
+  Shard_Key_Path="$( cat ${HOME}/${Config_File} | grep SSH_keys_path | awk '{print $2}' | sed -e 's/^"//' -e 's/"$//' )"
+else
+  Shard_Key_Path="~/Downloads"
+fi
+
 SRC_Docker_image_base="aviadra/cp"
 SRC_Docker_Image="${SRC_Docker_image_base}:${CP_Version}"
 update_detected="no"
@@ -80,6 +85,7 @@ ROOT_docker_start() {
     -v "$(eval echo "${Personal_Static_Profiles}/:${SRC_Static_Profiles}" )" \
     -v "$(eval echo "${HOME}/${DynamicProfiles_Location}:/root/${DynamicProfiles_Location}" )" \
     -v /var/run/docker.sock:/var/run/docker.sock \
+    -v "$(eval echo "${Shard_Key_Path}:/home/appuser/Shard_Keys" )" \
     ${SRC_Docker_Image}
   exit_state "Start service container"
 }
@@ -160,12 +166,27 @@ if [[ ! -e "$(eval echo "${Personal_Static_Profiles}/Update iTerm profiles ${CP_
   setup
 fi
 
-[[ "$( cat "${Personal_Config_File}" | grep -E "^  Docker_contexts_create" | awk '{print$2}' 2>/dev/null )" != "true" && \
-    -z "$(docker ps -q -f name=cloud-profiler)" ]] && Normal_docker_start
+org_dir="$( pwd )"
+desired_keys_dir="$( eval cd "${Shard_Key_Path}";pwd )"
+current_keys_dir="$( docker inspect cloud-profiler \
+    | grep "/home/appuser/Shard_Keys" \
+    | grep -v Destination \
+    | awk -F ':' '{print $1}' \
+    | sed -e 's/^[[:space:]]*//' -e 's/^"//' )"
+cd ${org_dir}
+
+[[ ( "$( cat "${Personal_Config_File}" | \
+          grep -E "^  Docker_contexts_create" | \
+          awk '{print$2}' 2>/dev/null )" != "true" && \
+      -z "$(docker ps -q -f name=cloud-profiler)" ) || \
+     "${desired_keys_dir}" != "${current_keys_dir}" ]] && \
+Normal_docker_start
+
 if [[ "$( cat "${Personal_Config_File}" | grep "^  Docker_contexts_create" | awk '{print$2}' 2> /dev/null )" == "true" ]] ; then
   echo "Cloud-profiler - Found docker contexts directive"
     if [[ -z "$(docker ps -q -f name=cloud-profiler)" || \
-          -z "$( docker inspect cloud-profiler | grep /var/run/docker.sock:/var/run/docker.sock 2> /dev/null )" ]] ;then
+          -z "$( docker inspect cloud-profiler | grep /var/run/docker.sock:/var/run/docker.sock 2> /dev/null )" || \
+          "${desired_keys_dir}" != "${current_keys_dir}" ]] ;then
           ROOT_docker_start
     fi
 fi
