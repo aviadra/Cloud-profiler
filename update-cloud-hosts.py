@@ -819,7 +819,7 @@ def update_term(obj_list):
                     connection_command = f"{connection_command} -p {machine.con_port}"
 
                 if machine.ssh_key and machine.use_shared_key:
-                    connection_command = f"{connection_command} -i {script_config['Local'].get('ssh_keys_path', '.')}" \
+                    connection_command = f"{connection_command} -i {script_config['Local'].get('SSH_keys_path', '.')}" \
                                          f"/{machine.ssh_key}"
 
                 if machine.login_command:
