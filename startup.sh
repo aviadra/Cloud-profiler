@@ -55,7 +55,7 @@ Normal_docker_start() {
     -v "$(eval echo "${Personal_Config_File}:/home/appuser/${Config_File}" )" \
     -v "$(eval echo "${Personal_Static_Profiles}/:${SRC_Static_Profiles}" )" \
     -v "$(eval echo "${HOME}/${DynamicProfiles_Location}:/home/appuser/${DynamicProfiles_Location}" )" \
-    -v "$(eval echo "${Shard_Key_Path}:/home/appuser/Downloads" )" \
+    -v "$(eval echo "${Shard_Key_Path}:/home/appuser/Shard_Keys" )" \
     ${SRC_Docker_Image}
   exit_state "Start service container"
 }
@@ -156,6 +156,7 @@ fi
 [[ ! -e $(eval echo "${Personal_Static_Profiles}" ) ]] && setup
 [[ ! -e $(eval echo "${Personal_Config_File}" ) ]] && setup
 if [[ ! -e "$(eval echo "${Personal_Static_Profiles}/Update iTerm profiles ${CP_Update_Profile_VERSION}.json")" ]];then
+  clear_service_container
   setup
 fi
 
