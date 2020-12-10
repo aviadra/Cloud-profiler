@@ -6,6 +6,12 @@ Config_File=".iTerm-cloud-profile-generator/config.yaml"
 Personal_Config_File="${HOME}/${Config_File}"
 SRC_Static_Profiles="/home/appuser/iTerm2-static-profiles"
 DynamicProfiles_Location="Library/Application\ Support/iTerm2/DynamicProfiles/"
+if [[ -e ${HOME}/${Config_File} ]]; then
+  Shard_Key_Path="$( cat ${HOME}/${Config_File} | grep SSH_keys_path | awk '{print $2}' | sed -e 's/^"//' -e 's/"$//' )"
+else
+  Shard_Key_Path="~/Downloads"
+fi
+
 SRC_Docker_image_base="aviadra/cp"
 SRC_Docker_Image="${SRC_Docker_image_base}:${CP_Version}"
 update_detected="no"
@@ -14,7 +20,7 @@ check_for_updates="true"
 echo -e "Cloud-profiler - Welcome to the startup/setup script."
 
 user_waiter() {
-  echo -e "Cloud-profiler - If this is not what you whish to do, CTRL+C to abort."
+  echo -e "Cloud-profiler - If this is not what you wish to do, CTRL+C to abort."
   BAR='##################################################'   # this is full bar, e.g. 20 chars
   for i in {1..50}; do
     echo -ne "\r${BAR:0:$i}" # print $i chars of $BAR from 0 position
@@ -54,6 +60,7 @@ Normal_docker_start() {
     -v "$(eval echo "${Personal_Config_File}:/home/appuser/${Config_File}" )" \
     -v "$(eval echo "${Personal_Static_Profiles}/:${SRC_Static_Profiles}" )" \
     -v "$(eval echo "${HOME}/${DynamicProfiles_Location}:/home/appuser/${DynamicProfiles_Location}" )" \
+    -v "$(eval echo "${Shard_Key_Path}:/home/appuser/Shard_Keys" )" \
     ${SRC_Docker_Image}
   exit_state "Start service container"
 }
@@ -78,6 +85,7 @@ ROOT_docker_start() {
     -v "$(eval echo "${Personal_Static_Profiles}/:${SRC_Static_Profiles}" )" \
     -v "$(eval echo "${HOME}/${DynamicProfiles_Location}:/root/${DynamicProfiles_Location}" )" \
     -v /var/run/docker.sock:/var/run/docker.sock \
+    -v "$(eval echo "${Shard_Key_Path}:/home/appuser/Shard_Keys" )" \
     ${SRC_Docker_Image}
   exit_state "Start service container"
 }
@@ -86,8 +94,8 @@ update_container() {
   echo -e "Cloud-profiler - Checking for updates"
   echo -e "Cloud-profiler - This may take a while....\n"
   on_system_digests=$(docker images --digests | grep ${SRC_Docker_image_base} | grep $CP_Version | awk '{print $3}')
-  latest_version_digets=$( docker pull ${SRC_Docker_Image} | grep Digest | awk '{print $2}' )
-  if [[ "${latest_version_digets}" != "${on_system_digests}" ]]; then
+  latest_version_digits=$( docker pull ${SRC_Docker_Image} | grep Digest | awk '{print $2}' )
+  if [[ "${latest_version_digits}" != "${on_system_digests}" ]]; then
     echo -e "Cloud-profiler - Newer version of container detected.\n"
     echo -e "Cloud-profiler - Now restarting service for changes to take affect."
     update_detected="yes"
@@ -101,7 +109,7 @@ setup() {
     ! -f ${HOME}/.ssh/config || \
     ! -f "$( eval echo "${Personal_Static_Profiles}/Update iTerm profiles ${CP_Update_Profile_VERSION}.json" )" ]]; then
 
-    echo "Cloud-profiler - Besic setup parts missing. Will now setup."
+    echo "Cloud-profiler - Basic setup parts missing. Will now setup."
     echo "Cloud-profiler - Creating the container to copy profiles and config from."
     echo "Cloud-profiler - This may take a while...."
     docker rm -f cloud-profiler-copy &> /dev/null
@@ -123,7 +131,7 @@ setup() {
       docker cp \
         "$( eval echo "cloud-profiler-copy:${SRC_Static_Profiles}/Update iTerm profiles ${CP_Update_Profile_VERSION}.json")" \
         "$(eval echo "${Personal_Static_Profiles}" )" ; exit_state "Copy Update profile from copy container"
-      echo -e "Cloud-profiler - We've updated the \"Update proflile\" in \"${Personal_Static_Profiles}\". It is now at ${CP_Update_Profile_VERSION}"
+      echo -e "Cloud-profiler - We've updated the \"Update profile\" in \"${Personal_Static_Profiles}\". It is now at ${CP_Update_Profile_VERSION}"
     fi
     if [[ ! -e $(eval "echo ${Personal_Config_File}" ) ]]; then
       mkdir -p "$(eval dirname "${Personal_Config_File}" )" ; exit_state "Create personal config dir"
@@ -143,7 +151,7 @@ if [[ -z "$(docker images --digests | grep ${SRC_Docker_image_base} | grep $CP_V
   user_waiter
 fi
 
-if [[ -z "$(which docker)" ]] ;then
+if [[ -z "$(command -v docker)" ]] ;then
   echo "Cloud-profiler - We can't seem to find docker on the system :\\"
   echo "Cloud-profiler - Make it so the \"which\" command can find it and run gain."
   echo "Cloud-profiler - Goodbye for now..."
@@ -154,15 +162,31 @@ fi
 [[ ! -e $(eval echo "${Personal_Static_Profiles}" ) ]] && setup
 [[ ! -e $(eval echo "${Personal_Config_File}" ) ]] && setup
 if [[ ! -e "$(eval echo "${Personal_Static_Profiles}/Update iTerm profiles ${CP_Update_Profile_VERSION}.json")" ]];then
+  clear_service_container
   setup
 fi
 
-[[ "$( cat "${Personal_Config_File}" | grep -E "^  Docker_contexts_create" | awk '{print$2}' 2>/dev/null )" != "true" && \
-    -z "$(docker ps -q -f name=cloud-profiler)" ]] && Normal_docker_start
+org_dir="$( pwd )"
+desired_keys_dir="$( eval cd "${Shard_Key_Path}";pwd )"
+current_keys_dir="$( docker inspect cloud-profiler \
+    | grep "/home/appuser/Shard_Keys" \
+    | grep -v Destination \
+    | awk -F ':' '{print $1}' \
+    | sed -e 's/^[[:space:]]*//' -e 's/^"//' )"
+cd ${org_dir}
+
+[[ ( "$( cat "${Personal_Config_File}" | \
+          grep -E "^  Docker_contexts_create" | \
+          awk '{print$2}' 2>/dev/null )" != "true" && \
+      -z "$(docker ps -q -f name=cloud-profiler)" ) || \
+     "${desired_keys_dir}" != "${current_keys_dir}" ]] && \
+Normal_docker_start
+
 if [[ "$( cat "${Personal_Config_File}" | grep "^  Docker_contexts_create" | awk '{print$2}' 2> /dev/null )" == "true" ]] ; then
   echo "Cloud-profiler - Found docker contexts directive"
     if [[ -z "$(docker ps -q -f name=cloud-profiler)" || \
-          -z "$( docker inspect cloud-profiler | grep /var/run/docker.sock:/var/run/docker.sock 2> /dev/null )" ]] ;then
+          -z "$( docker inspect cloud-profiler | grep /var/run/docker.sock:/var/run/docker.sock 2> /dev/null )" || \
+          "${desired_keys_dir}" != "${current_keys_dir}" ]] ;then
           ROOT_docker_start
     fi
 fi
