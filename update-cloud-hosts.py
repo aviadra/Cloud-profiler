@@ -739,7 +739,7 @@ def update_term(obj_list):
     for cloud_providor, machines in p_region_list.items():
         for machine in machines:
             instance_counter[machine.instance_source] += 1
-            connection_command = "ssh"
+            connection_command = f"{script_config['Local']['SSH_command']}"
             machine.tags = [f"Account: {machine.instance_source}, {machine.ip}"]
             for tag in machine.iterm_tags:
                 machine.tags.append(tag)
