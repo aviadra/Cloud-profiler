@@ -197,7 +197,7 @@ It is possible to change the order of the items in the badge, by simply reorderi
 `Name` - Toggles showing the instance name. It is possible to set this to "Formatted",
 in order to get a line braked list of the name information.
 
-`Instance_key` - The Main IP associated with the instance.
+`Cloud_profiler_Instance_key` - The Main IP associated with the instance.
 
 `InstanceType` - The type/size of the instance. For example, t3.nano.
 
@@ -319,43 +319,6 @@ The precedence of directives, is:
 4. At the Cloud provider level (e.g. AWS, DO), in the config files.
 5. On the "Local" level in the configuration files.
 
-### Tags
-Directives can be set with tags on the instances.
-You can either use them as is, for example as they appear in the config files,
-or prefix them with either "Cloud_Profiler" or "iTerm_"
-(the latter is kept for compatibility and may be deprecated in a future release).
-It is recommended to use the "Cloud_Profiler" prefix,
-as it just gives context to the person seeing the tags on the instance.
-For example, `Cloud_Profiler_profile_parent_name` (the preferred method),
-`iTerm_profile_parent_name` (may be deprecated in a future release),
-and even just `profile_parent_name` are all acceptable forms of tagging.
-Note: As of v1.6.4, the capitalisation of the text in the tags after the prefix doesn't matter.
-
-Possible directives are:
-
-`profile_parent_name` - Sets the profile to inherit colors and other settings from.
-Note: If this profile doesn't exist locally, you will be getting nasty error messages from iTerm,
-when it tries to ingest the profile that points to it.
-
-`Bastion` - The address of the Bastion to be used to reach this VM.
-When setting the value of this setting to "no", the Bastion will not be used.
-
-`Bastion_use` - When using "iTerm_Ip_public", the Bastion is not used. unless this tag is set with the value of "yes".
-
-`use_Ip_public` - Denotes that this instance profile should use the instance public IP for the connection.
-Setting this tag, also sets the profile to not use a Bastion, unless the "iTerm_Bastion_use" tag is set.
-
-`Con_username` - The username to add to the connection.
-
-`Con_port` - The port to add to the connection.
-
-`Use_shared_key` - Toggle the use of the shared key that was used to create the instance.
-While this is not recommended, this is where you usually start.
-The default is to not use the shared key with the value of "False".
-
-`SSH_key` - The name of the key to use. If this is not defined, and the "Use_shared_key" is set,
-the key name on the instance is used.
-
 ## Cloud side setup
 In general, there really isn't anything you "need" to do on the clouds side.
 With that said, there are Things you can/should set on the cloud side to make the setup more specific.
@@ -364,12 +327,42 @@ With that said, there are Things you can/should set on the cloud side to make th
 On AWS, the default configuration is to push you towards securing your connections and to use a 
 [Bastion](https://docs.aws.amazon.com/quickstart/latest/linux-bastion/architecture.html#bastion-hosts) for everything.
 This can be changed in the configuration files or using TAGs that you can add to instances and/or VPCs.
-In general, it is recommended to "tattoo" the "iTerm_Bastion" at the VPC level.
+In general, it is recommended to "tattoo" the "Cloud_profiler_Bastion" at the VPC level.
 On AWS you set a tag by adding it to the desired resource, setting the "key" field to the name of the tag and in the
 "value" field the desired setting.
 Note the credentials used for AWS,
 must have the following permissions: "ec2:DescribeVpcs", "ec2:GetPasswordData", "ec2:DescribeRegions"
 and "ec2:DescribeInstances".
+
+### Tags
+Directives can be set with tags on the instances.
+Note: As of v1.6.4, the capitalisation of the text in the tags after the prefix doesn't matter.
+
+Possible directives are:
+
+`Cloud_profiler_profile_parent_name` - Sets the profile to inherit colors and other settings from.
+Note: If this profile doesn't exist locally, you will be getting nasty error messages from iTerm,
+when iTerm tries to ingest the profile that points to it.
+
+`Cloud_profiler_Bastion` - The address of the Bastion to be used to reach this VM.
+When setting the value of this setting to "no", the Bastion will not be used.
+
+`Cloud_profiler_Bastion_use` - When using "Cloud_profiler_Ip_public",
+the Bastion is not used. unless this tag is set with the value of "yes".
+
+`Cloud_profiler_use_Ip_public` - Denotes that this instance profile should use the instance public IP for the connection.
+Setting this tag, also sets the profile to not use a Bastion, unless the "Cloud_profiler_Bastion_use" tag is set.
+
+`Cloud_profiler_Con_username` - The username to add to the connection.
+
+`Cloud_profiler_Con_port` - The port to add to the connection.
+
+`Cloud_profiler_Use_shared_key` - Toggle the use of the shared key that was used to create the instance.
+While this is not recommended, this is where you usually start.
+The default is to not use the shared key with the value of "False".
+
+`Cloud_profiler_SSH_key` - The name of the key to use. If this is not defined, and the "Use_shared_key" is set,
+the key name on the instance is used.
 
 ### Digital Ocean
 Digital Ocean's implementation of VPC is such that there isn't a way to set tags on it (that I have seen).
