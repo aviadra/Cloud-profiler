@@ -168,6 +168,9 @@ When this is turned on, files in the iTerm dynamic profiles directory that don't
 The default behaviour is "on",
 as I have yet to have met anyone who both uses my script and populates this directory with their own stuff.   
 
+`SSH_command` - Introduced in version 4.1, this allows you to set the command to issue for SSHing. 
+The default value is simply "ssh".
+
 `SSH_Config_create` - Toggles the "create ssh config file" behavior. The default is false.
 
 `Docker_contexts_create` - Toggles the "create Docker context behavior - The default is false. 

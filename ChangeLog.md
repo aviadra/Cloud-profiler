@@ -8,7 +8,7 @@ so it doesn't invalidate the cache too soon and its visually closer to where it 
 BUG: Corrected the name of the attribute we're looking for in the "script_config".
 Added deleting the container if the version has changed (as indicated by the file name).
 Reduced linting issues from "startup" script.
-Updated README for better readability.
+Updated README to include instructions about the new "SSH_command" directive, and for better readability.
 
 ## v4.0.1 - Tsuriboshi (Suspending Star)
 Changed it so the value of the tag we're looking for, can be anywhere in the tag value we get from AWS.
