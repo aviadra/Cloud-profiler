@@ -1,7 +1,17 @@
 # Change Log
 
+## v4.1 - Hōrin (Disintegrating Circle)
+Added ability to set the ssh command to use from the config file.
+Dockerfile: Added OS upgrade to lower CVEs.
+Moved where we copy the requirements, 
+so it doesn't invalidate the cache too soon and its visually closer to where it is used.
+BUG: Corrected the name of the attribute we're looking for in the "script_config".
+Added deleting the container if the version has changed (as indicated by the file name).
+Reduced linting issues from "startup" script.
+Updated README to include instructions about the new "SSH_command" directive, and for better readability.
+
 ## v4.0.1 - Tsuriboshi (Suspending Star)
-Changed it so the tag we're looking for, can be anywhere in the tag we get from AWS.
+Changed it so the value of the tag we're looking for, can be anywhere in the tag value we get from AWS.
 The tag "dynamic_profile_parent_name" was changed to "dynamic_profile_parent", in order to not collide with the "Name"
 tag.
 

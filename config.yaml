@@ -1,4 +1,5 @@
 Local:
+  SSH_command: "ssh"
   Static_profiles: "./iTerm2-static-profiles"
   SSH_base_string: "-oStrictHostKeyChecking=no -oUpdateHostKeys=yes -oServerAliveInterval=30 -oAddKeysToAgent=no"
   # Con_username: "ec2-user"

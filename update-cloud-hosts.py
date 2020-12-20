@@ -739,7 +739,7 @@ def update_term(obj_list):
     for cloud_providor, machines in p_region_list.items():
         for machine in machines:
             instance_counter[machine.instance_source] += 1
-            connection_command = "ssh"
+            connection_command = f"{script_config['Local']['SSH_command']}"
             machine.tags = [f"Account: {machine.instance_source}, {machine.ip}"]
             for tag in machine.iterm_tags:
                 machine.tags.append(tag)
@@ -819,7 +819,7 @@ def update_term(obj_list):
                     connection_command = f"{connection_command} -p {machine.con_port}"
 
                 if machine.ssh_key and machine.use_shared_key:
-                    connection_command = f"{connection_command} -i {script_config['Local'].get('ssh_keys_path', '.')}" \
+                    connection_command = f"{connection_command} -i {script_config['Local'].get('SSH_keys_path', '.')}" \
                                          f"/{machine.ssh_key}"
 
                 if machine.login_command:
@@ -1004,7 +1004,7 @@ def do_worker(do_script_config, do_instance_counter, do_cloud_instances_obj_list
 
 # MAIN
 if __name__ == '__main__':
-    VERSION = "v4.0.1"
+    VERSION = "v4.1"
     with open("marker.tmp", "w") as file:
         file.write("mark")
 
