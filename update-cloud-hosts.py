@@ -573,7 +573,8 @@ def get_ec2_instances(
         instance_source = "aws." + profile['name']
         profile_name = profile['name']
         boto3.setup_default_session(aws_access_key_id=profile['aws_access_key_id'],
-                                    aws_secret_access_key=profile['aws_secret_access_key'], region_name="eu-central-1")
+                                    aws_secret_access_key=profile['aws_secret_access_key'],
+                                    region_name="eu-central-1")
     else:
         instance_source = "aws." + profile
         boto3.setup_default_session(profile_name=profile, region_name="eu-central-1")
@@ -936,20 +937,19 @@ def docker_contexts_creator(dict_list):
 
 def update_ssh_config(dict_list):
     ssh_conf_file = empty_ssh_config_file()
-    for profile_dict in dict_list:
-        for instance in profile_dict['instances']:
-            name = f"{profile_dict['instances'][instance]['Name']}-{instance}",
-            ssh_conf_file.add(
-                name,
-                Hostname=instance,
-                Port=profile_dict["instances"][instance]['Con_port'],
-                User=profile_dict["instances"][instance]['Con_username'],
-                ProxyJump=profile_dict["instances"][instance]['Bastion']
-            )
-            if not profile_dict["instances"][instance]['Con_username']:
-                ssh_conf_file.unset(name, "user")
-            if not profile_dict["instances"][instance]['Bastion']:
-                ssh_conf_file.unset(name, "proxyjump")
+    for machine in dict_list:
+        name = f"{machine.name}-{machine.ip}",
+        ssh_conf_file.add(
+            name,
+            Hostname=machine.ip,
+            Port=machine.con_port,
+            User=machine.con_username,
+            ProxyJump=machine.bastion
+        )
+        if not machine.con_username:
+            ssh_conf_file.unset(name, "user")
+        if not machine.bastion:
+            ssh_conf_file.unset(name, "proxyjump")
     ssh_conf_file.write(CP_SSH_Config)
 
 
@@ -1124,7 +1124,7 @@ if __name__ == '__main__':
                     else:
                         print("Did not find include directive  for CP in user's ssh config file, so adding it.")
                         line_prepender(User_SSH_Config, "Include ~/.ssh/cloud-profiler")
-                update_ssh_config(cloud_instances_obj_list)
+                update_ssh_config(list(cloud_instances_obj_list))
             if script_config['Local'].get('docker_contexts_create'):
                 docker_contexts_creator(cloud_instances_obj_list)
 
