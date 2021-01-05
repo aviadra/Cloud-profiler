@@ -938,7 +938,7 @@ def docker_contexts_creator(dict_list):
 def update_ssh_config(dict_list):
     ssh_conf_file = empty_ssh_config_file()
     for machine in dict_list:
-        name = f"{machine.name}-{machine.ip}",
+        name = f"{machine.name}-{machine.ip}"
         ssh_conf_file.add(
             name,
             Hostname=machine.ip,
@@ -950,6 +950,7 @@ def update_ssh_config(dict_list):
             ssh_conf_file.unset(name, "user")
         if not machine.bastion:
             ssh_conf_file.unset(name, "proxyjump")
+        print(f"Added {name} to SSH config list.")
     ssh_conf_file.write(CP_SSH_Config)
 
 
@@ -1115,6 +1116,7 @@ if __name__ == '__main__':
             update_term(cloud_instances_obj_list)
             # ssh_config
             if script_config['Local'].get('SSH_Config_create'):
+                print("SSH_Config_create is set, so will create config.")
                 User_SSH_Config = os.path.expanduser("~/.ssh/config")
                 CP_SSH_Config = os.path.expanduser("~/.ssh/cloud-profiler")
                 with open(User_SSH_Config) as f:
