@@ -16,7 +16,32 @@ COPY ./requirements.txt /home/appuser/requirements.txt
 RUN pip3 install -r requirements.txt
 COPY . /home/appuser/
 RUN useradd appuser && chown -R appuser:appuser /home/appuser/
-RUN apt update && apt full-upgrade -y && rm -rf /var/lib/apt/lists/*
+
+RUN apt update \
+    && apt install python3-minimal -y  --no-install-recommends \
+    && apt full-upgrade -y \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN apt purge -y --allow-remove-essential \
+    python3-pip \
+    containerd \
+    bash \
+    && apt autoremove -y
+
+RUN dpkg -r --force-remove-essential --force-depends \
+    libgcrypt20 \
+    libsystemd0 \
+    pcre3 \
+    shadow \
+    coreutils \
+    glibc \
+    gnupg2 \
+    libtasn1 \
+    libsqlite3-0 \
+    dash \
+    tar || true
+
+RUN find  /bin/ -name  sh -delete
 
 #### Debug
 FROM base AS debug
