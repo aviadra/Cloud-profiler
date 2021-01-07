@@ -46,7 +46,7 @@ class InstanceProfile:
         self.ip_public = ""
         self.password = ""
         self.region = ""
-        self.docker_contexts_create = False
+        self.docker_context = False
         self.instance_source = ""
         self.instance_flat_sgs = ""
         self.instance_flat_tags = ""
@@ -890,49 +890,48 @@ def docker_contexts_creator(dict_list):
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
     )
-    for profile_dict in dict_list:
-        for instance in profile_dict['instances']:
-            if profile_dict["instances"][instance]['docker_context']:
-                context_name = f"{profile_dict['instances'][instance]['Name']}-{instance}"
-                raw_iterm_tags = str(profile_dict['instances'][instance]['iterm_tags']).strip('[]')
-                if profile_dict["instances"][instance]['Name'] not in current_contexts.stdout.decode('utf-8'):
-                    print(f"Creating on Docker context for {context_name}")
-                    try:
-                        subprocess.run(
-                            [
-                                "docker",
-                                "context",
-                                "create",
-                                context_name,
-                                "--docker",
-                                f"host=ssh://{context_name}",
-                                "--description",
-                                raw_iterm_tags
-                            ],
-                            check=True,
-                            stdout=subprocess.PIPE,
-                            stderr=subprocess.PIPE,
-                        )
-                    except subprocess.CalledProcessError as err:
-                        print('ERROR: There was en problem when creating the Docker context.\n', err)
-                else:
-                    print(f"Updating on Docker context for {context_name}")
-                    try:
-                        subprocess.run(
-                            [
-                                "docker",
-                                "context",
-                                "update",
-                                context_name,
-                                "--description",
-                                raw_iterm_tags
-                            ],
-                            check=True,
-                            stdout=subprocess.PIPE,
-                            stderr=subprocess.PIPE,
-                        )
-                    except subprocess.CalledProcessError as err:
-                        print('ERROR: There was en problem when updating the Docker context.\n', err)
+    for machine in dict_list:
+        if machine.docker_context:
+            context_name = f"{machine.name}-{machine.ip}"
+            raw_iterm_tags = str(machine.iterm_tags)
+            if machine.name not in current_contexts.stdout.decode('utf-8'):
+                print(f"Creating on Docker context for {context_name}")
+                try:
+                    subprocess.run(
+                        [
+                            "docker",
+                            "context",
+                            "create",
+                            context_name,
+                            "--docker",
+                            f"host=ssh://{context_name}",
+                            "--description",
+                            raw_iterm_tags
+                        ],
+                        check=True,
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE,
+                    )
+                except subprocess.CalledProcessError as err:
+                    print('ERROR: There was en problem when creating the Docker context.\n', err)
+            else:
+                print(f"Updating on Docker context for {context_name}")
+                try:
+                    subprocess.run(
+                        [
+                            "docker",
+                            "context",
+                            "update",
+                            context_name,
+                            "--description",
+                            raw_iterm_tags
+                        ],
+                        check=True,
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE,
+                    )
+                except subprocess.CalledProcessError as err:
+                    print('ERROR: There was en problem when updating the Docker context.\n', err)
 
 
 def update_ssh_config(dict_list):
@@ -1127,8 +1126,8 @@ if __name__ == '__main__':
                         print("Did not find include directive  for CP in user's ssh config file, so adding it.")
                         line_prepender(User_SSH_Config, "Include ~/.ssh/cloud-profiler")
                 update_ssh_config(list(cloud_instances_obj_list))
-            if script_config['Local'].get('docker_contexts_create'):
-                docker_contexts_creator(cloud_instances_obj_list)
+            if script_config['Local'].get('Docker_contexts_create'):
+                docker_contexts_creator(list(cloud_instances_obj_list))
 
         if os.path.exists('marker.tmp'):
             os.remove("marker.tmp")
