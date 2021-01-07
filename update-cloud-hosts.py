@@ -46,7 +46,7 @@ class InstanceProfile:
         self.ip_public = ""
         self.password = ""
         self.region = ""
-        self.docker_contexts_create = False
+        self.docker_context = False
         self.instance_source = ""
         self.instance_flat_sgs = ""
         self.instance_flat_tags = ""
@@ -573,7 +573,8 @@ def get_ec2_instances(
         instance_source = "aws." + profile['name']
         profile_name = profile['name']
         boto3.setup_default_session(aws_access_key_id=profile['aws_access_key_id'],
-                                    aws_secret_access_key=profile['aws_secret_access_key'], region_name="eu-central-1")
+                                    aws_secret_access_key=profile['aws_secret_access_key'],
+                                    region_name="eu-central-1")
     else:
         instance_source = "aws." + profile
         boto3.setup_default_session(profile_name=profile, region_name="eu-central-1")
@@ -889,67 +890,66 @@ def docker_contexts_creator(dict_list):
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
     )
-    for profile_dict in dict_list:
-        for instance in profile_dict['instances']:
-            if profile_dict["instances"][instance]['docker_context']:
-                context_name = f"{profile_dict['instances'][instance]['Name']}-{instance}"
-                raw_iterm_tags = str(profile_dict['instances'][instance]['iterm_tags']).strip('[]')
-                if profile_dict["instances"][instance]['Name'] not in current_contexts.stdout.decode('utf-8'):
-                    print(f"Creating on Docker context for {context_name}")
-                    try:
-                        subprocess.run(
-                            [
-                                "docker",
-                                "context",
-                                "create",
-                                context_name,
-                                "--docker",
-                                f"host=ssh://{context_name}",
-                                "--description",
-                                raw_iterm_tags
-                            ],
-                            check=True,
-                            stdout=subprocess.PIPE,
-                            stderr=subprocess.PIPE,
-                        )
-                    except subprocess.CalledProcessError as err:
-                        print('ERROR: There was en problem when creating the Docker context.\n', err)
-                else:
-                    print(f"Updating on Docker context for {context_name}")
-                    try:
-                        subprocess.run(
-                            [
-                                "docker",
-                                "context",
-                                "update",
-                                context_name,
-                                "--description",
-                                raw_iterm_tags
-                            ],
-                            check=True,
-                            stdout=subprocess.PIPE,
-                            stderr=subprocess.PIPE,
-                        )
-                    except subprocess.CalledProcessError as err:
-                        print('ERROR: There was en problem when updating the Docker context.\n', err)
+    for machine in dict_list:
+        if machine.docker_context:
+            context_name = f"{machine.name}-{machine.ip}"
+            raw_iterm_tags = str(machine.iterm_tags)
+            if machine.name not in current_contexts.stdout.decode('utf-8'):
+                print(f"Creating on Docker context for {context_name}")
+                try:
+                    subprocess.run(
+                        [
+                            "docker",
+                            "context",
+                            "create",
+                            context_name,
+                            "--docker",
+                            f"host=ssh://{context_name}",
+                            "--description",
+                            raw_iterm_tags
+                        ],
+                        check=True,
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE,
+                    )
+                except subprocess.CalledProcessError as err:
+                    print('ERROR: There was en problem when creating the Docker context.\n', err)
+            else:
+                print(f"Updating on Docker context for {context_name}")
+                try:
+                    subprocess.run(
+                        [
+                            "docker",
+                            "context",
+                            "update",
+                            context_name,
+                            "--description",
+                            raw_iterm_tags
+                        ],
+                        check=True,
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE,
+                    )
+                except subprocess.CalledProcessError as err:
+                    print('ERROR: There was en problem when updating the Docker context.\n', err)
 
 
 def update_ssh_config(dict_list):
     ssh_conf_file = empty_ssh_config_file()
-    for profile_dict in dict_list:
-        for instance in profile_dict['instances']:
-            name = f"{profile_dict['instances'][instance]['Name']}-{instance}",
-            ssh_conf_file.add(
-                name,
-                Hostname=instance,
-                Port=profile_dict["instances"][instance]['Con_port'],
-                User=profile_dict["instances"][instance]['Con_username'],
-                ProxyJump=profile_dict["instances"][instance]['Bastion']
-            )
-            if not profile_dict["instances"][instance]['Con_username']:
-                ssh_conf_file.unset(name, "user")
-            if not profile_dict["instances"][instance]['Bastion']:
-                ssh_conf_file.unset(name, "proxyjump")
+    for machine in dict_list:
+        name = f"{machine.name}-{machine.ip}"
+        ssh_conf_file.add(
+            name,
+            Hostname=machine.ip,
+            Port=machine.con_port,
+            User=machine.con_username,
+            ProxyJump=machine.bastion
+        )
+        if not machine.con_username:
+            ssh_conf_file.unset(name, "user")
+        if not machine.bastion:
+            ssh_conf_file.unset(name, "proxyjump")
+        print(f"Added {name} to SSH config list.")
     ssh_conf_file.write(CP_SSH_Config)
 
 
@@ -1115,6 +1115,7 @@ if __name__ == '__main__':
             update_term(cloud_instances_obj_list)
             # ssh_config
             if script_config['Local'].get('SSH_Config_create'):
+                print("SSH_Config_create is set, so will create config.")
                 User_SSH_Config = os.path.expanduser("~/.ssh/config")
                 CP_SSH_Config = os.path.expanduser("~/.ssh/cloud-profiler")
                 with open(User_SSH_Config) as f:
@@ -1124,9 +1125,9 @@ if __name__ == '__main__':
                     else:
                         print("Did not find include directive  for CP in user's ssh config file, so adding it.")
                         line_prepender(User_SSH_Config, "Include ~/.ssh/cloud-profiler")
-                update_ssh_config(cloud_instances_obj_list)
-            if script_config['Local'].get('docker_contexts_create'):
-                docker_contexts_creator(cloud_instances_obj_list)
+                update_ssh_config(list(cloud_instances_obj_list))
+            if script_config['Local'].get('Docker_contexts_create'):
+                docker_contexts_creator(list(cloud_instances_obj_list))
 
         if os.path.exists('marker.tmp'):
             os.remove("marker.tmp")
