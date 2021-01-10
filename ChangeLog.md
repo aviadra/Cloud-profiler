@@ -1,5 +1,8 @@
 # Change Log
 
+## v4.1.2 - Akuma
+SSH config - bastions were self looping.
+
 ## v4.1.1 - Cero (Hollow Flash)
 Fixed Docker context and SSH config creations (they were still using pre v4.0 methods to access data).
 
