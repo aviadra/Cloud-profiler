@@ -947,7 +947,7 @@ def update_ssh_config(dict_list):
         )
         if not machine.con_username:
             ssh_conf_file.unset(name, "user")
-        if not machine.bastion:
+        if not machine.bastion or not machine.instance_use_bastion:
             ssh_conf_file.unset(name, "proxyjump")
         print(f"Added {name} to SSH config list.")
     ssh_conf_file.write(CP_SSH_Config)
@@ -1004,7 +1004,7 @@ def do_worker(do_script_config, do_instance_counter, do_cloud_instances_obj_list
 
 # MAIN
 if __name__ == '__main__':
-    VERSION = "v4.1.1"
+    VERSION = "v4.1.2"
     with open("marker.tmp", "w") as file:
         file.write("mark")
 
