@@ -1,5 +1,8 @@
 # Change Log
 
+## v4.1.1 - Cero (Hollow Flash)
+Fixed Docker context and SSH config creations (they were still using pre v4.0 methods to access data).
+
 ## v4.1 - Hōrin (Disintegrating Circle)
 Added ability to set the ssh command to use from the config file.
 Dockerfile: Added OS upgrade to lower CVEs.
