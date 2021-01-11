@@ -193,10 +193,11 @@ def get_do_tag_value(tags, q_tag, q_tag_value) -> Union[int, str]:
 
 def get_tag_value(tags, q_tag, sg=None, q_tag_value=False) -> Union[bool, int, str]:
     for tag in tags:
-        if 'iTerm_' in tag.get('Key', ''):
-            tag['Key'] = tag['Key'].rpartition('iTerm_')[2]
-        if 'Cloud_Profiler_' in tag.get('Key', ''):
-            tag['Key'] = tag['Key'].rpartition('Cloud_Profiler_')[2]
+        tag['Key'] = tag.get('Key', '').casefold()
+        if 'iterm_' in tag.get('Key', ''):
+            tag['Key'] = tag['Key'].rpartition('iterm_')[2]
+        if 'cloud_profiler_' in tag.get('Key', ''):
+            tag['Key'] = tag['Key'].rpartition('cloud_profiler_')[2]
         if q_tag == 'flat' and not sg:
             if not q_tag_value:
                 q_tag_value = ''
@@ -686,7 +687,7 @@ def update_moba(obj_list):
         else:
             connection_type = "#109#0%"
 
-        if (machine.bastion and not machine.instance_use_ip_public) \
+        if (isinstance(machine.bastion, str) and not machine.instance_use_ip_public) \
                 or machine.instance_use_bastion:
 
             bastion_for_profile = machine.bastion
@@ -947,7 +948,8 @@ def update_ssh_config(dict_list):
         )
         if not machine.con_username:
             ssh_conf_file.unset(name, "user")
-        if not machine.bastion or not machine.instance_use_bastion:
+        if not((isinstance(machine.bastion, str) and not machine.instance_use_ip_public) \
+                or machine.instance_use_bastion):
             ssh_conf_file.unset(name, "proxyjump")
         print(f"Added {name} to SSH config list.")
     ssh_conf_file.write(CP_SSH_Config)
@@ -1004,7 +1006,7 @@ def do_worker(do_script_config, do_instance_counter, do_cloud_instances_obj_list
 
 # MAIN
 if __name__ == '__main__':
-    VERSION = "v4.1.2"
+    VERSION = "v4.1.3"
     with open("marker.tmp", "w") as file:
         file.write("mark")
 
