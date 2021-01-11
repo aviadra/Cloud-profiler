@@ -1,5 +1,8 @@
 # Change Log
 
+## v4.1.3 - Nega Scott
+SSH config - Bastions where not used when they should have been,
+
 ## v4.1.2 - Akuma
 SSH config - bastions were self looping.
 
