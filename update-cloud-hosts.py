@@ -938,7 +938,7 @@ def docker_contexts_creator(dict_list):
 def update_ssh_config(dict_list):
     ssh_conf_file = empty_ssh_config_file()
     for machine in dict_list:
-        name = f"{machine.name}-{machine.ip}"
+        name = f"{machine.name}-{machine.ip}-{machine.id}"
         ssh_conf_file.add(
             name,
             Hostname=machine.ip,
