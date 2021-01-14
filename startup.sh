@@ -182,7 +182,7 @@ cd "${org_dir}" || exit
      "${desired_keys_dir}" != "${current_keys_dir}" ]] && \
 Normal_docker_start
 
-if [[ "$( cat < "${Personal_Config_File}" | grep "^  Docker_contexts_create" | awk '{print$2}' 2> /dev/null )" == "true" ]] ; then
+if [[ "$( cat < "${Personal_Config_File}" | grep "^  Docker_contexts_create" | awk '{print$2}' 2> /dev/null )" == "True" ]] ; then
   echo "Cloud-profiler - Found docker contexts directive"
     if [[ -z "$(docker ps -q -f name=cloud-profiler)" || \
           -z "$( docker inspect cloud-profiler | grep /var/run/docker.sock:/var/run/docker.sock 2> /dev/null )" || \
