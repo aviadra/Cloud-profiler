@@ -85,6 +85,7 @@ ROOT_docker_start() {
     -v "$(eval echo "${Personal_Static_Profiles}/:${SRC_Static_Profiles}" )" \
     -v "$(eval echo "${HOME}/${DynamicProfiles_Location}:/root/${DynamicProfiles_Location}" )" \
     -v /var/run/docker.sock:/var/run/docker.sock \
+    -v "$(eval echo "${HOME}/.docker/contexts/:/root/.docker/contexts/" )" \
     -v "$(eval echo "${Shard_Key_Path}:/home/appuser/Shard_Keys" )" \
     ${SRC_Docker_Image}
   exit_state "Start service container"

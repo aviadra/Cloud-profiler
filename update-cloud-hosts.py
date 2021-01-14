@@ -924,6 +924,8 @@ def docker_contexts_creator(dict_list):
                             "context",
                             "update",
                             context_name,
+                            "--docker",
+                            f"host=ssh://{context_name}",
                             "--description",
                             raw_iterm_tags
                         ],
