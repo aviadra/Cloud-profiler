@@ -893,7 +893,7 @@ def docker_contexts_creator(dict_list):
     )
     for machine in dict_list:
         if machine.docker_context:
-            context_name = f"{machine.name}-{machine.ip}"
+            context_name = f"{machine.name}-{machine.ip}-{machine.id}"
             raw_iterm_tags = str(machine.iterm_tags)
             if machine.name not in current_contexts.stdout.decode('utf-8'):
                 print(f"Creating on Docker context for {context_name}")
