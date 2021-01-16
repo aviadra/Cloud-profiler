@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 [ -z ${CP_Version+x} ] && CP_Version='latest'
-CP_Update_Profile_VERSION="v4.1"
+CP_Update_Profile_VERSION="v4.1.3"
 Personal_Static_Profiles="${HOME}/iTerm2-static-profiles"
 Config_File=".iTerm-cloud-profile-generator/config.yaml"
 Personal_Config_File="${HOME}/${Config_File}"
@@ -85,6 +85,7 @@ ROOT_docker_start() {
     -v "$(eval echo "${Personal_Static_Profiles}/:${SRC_Static_Profiles}" )" \
     -v "$(eval echo "${HOME}/${DynamicProfiles_Location}:/root/${DynamicProfiles_Location}" )" \
     -v /var/run/docker.sock:/var/run/docker.sock \
+    -v "$(eval echo "${HOME}/.docker/contexts/:/root/.docker/contexts/" )" \
     -v "$(eval echo "${Shard_Key_Path}:/home/appuser/Shard_Keys" )" \
     ${SRC_Docker_Image}
   exit_state "Start service container"
@@ -182,7 +183,7 @@ cd "${org_dir}" || exit
      "${desired_keys_dir}" != "${current_keys_dir}" ]] && \
 Normal_docker_start
 
-if [[ "$( cat < "${Personal_Config_File}" | grep "^  Docker_contexts_create" | awk '{print$2}' 2> /dev/null )" == "true" ]] ; then
+if [[ "$( cat < "${Personal_Config_File}" | grep "^  Docker_contexts_create" | awk '{print$2}' 2> /dev/null )" == "True" ]] ; then
   echo "Cloud-profiler - Found docker contexts directive"
     if [[ -z "$(docker ps -q -f name=cloud-profiler)" || \
           -z "$( docker inspect cloud-profiler | grep /var/run/docker.sock:/var/run/docker.sock 2> /dev/null )" || \

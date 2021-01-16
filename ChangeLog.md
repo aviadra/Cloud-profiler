@@ -1,5 +1,14 @@
 # Change Log
 
+## v4.1.3 - Nega Scott
+SSH config - Bastions where not used when they should have been,
+
+## v4.1.2 - Akuma
+SSH config - bastions were self looping.
+
+## v4.1.1 - Cero (Hollow Flash)
+Fixed Docker context and SSH config creations (they were still using pre v4.0 methods to access data).
+
 ## v4.1 - Hōrin (Disintegrating Circle)
 Added ability to set the ssh command to use from the config file.
 Dockerfile: Added OS upgrade to lower CVEs.
