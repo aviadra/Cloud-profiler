@@ -1,5 +1,5 @@
 ###BASE
-FROM ubuntu:20.04 AS base
+FROM python:3.9.1-alpine3.12 AS base
 # Keeps Python from generating .pyc files in the container
 ENV PYTHONDONTWRITEBYTECODE 1
 
@@ -8,15 +8,23 @@ ENV PYTHONUNBUFFERED 1
 
 RUN mkdir -p /home/appuser/
 WORKDIR /home/appuser/
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    docker.io \
-    python3-pip \
-        && rm -rf /var/lib/apt/lists/*
+RUN apk update && apk add --no-cache \
+    docker-cli \
+    gcc \
+    libc-dev
+
+RUN /usr/local/bin/python3 -m pip install --upgrade pip
 COPY ./requirements.txt /home/appuser/requirements.txt
 RUN pip3 install -r requirements.txt
 COPY . /home/appuser/
-RUN useradd appuser && chown -R appuser:appuser /home/appuser/
-RUN apt update && apt full-upgrade -y && rm -rf /var/lib/apt/lists/*
+RUN addgroup -S appuser && adduser -S appuser -G appuser && \
+    chown -R appuser:appuser /home/appuser/
+
+FROM base as hardened
+
+RUN apk del \
+    gcc \
+    libc-dev
 
 #### Debug
 FROM base AS debug
@@ -24,6 +32,8 @@ RUN pip3 install ptvsd==4.3.2
 CMD ["python3", "-m", "ptvsd", "--host", "0.0.0.0", "--port", "5678", "--wait", "--multiprocess", "./update-cloud-hosts.py"]
 
 ###Prod
-FROM base AS prod
+FROM hardened AS prod
+RUN apk update && apk upgrade
+RUN echo "" > /bin/sh
 USER appuser
 ENTRYPOINT ["python3", "./service.py"]
