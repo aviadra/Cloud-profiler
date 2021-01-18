@@ -1,5 +1,11 @@
 # Change Log
 
+## v4.2 - Kurohitsugi (Black Coffin)
+Moved to using Alpine as the base image to reduce CVEs.
+Removing "sh" from the final form of the container required weaning off GNU usage.
+Fixed docker contex creation to actually work.
+
+
 ## v4.1.3 - Nega Scott
 SSH config - Bastions where not used when they should have been,
 
