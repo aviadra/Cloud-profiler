@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-[ -z ${CP_Version+x} ] && CP_Version='latest'
+[ -z ${CP_Version+x} ] && CP_Version='v4.2'
 CP_Update_Profile_VERSION="v4.2"
 Personal_Static_Profiles="${HOME}/iTerm2-static-profiles"
 Config_File=".iTerm-cloud-profile-generator/config.yaml"
