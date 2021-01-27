@@ -19,6 +19,7 @@ jobs:
         name: Prepare
         id: prep
         run: |
+          #Creating Tag list
           echo "Working on GITHUB_REF: \"${GITHUB_REF}\""
           DOCKER_IMAGE=aviadra/cp
           VERSION=edge
