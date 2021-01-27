@@ -19,6 +19,7 @@ jobs:
         run: |
           DOCKER_IMAGE=aviadra/cp
           VERSION=none
+          echo "${GITHUB_REF}"
           if [[ $GITHUB_REF == refs/tags/* ]]; then
             VERSION=${GITHUB_REF#refs/tags/v}
           fi
