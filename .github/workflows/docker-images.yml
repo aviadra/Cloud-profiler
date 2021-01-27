@@ -3,6 +3,8 @@ name: Docker Image CI
 on:
   push:
     branches: [ master, develop ]
+    tags:
+      - "v*.*.*"
   pull_request:
     branches: [ master, develop ]
  
@@ -49,4 +51,3 @@ jobs:
           tags:  ${{ steps.prep.outputs.tags }}
           cache-from: type=registry,ref=aviadra/cp:cache
           cache-to: type=inline
-          
