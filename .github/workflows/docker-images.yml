@@ -18,15 +18,12 @@ jobs:
         id: prep
         run: |
           DOCKER_IMAGE=aviadra/cp
-          VERSION=edge
+          VERSION=none
           if [[ $GITHUB_REF == refs/tags/* ]]; then
             VERSION=${GITHUB_REF#refs/tags/v}
           fi
-          TAGS="${DOCKER_IMAGE}:${VERSION}"
-          if [[ $VERSION =~ ^v[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
-            TAGS="$TAGS",${DOCKER_IMAGE}:edge
-          fi
-          echo ::set-output name=tags::${TAGS},${DOCKER_IMAGE}:cache
+          TAGS="${DOCKER_IMAGE}:${VERSION},${DOCKER_IMAGE}:cache"
+          echo ::set-output name=tags::${TAGS}
       -
         name: Set up QEMU
         uses: docker/setup-qemu-action@v1
@@ -51,4 +48,3 @@ jobs:
           tags:  ${{ steps.prep.outputs.tags }}
           cache-from: type=registry,ref=aviadra/cp:cache
           cache-to: type=inline
-          
