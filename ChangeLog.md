@@ -1,5 +1,8 @@
 # Change Log
 
+## v4.3 - Tenteikūra (Heavenly Rickshaws in Silken Air)
+Adding multi arch support
+
 ## v4.2 - Kurohitsugi (Black Coffin)
 Moved to using Alpine as the base image to reduce CVEs.
 Removing "sh" from the final form of the container required weaning off GNU usage.
