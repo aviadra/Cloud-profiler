@@ -1,8 +1,8 @@
 import os
-import time
-import progressbar
 import subprocess
+import time
 
+import progressbar
 
 if os.environ.get('CP_LoopInterval', False):
     CP_LoopInterval = os.environ['CP_LoopInterval']
