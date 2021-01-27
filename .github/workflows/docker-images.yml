@@ -7,7 +7,7 @@ on:
     branches: [ master, develop ]
  
 jobs:
-  multi:
+  multi_arch:
     runs-on: ubuntu-latest
     steps:
       -
@@ -23,10 +23,10 @@ jobs:
             VERSION=${GITHUB_REF#refs/tags/v}
           fi
           TAGS="${DOCKER_IMAGE}:${VERSION}"
-          if [[ $VERSION =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
-            TAGS="$TAGS,${DOCKER_IMAGE}:cache"
+          if [[ $VERSION =~ ^v[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
+            TAGS="$TAGS",${DOCKER_IMAGE}:edge
           fi
-          echo ::set-output name=tags::${TAGS}
+          echo ::set-output name=tags::${TAGS},${DOCKER_IMAGE}:cache
       -
         name: Set up QEMU
         uses: docker/setup-qemu-action@v1
