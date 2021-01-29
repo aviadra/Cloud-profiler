@@ -1,7 +1,10 @@
 # Change Log
 
-## v4.3 - Tenteikūra (Heavenly Rickshaws in Silken Air)
-Adding multi arch support
+## v4.3.0 - Tenteikūra (Heavenly Rickshaws in Silken Air)
+Adding multi arch support!! (M1 mac users, you're welcome).
+Moved to 3 digit versioning.
+Changed the version file name to not contain the version for easier upgraders.
+
 
 ## v4.2 - Kurohitsugi (Black Coffin)
 Moved to using Alpine as the base image to reduce CVEs.
