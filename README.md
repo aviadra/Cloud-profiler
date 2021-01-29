@@ -3,7 +3,7 @@
 # TL; DR
 For most use cases, the installation is simply:
 
-`[ -z ${CP_Branch+x} ] && CP_Branch='master'; curl -s https://raw.githubusercontent.com/aviadra/Cloud-profiler/$CP_Branch/startup.sh | bash`
+`curl -s https://raw.githubusercontent.com/aviadra/Cloud-profiler/$CP_Branch/startup.sh | bash`
 
 # On with the show
 The purpose of this script is to connect to cloud providers and generate profiles for quick SSHing.
@@ -23,6 +23,7 @@ After I asked, they have kindly provided me with a free "all pack" license,
 and I have found it to be a better tool for Python multiprocessor/multithreaded development.
  As well as very helpful with adhering to styling guides (like PEP8, but much more). 
 
+As of v4.3.0, the docker installer supports all mainstream CPU architectures (M1, ARMs and many more).
 
 This project has some assumptions:
 - The script runs on either MacOS (tested only on Catalina and Mojave) or Windows (tested on windows 10).
