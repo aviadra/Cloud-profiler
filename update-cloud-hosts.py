@@ -11,14 +11,14 @@ import os
 import platform
 import shutil
 import subprocess
-from typing import Union, Dict, Any
+from typing import Any, Dict, Union
 
 import boto3
 import digitalocean
 import yaml
 from Crypto.Cipher import PKCS1_v1_5
 from Crypto.PublicKey import RSA
-from inputimeout import inputimeout, TimeoutOccurred
+from inputimeout import TimeoutOccurred, inputimeout
 from sshconf import empty_ssh_config_file
 
 
@@ -1008,7 +1008,7 @@ def do_worker(do_script_config, do_instance_counter, do_cloud_instances_obj_list
 
 # MAIN
 if __name__ == '__main__':
-    VERSION = "v4.2"
+    VERSION = "v4.3.0"
     with open("marker.tmp", "w") as file:
         file.write("mark")
 
