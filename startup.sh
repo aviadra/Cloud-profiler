@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
-[ -z ${CP_Version+x} ] && CP_Version='latest'
-CP_Update_Profile_VERSION="v4.2"
+[ -z ${CP_Version+x} ] && CP_Version='v4.3.0'
 Personal_Static_Profiles="${HOME}/iTerm2-static-profiles"
 Config_File=".iTerm-cloud-profile-generator/config.yaml"
 Personal_Config_File="${HOME}/${Config_File}"
@@ -95,6 +94,7 @@ update_container() {
   echo -e "Cloud-profiler - Checking for updates"
   echo -e "Cloud-profiler - This may take a while....\n"
   on_system_digests=$(docker images --digests | grep ${SRC_Docker_image_base} | grep $CP_Version | awk '{print $3}')
+  docker pull ${SRC_Docker_Image}
   latest_version_digits=$( docker pull ${SRC_Docker_Image} | grep Digest | awk '{print $2}' )
   if [[ "${latest_version_digits}" != "${on_system_digests}" ]]; then
     echo -e "Cloud-profiler - Newer version of container detected.\n"
@@ -105,10 +105,22 @@ update_container() {
 
 setup() {
   [[ ${check_for_updates} == "true" ]] && update_container
+  if [[ ${CP_Version} == "edge" ||\
+        ${CP_Version} == "latest" ]]; then
+      CONSIDER_VERSION="NO"
+  else
+      CONSIDER_VERSION="YES"
+  fi
   if [[ ! -e $(eval echo "${Personal_Static_Profiles}" ) || \
     ! -e $(eval echo "${Personal_Config_File}" ) || \
     ! -f ${HOME}/.ssh/config || \
-    ! -f "$( eval echo "${Personal_Static_Profiles}/Update iTerm profiles ${CP_Update_Profile_VERSION}.json" )" ]]; then
+    ! -e "${HOME}/iTerm2-static-profiles/Update\ iTerm\ profiles.json" ||\
+     ( "$( grep "${CP_Version}"  \
+        ${HOME}/iTerm2-static-profiles/Update\ iTerm\ profiles.json |\
+        grep Name |\
+        awk -F ":" '{print $2}' |\
+        awk -F " " '{print $4}' |\
+        tr -d ",",'"' )" != "${CP_Version}" && $CONSIDER_VERSION == "YES") ]]; then
 
     echo "Cloud-profiler - Basic setup parts missing. Will now setup."
     echo "Cloud-profiler - Creating the container to copy profiles and config from."
@@ -127,12 +139,17 @@ setup() {
       docker cp cloud-profiler-copy:${SRC_Static_Profiles} ~/ ; exit_state "Copy static profiles from copy container"
       echo -e "Cloud-profiler - We've put a default static profiles directory for you in \"${Personal_Static_Profiles}\"."
     fi
-    if [[ ! -e "$( eval echo "${Personal_Static_Profiles}/Update iTerm profiles ${CP_Update_Profile_VERSION}.json" )" ]]; then
-      rm -f "${Personal_Static_Profiles}"/Update* &> /dev/null
-      docker cp \
-        "$( eval echo "cloud-profiler-copy:${SRC_Static_Profiles}/Update iTerm profiles ${CP_Update_Profile_VERSION}.json")" \
-        "$(eval echo "${Personal_Static_Profiles}" )" ; exit_state "Copy Update profile from copy container"
-      echo -e "Cloud-profiler - We've updated the \"Update profile\" in \"${Personal_Static_Profiles}\". It is now at ${CP_Update_Profile_VERSION}"
+    if [[ "$( grep "${CP_Version}"  \
+      ${HOME}/iTerm2-static-profiles/Update\ iTerm\ profiles.json |\
+        grep Name |\
+        awk -F ":" '{print $2}' |\
+        awk -F " " '{print $4}' |\
+        tr -d ",",'"' )" != "${CP_Version}" && $CONSIDER_VERSION == "YES" ]]; then
+        rm -f "${Personal_Static_Profiles}"/Update* &> /dev/null
+        docker cp \
+          "$( eval echo "cloud-profiler-copy:${SRC_Static_Profiles}/Update iTerm profiles.json")" \
+          "$(eval echo "${Personal_Static_Profiles}" )" ; exit_state "Copy Update profile from copy container"
+        echo -e "Cloud-profiler - We've updated the \"Update profile\" in \"${Personal_Static_Profiles}\". It is now at ${CP_Version}"
     fi
     if [[ ! -e $(eval "echo ${Personal_Config_File}" ) ]]; then
       mkdir -p "$(eval dirname "${Personal_Config_File}" )" ; exit_state "Create personal config dir"
@@ -147,10 +164,27 @@ setup() {
   Normal_docker_start
 }
 
+##MAIN
+
 if [[ -z "$(docker images --digests | grep ${SRC_Docker_image_base} | grep $CP_Version | awk '{print $3}')" ]] ; then
   echo -e "Cloud-profiler - This script will install the \"Cloud Profiler\" service using a docker container."
   user_waiter
 fi
+
+#Legacy cleaner
+
+for f in ${HOME}/iTerm2-static-profiles/Update\ iTerm\ profiles?*.json; do
+
+    if [ -e "$f" ]; then
+      echo -e "Cloud-profiler - Legacy update profile file found:"
+      echo -e "Cloud-profiler - $f."
+      echo -e "Cloud-profiler - Deleteing..."
+      rm -f "${f}"
+    else
+      echo "Cloud-profiler - Legacy files not found"
+    fi
+    break
+  done
 
 if [[ -z "$(command -v docker)" ]] ;then
   echo "Cloud-profiler - We can't seem to find docker on the system :\\"
@@ -162,7 +196,7 @@ fi
 [[ ! -e ${HOME}/.ssh/config ]] && setup
 [[ ! -e $(eval echo "${Personal_Static_Profiles}" ) ]] && setup
 [[ ! -e $(eval echo "${Personal_Config_File}" ) ]] && setup
-if [[ ! -e "$(eval echo "${Personal_Static_Profiles}/Update iTerm profiles ${CP_Update_Profile_VERSION}.json")" ]];then
+if [[ ! -e "$(eval echo "${Personal_Static_Profiles}/Update iTerm profiles ${CP_Version}.json")" ]];then
   clear_service_container
   setup
 fi
