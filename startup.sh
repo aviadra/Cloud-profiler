@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-[ -z ${CP_Version+x} ] && CP_Version='v4.2'
+[ -z ${CP_Version+x} ] && CP_Version='v4.3.0'
 Personal_Static_Profiles="${HOME}/iTerm2-static-profiles"
 Config_File=".iTerm-cloud-profile-generator/config.yaml"
 Personal_Config_File="${HOME}/${Config_File}"
@@ -135,7 +135,7 @@ setup() {
     if [[ ! -e "$( eval echo "${Personal_Static_Profiles}/Update iTerm profiles ${CP_Version}.json" )" ]]; then
       rm -f "${Personal_Static_Profiles}"/Update* &> /dev/null
       docker cp \
-        "$( eval echo "cloud-profiler-copy:${SRC_Static_Profiles}/Update iTerm profiles ${CP_Version}.json")" \
+        "$( eval echo "cloud-profiler-copy:${SRC_Static_Profiles}/Update iTerm profiles.json")" \
         "$(eval echo "${Personal_Static_Profiles}" )" ; exit_state "Copy Update profile from copy container"
       echo -e "Cloud-profiler - We've updated the \"Update profile\" in \"${Personal_Static_Profiles}\". It is now at ${CP_Version}"
     fi
