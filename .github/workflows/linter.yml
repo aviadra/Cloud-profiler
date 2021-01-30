@@ -16,9 +16,9 @@ name: Lint Code Base
 #############################
 on:
   push:
-    branches: [ master, develop ]
+    branches: [ main, develop ]
   pull_request:
-    branches: [ master, develop ]
+    branches: [ main, develop ]
 
 ###############
 # Set the Job #
@@ -61,6 +61,6 @@ jobs:
         env:
           VALIDATE_ALL_CODEBASE: true
           VALIDATE_ARM: false
-          DEFAULT_BRANCH: master
+          DEFAULT_BRANCH: main
           PYTHONPATH: "/github/workspace/:\
             /github/workflow/.venv/lib/python3.6/site-packages"
