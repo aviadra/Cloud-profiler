@@ -47,7 +47,7 @@ There is now a startup script that should get you going with setting up the stat
 and the config file.
 Simply run the below one liner and follow the on screen instructions:
 
-`[ -z ${CP_Branch+x} ] && CP_Branch='master'; curl -s https://raw.githubusercontent.com/aviadra/Cloud-profiler/$CP_Branch/startup.sh | bash`
+curl -s https://raw.githubusercontent.com/aviadra/Cloud-profiler/main/startup.sh | bash`
 
 ##### Service on Windows
 I'm sorry... you're not a first class citizen... there is no script for you...
