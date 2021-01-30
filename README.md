@@ -3,7 +3,7 @@
 # TL; DR
 For most use cases, the installation is simply:
 
-`curl -s https://raw.githubusercontent.com/aviadra/Cloud-profiler/master/startup.sh | bash`
+`curl -s https://raw.githubusercontent.com/aviadra/Cloud-profiler/main/startup.sh | bash`
 
 # On with the show
 The purpose of this script is to connect to cloud providers and generate profiles for quick SSHing.
