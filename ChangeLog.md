@@ -1,16 +1,18 @@
 # Change Log
 
+## v4.3.1 - Kakushitsuijaku (Footprint-Attentive Pursuing-Sparrows)
+Seeing that the "Update profile" is the most likely path to become a beta tester,
+I've removed the branch selection from the "TL;DR" installer.
+
 ## v4.3.0 - Tenteikūra (Heavenly Rickshaws in Silken Air)
 Adding multi arch support!! (M1 mac users, you're welcome).
 Moved to 3 digit versioning.
 Changed the update profile file name to not contain the version for easier upgrades.
 
-
 ## v4.2 - Kurohitsugi (Black Coffin)
 Moved to using Alpine as the base image to reduce CVEs.
 Removing "sh" from the final form of the container required weaning off GNU usage.
 Fixed docker contex creation to actually work.
-
 
 ## v4.1.3 - Nega Scott
 SSH config - Bastions where not used when they should have been,
