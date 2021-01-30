@@ -1,4 +1,6 @@
 # Change Log
+## v4.3.2 - Haien (Abolishing Flames)
+Start of removing "master" branch. (It will be maintained for legacy compatabilety for now)
 
 ## v4.3.1 - Kakushitsuijaku (Footprint-Attentive Pursuing-Sparrows)
 Seeing that the "Update profile" is the most likely path to become a beta tester,
