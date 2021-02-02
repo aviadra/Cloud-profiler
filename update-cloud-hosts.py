@@ -950,7 +950,7 @@ def update_ssh_config(dict_list):
         )
         if not machine.con_username:
             ssh_conf_file.unset(name, "user")
-        if not((isinstance(machine.bastion, str) and not machine.instance_use_ip_public) \
+        if not((isinstance(machine.bastion, str) and not machine.instance_use_ip_public)
                 or machine.instance_use_bastion):
             ssh_conf_file.unset(name, "proxyjump")
         print(f"Added {name} to SSH config list.")
