@@ -1063,7 +1063,7 @@ if __name__ == '__main__':
                 if not entry.is_dir(follow_symlinks=False):
                     if "CP" not in entry.name or \
                             VERSION not in entry.name:
-                        os.remove(entry)
+                        os.remove(entry.path)
 
         p_list = []
         # Static profiles iterator
