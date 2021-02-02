@@ -738,7 +738,7 @@ def update_term(obj_list):
             p_region_list[obj.provider_short] = []
         p_region_list[obj.provider_short].append(obj)
 
-    for cloud_providor, machines in p_region_list.items():
+    for cloud_provider, machines in p_region_list.items():
         for machine in machines:
             instance_counter[machine.instance_source] += 1
             connection_command = f"{script_config['Local']['SSH_command']}"
@@ -848,7 +848,7 @@ def update_term(obj_list):
                 os.path.expanduser(
                     os.path.join(
                         CP_OutputDir,
-                        f".CP-{cloud_providor}-{VERSION}.json"
+                        f".CP-{cloud_provider}-{VERSION}.json"
                     )
                 ),
                 'wt'
