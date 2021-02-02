@@ -1,4 +1,6 @@
 # Change Log
+## v4.3.4 - Shira (Not the warrior princess)
+Fixed update for "normal" users that don't run Cloud_profiler with root for "Docker context" creation.
 
 ## v4.3.3 - Kōtotsu (Wresting-Surge)
 Startup script cleanups to remove logic of not knowing the version and reduce restarts of container.
