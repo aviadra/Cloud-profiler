@@ -1119,7 +1119,7 @@ if __name__ == '__main__':
             update_term(cloud_instances_obj_list)
             # ssh_config
             if script_config['Local'].get('SSH_Config_create'):
-                print("SSH_Config_create is set, so will create config.")
+                print("Cloud-profiler - SSH_Config_create is set, so will create config.")
                 User_SSH_Config = os.path.expanduser("~/.ssh/config")
                 CP_SSH_Config = os.path.expanduser("~/.ssh/cloud-profiler")
                 with open(User_SSH_Config) as f:
