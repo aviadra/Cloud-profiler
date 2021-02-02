@@ -1,4 +1,7 @@
 # Change Log
+## v4.3.3 - Kōtotsu (Wresting-Surge)
+Startup script cleanups to remove logic of not knowing the version and reduce restarts of container.
+
 ## v4.3.2 - Haien (Abolishing Flames)
 Start of removing "master" branch. (It will be maintained for legacy compatabilety for now)
 
