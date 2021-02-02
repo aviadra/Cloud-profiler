@@ -207,7 +207,7 @@ def get_tag_value(tags, q_tag, sg=None, q_tag_value=False) -> Union[bool, int, s
                 q_tag_value = ''
             q_tag_value += tag['GroupName'] + ': ' + tag['GroupId'] + ","
         else:
-            if q_tag.casefold() in tag['Key'].casefold():
+            if q_tag.casefold() == tag['Key'].casefold():
                 q_tag_value = tag['Value']
                 if tag['Value'] == 'True'.casefold() or tag['Value'] == "yes".casefold() or \
                         tag['Value'] == "y".casefold():
