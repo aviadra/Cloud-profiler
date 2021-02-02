@@ -187,7 +187,7 @@ cd "${org_dir}" || exit
 
 # Should we start a Normal or Root container?
 if [[ "$( grep -E "^  Docker_contexts_create" "${Personal_Config_File}" | awk '{print $2}' 2>/dev/null )" != "True" ]]; then
-    Normal_docker_start
+  echo "Cloud-profiler - Did not find docker contexts directive"
     if [[ -z "$( docker ps -q -f name=cloud-profiler )" || "${desired_keys_dir}" != "${current_keys_dir}" ]] ; then
       clear_service_container
       Normal_docker_start
