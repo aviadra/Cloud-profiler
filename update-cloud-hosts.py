@@ -1039,7 +1039,7 @@ if __name__ == '__main__':
         script_config = {}
         script_config_user = {}
         if os.path.isfile(os.path.expanduser("~/.iTerm-cloud-profile-generator/config.yaml")):
-            print("Found conf file in place")
+            print("Cloud-profiler - Found conf file in place")
             with open(os.path.expanduser("~/.iTerm-cloud-profile-generator/config.yaml")) as conf_file:
                 script_config_user = yaml.full_load(conf_file)
         else:
@@ -1125,9 +1125,11 @@ if __name__ == '__main__':
                 with open(User_SSH_Config) as f:
                     if f"Include ~/.ssh/cloud-profiler" in f.read():
                         print(
-                            "Found ssh_config include directive for CP in user's ssh config file, so leaving it as is.")
+                            "Cloud-profiler - Found ssh_config include directive for CP in user's ssh config file, "
+                            "so leaving it as is.")
                     else:
-                        print("Did not find include directive  for CP in user's ssh config file, so adding it.")
+                        print("Cloud-profiler - Did not find include directive  for CP in user's ssh config file, "
+                              "so adding it.")
                         line_prepender(User_SSH_Config, "Include ~/.ssh/cloud-profiler")
                 update_ssh_config(list(cloud_instances_obj_list))
             if script_config['Local'].get('Docker_contexts_create'):
