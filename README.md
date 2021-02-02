@@ -5,14 +5,14 @@ For most use cases, the installation is simply:
 
 `curl -s https://raw.githubusercontent.com/aviadra/Cloud-profiler/main/startup.sh | bash`
 
-# On with the show
+# Intro
 The purpose of this script is to connect to cloud providers and generate profiles for quick SSHing.
 
+# Mini change-log
 As of v1.3, both **iTerm** for MacOS and **MobaXterm** for Windows, are supported.
 Currently, the supported cloud providers are AWS and Digital Ocean.
 This project is a fork of [gmartinerro](https://gist.github.com/gmartinerro/40831c8874ebb32bc17711af95e1416b), 
-which gave me a good starting point. With that said, this version doesn't change the hosts file,
- so that it can be run without sudo.
+which gave me a good starting point.
 
 As of v2.0 it can also create **SSH config file** entries
 and **[Docker contexts](https://docs.docker.com/engine/context/working-with-contexts/)** that tunnel over SSH.
@@ -23,12 +23,14 @@ After I asked, they have kindly provided me with a free "all pack" license,
 and I have found it to be a better tool for Python multiprocessor/multithreaded development.
  As well as very helpful with adhering to styling guides (like PEP8, but much more). 
 
-As of v4.3.0, the docker installer supports all mainstream CPU architectures (M1, ARMs and many more).
+As of v4.3.0, the docker installer supports all mainstream CPU architectures in addition to the regular x86/x64.
+So it now works out of the box with "Apple M1" and other ARM based compute systems (like the rasberry pi),
+among other architectures.
 
 This project has some assumptions:
-- The script runs on either MacOS (tested only on Catalina and Mojave) or Windows (tested on windows 10).
-- You have [iTerm](https://iterm2.com/) installed, when using a Mac.
 - Your system has Docker, or python3 installed (if using the "system install" method).
+- When using a Mac, You have [iTerm](https://iterm2.com/) installed.
+- When using Windows, you have MobaXterm install.
 
 ## How to use
 
