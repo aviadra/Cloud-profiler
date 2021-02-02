@@ -269,7 +269,7 @@ def get_do_instances(profile, do_instance_counter, do_script_config, do_cloud_in
         use_shared_key = setting_resolver('use_shared_key', drop, {}, "DO", False, profile, do_script_config)
         login_command = setting_resolver('Login_command', drop, {}, "DO", False, profile, do_script_config)
         dynamic_profile_parent = setting_resolver('dynamic_profile_parent', drop, {}, "DO", False, profile,
-                                                       do_script_config)
+                                                  do_script_config)
         public_ip = drop.ip_address
 
         machine.con_port = con_port
@@ -360,7 +360,7 @@ def fetch_ec2_instance(
                                         fetch_script_config)
     bastion = setting_resolver("bastion", instance, vpc_data_all, 'AWS', False, profile, fetch_script_config)
     dynamic_profile_parent = setting_resolver('dynamic_profile_parent', instance, vpc_data_all, 'AWS', False,
-                                                   profile, fetch_script_config)
+                                              profile, fetch_script_config)
     instance_vpc_flat_tags = vpc_data(instance.get('VpcId', ''), "flat", vpc_data_all)
     instance_flat_sgs = ''
     for interface in instance.get('NetworkInterfaces', []):
@@ -950,7 +950,7 @@ def update_ssh_config(dict_list):
         )
         if not machine.con_username:
             ssh_conf_file.unset(name, "user")
-        if not((isinstance(machine.bastion, str) and not machine.instance_use_ip_public)
+        if not ((isinstance(machine.bastion, str) and not machine.instance_use_ip_public)
                 or machine.instance_use_bastion):
             ssh_conf_file.unset(name, "proxyjump")
         print(f"Added {name} to SSH config list.")
