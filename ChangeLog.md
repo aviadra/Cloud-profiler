@@ -1,4 +1,11 @@
 # Change Log
+## v4.3.5 - Saimyōshō (Poison Insects of Hell)
+Reverted the change of looking for the tag directive anywhere in the value (introduced in v4.0.1).
+This caused too many collisions for the "Name" containing tag values (like Con_username and Bastion_Con_username).
+The amount of work that would be required to maintain such a generic value from not colliding with others was deemed to be too great,
+and with the potential of affecting too many "legacy" configurations already set on instances.
+Also, the advantages of doing this type of "search" were greatly diminished due to clean up work done since that version.
+
 ## v4.3.4 - Shira (Not the warrior princess)
 Fixed update for "normal" users that don't run Cloud_profiler with root for "Docker context" creation.
 
@@ -32,7 +39,7 @@ SSH config - bastions were self looping.
 Fixed Docker context and SSH config creations (they were still using pre v4.0 methods to access data).
 
 ## v4.1 - Hōrin (Disintegrating Circle)
-Added ability to set the ssh command to use from the config file.
+Added ability to set the SSH command to use from the config file.
 Dockerfile: Added OS upgrade to lower CVEs.
 Moved where we copy the requirements, 
 so it doesn't invalidate the cache too soon and its visually closer to where it is used.

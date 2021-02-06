@@ -207,7 +207,7 @@ def get_tag_value(tags, q_tag, sg=None, q_tag_value=False) -> Union[bool, int, s
                 q_tag_value = ''
             q_tag_value += tag['GroupName'] + ': ' + tag['GroupId'] + ","
         else:
-            if q_tag.casefold() in tag['Key'].casefold():
+            if q_tag.casefold() == tag['Key'].casefold():
                 q_tag_value = tag['Value']
                 if tag['Value'] == 'True'.casefold() or tag['Value'] == "yes".casefold() or \
                         tag['Value'] == "y".casefold():
@@ -269,7 +269,7 @@ def get_do_instances(profile, do_instance_counter, do_script_config, do_cloud_in
         use_shared_key = setting_resolver('use_shared_key', drop, {}, "DO", False, profile, do_script_config)
         login_command = setting_resolver('Login_command', drop, {}, "DO", False, profile, do_script_config)
         dynamic_profile_parent = setting_resolver('dynamic_profile_parent', drop, {}, "DO", False, profile,
-                                                       do_script_config)
+                                                  do_script_config)
         public_ip = drop.ip_address
 
         machine.con_port = con_port
@@ -360,7 +360,7 @@ def fetch_ec2_instance(
                                         fetch_script_config)
     bastion = setting_resolver("bastion", instance, vpc_data_all, 'AWS', False, profile, fetch_script_config)
     dynamic_profile_parent = setting_resolver('dynamic_profile_parent', instance, vpc_data_all, 'AWS', False,
-                                                   profile, fetch_script_config)
+                                              profile, fetch_script_config)
     instance_vpc_flat_tags = vpc_data(instance.get('VpcId', ''), "flat", vpc_data_all)
     instance_flat_sgs = ''
     for interface in instance.get('NetworkInterfaces', []):
@@ -738,7 +738,7 @@ def update_term(obj_list):
             p_region_list[obj.provider_short] = []
         p_region_list[obj.provider_short].append(obj)
 
-    for cloud_providor, machines in p_region_list.items():
+    for cloud_provider, machines in p_region_list.items():
         for machine in machines:
             instance_counter[machine.instance_source] += 1
             connection_command = f"{script_config['Local']['SSH_command']}"
@@ -848,7 +848,7 @@ def update_term(obj_list):
                 os.path.expanduser(
                     os.path.join(
                         CP_OutputDir,
-                        f".CP-{cloud_providor}-{VERSION}.json"
+                        f".CP-{cloud_provider}-{VERSION}.json"
                     )
                 ),
                 'wt'
@@ -950,7 +950,7 @@ def update_ssh_config(dict_list):
         )
         if not machine.con_username:
             ssh_conf_file.unset(name, "user")
-        if not((isinstance(machine.bastion, str) and not machine.instance_use_ip_public) \
+        if not ((isinstance(machine.bastion, str) and not machine.instance_use_ip_public)
                 or machine.instance_use_bastion):
             ssh_conf_file.unset(name, "proxyjump")
         print(f"Added {name} to SSH config list.")
@@ -1008,7 +1008,7 @@ def do_worker(do_script_config, do_instance_counter, do_cloud_instances_obj_list
 
 # MAIN
 if __name__ == '__main__':
-    VERSION = "v4.3.4"
+    VERSION = "v4.3.5"
     with open("marker.tmp", "w") as file:
         file.write("mark")
 
@@ -1039,7 +1039,7 @@ if __name__ == '__main__':
         script_config = {}
         script_config_user = {}
         if os.path.isfile(os.path.expanduser("~/.iTerm-cloud-profile-generator/config.yaml")):
-            print("Found conf file in place")
+            print("Cloud-profiler - Found conf file in place")
             with open(os.path.expanduser("~/.iTerm-cloud-profile-generator/config.yaml")) as conf_file:
                 script_config_user = yaml.full_load(conf_file)
         else:
@@ -1063,7 +1063,7 @@ if __name__ == '__main__':
                 if not entry.is_dir(follow_symlinks=False):
                     if "CP" not in entry.name or \
                             VERSION not in entry.name:
-                        os.remove(entry)
+                        os.remove(entry.path)
 
         p_list = []
         # Static profiles iterator
@@ -1119,15 +1119,17 @@ if __name__ == '__main__':
             update_term(cloud_instances_obj_list)
             # ssh_config
             if script_config['Local'].get('SSH_Config_create'):
-                print("SSH_Config_create is set, so will create config.")
+                print("Cloud-profiler - SSH_Config_create is set, so will create config.")
                 User_SSH_Config = os.path.expanduser("~/.ssh/config")
                 CP_SSH_Config = os.path.expanduser("~/.ssh/cloud-profiler")
                 with open(User_SSH_Config) as f:
                     if f"Include ~/.ssh/cloud-profiler" in f.read():
                         print(
-                            "Found ssh_config include directive for CP in user's ssh config file, so leaving it as is.")
+                            "Cloud-profiler - Found ssh_config include directive for CP in user's ssh config file, "
+                            "so leaving it as is.")
                     else:
-                        print("Did not find include directive  for CP in user's ssh config file, so adding it.")
+                        print("Cloud-profiler - Did not find include directive  for CP in user's ssh config file, "
+                              "so adding it.")
                         line_prepender(User_SSH_Config, "Include ~/.ssh/cloud-profiler")
                 update_ssh_config(list(cloud_instances_obj_list))
             if script_config['Local'].get('Docker_contexts_create'):
