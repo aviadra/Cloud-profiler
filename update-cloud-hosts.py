@@ -207,7 +207,7 @@ def get_tag_value(tags, q_tag, sg=None, q_tag_value=False) -> Union[bool, int, s
                 q_tag_value = ''
             q_tag_value += tag['GroupName'] + ': ' + tag['GroupId'] + ","
         else:
-            if q_tag.casefold() in tag['Key'].casefold():
+            if q_tag.casefold() == tag['Key'].casefold():
                 q_tag_value = tag['Value']
                 if tag['Value'] == 'True'.casefold() or tag['Value'] == "yes".casefold() or \
                         tag['Value'] == "y".casefold():
@@ -1039,7 +1039,7 @@ if __name__ == '__main__':
         script_config = {}
         script_config_user = {}
         if os.path.isfile(os.path.expanduser("~/.iTerm-cloud-profile-generator/config.yaml")):
-            print("Found conf file in place")
+            print("Cloud-profiler - Found conf file in place")
             with open(os.path.expanduser("~/.iTerm-cloud-profile-generator/config.yaml")) as conf_file:
                 script_config_user = yaml.full_load(conf_file)
         else:
@@ -1119,15 +1119,17 @@ if __name__ == '__main__':
             update_term(cloud_instances_obj_list)
             # ssh_config
             if script_config['Local'].get('SSH_Config_create'):
-                print("SSH_Config_create is set, so will create config.")
+                print("Cloud-profiler - SSH_Config_create is set, so will create config.")
                 User_SSH_Config = os.path.expanduser("~/.ssh/config")
                 CP_SSH_Config = os.path.expanduser("~/.ssh/cloud-profiler")
                 with open(User_SSH_Config) as f:
                     if f"Include ~/.ssh/cloud-profiler" in f.read():
                         print(
-                            "Found ssh_config include directive for CP in user's ssh config file, so leaving it as is.")
+                            "Cloud-profiler - Found ssh_config include directive for CP in user's ssh config file, "
+                            "so leaving it as is.")
                     else:
-                        print("Did not find include directive  for CP in user's ssh config file, so adding it.")
+                        print("Cloud-profiler - Did not find include directive  for CP in user's ssh config file, "
+                              "so adding it.")
                         line_prepender(User_SSH_Config, "Include ~/.ssh/cloud-profiler")
                 update_ssh_config(list(cloud_instances_obj_list))
             if script_config['Local'].get('Docker_contexts_create'):
