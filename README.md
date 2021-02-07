@@ -356,7 +356,7 @@ When setting the value of this setting to "no", the Bastion will not be used.
 `Cloud_profiler_Bastion_use` - When using "Cloud_profiler_Ip_public",
 the Bastion is not used. unless this tag is set with the value of "yes".
 
-`Cloud_profiler_use_Ip_public` - Denotes that this instance profile should use the instance public IP for the connection.
+`Cloud_profiler_instance_use_ip_public` - Denotes that this instance profile should use the instance public IP for the connection.
 Setting this tag, also sets the profile to not use a Bastion, unless the "Cloud_profiler_Bastion_use" tag is set.
 
 `Cloud_profiler_Con_username` - The username to add to the connection.
