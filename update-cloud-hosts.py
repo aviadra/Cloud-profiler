@@ -167,23 +167,16 @@ def setting_resolver(
         if caller_type == 'DO':
             pass
         if not setting_value:
-            if 'iTerm_' in setting:
-                setting = setting.rpartition('iTerm_')[
-                    2]  # Strip iTerm prefix because settings are now read from conf files
-            if 'Cloud_Profiler_' in setting:
-                setting = setting.rpartition('Cloud_Profiler_')[
-                    2]  # Strip iTerm prefix because settings are now read from conf files
-            setting_value = profile.get(setting, False)
+            setting_value = resolver_script_config[caller_type].get(setting, False)
             if not setting_value:
-                setting_value = resolver_script_config[caller_type].get(setting, False)
-                if not setting_value:
-                    setting_value = resolver_script_config["Local"].get(setting, False)
+                setting_value = resolver_script_config["Local"].get(setting, False)
     return setting_value
 
 
 def get_do_tag_value(tags, q_tag, q_tag_value) -> Union[int, str]:
     for tag in tags:
-        if ':' in tag and ('iTerm' in tag or 'Cloud_Profiler' in tags):
+        tag = tag.casefold()
+        if ':' in tag and ('iterm' in tag or 'cloud_profiler' in tags):
             tag_key, tag_value = tag.split(':')
             if tag_key == q_tag.casefold():
                 q_tag_value = tag_value.replace('-', '.').replace('_', ' ')
@@ -226,6 +219,7 @@ def vpc_data(vpcid, q_tag, response_vpc):
             if vpc.get('Tags', False):
                 if q_tag == "flat":
                     for tag in vpc.get('Tags'):
+                        tag['Key'] = tag.get('Key', '').casefold()
                         if "iTerm" in tag['Key'] or 'Cloud_Profiler' in tag['Key']:
                             if not q_tag_value:
                                 q_tag_value = ''
@@ -342,7 +336,7 @@ def fetch_ec2_instance(
 
     docker_context = setting_resolver('docker_context', instance, vpc_data_all, 'AWS', False, profile,
                                       fetch_script_config)
-    instance_use_bastion = setting_resolver('Use_bastion', instance, vpc_data_all, 'AWS', False, profile,
+    instance_use_bastion = setting_resolver('instance_use_bastion', instance, vpc_data_all, 'AWS', False, profile,
                                             fetch_script_config)
     instance_use_ip_public = setting_resolver('instance_use_ip_public', instance, vpc_data_all, 'AWS', False, profile,
                                               fetch_script_config)
