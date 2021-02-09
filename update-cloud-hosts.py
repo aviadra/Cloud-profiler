@@ -167,9 +167,11 @@ def setting_resolver(
         if caller_type == 'DO':
             pass
         if not setting_value:
-            setting_value = resolver_script_config[caller_type].get(setting, False)
+            setting_value = profile.get(setting, False)
             if not setting_value:
-                setting_value = resolver_script_config["Local"].get(setting, False)
+                setting_value = resolver_script_config[caller_type].get(setting, False)
+                if not setting_value:
+                    setting_value = resolver_script_config["Local"].get(setting, False)
     return setting_value
 
 
