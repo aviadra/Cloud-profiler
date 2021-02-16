@@ -13,9 +13,9 @@ RUN apk update && apk add --no-cache \
     gcc \
     libc-dev
 
-RUN /usr/local/bin/python3 -m pip install --upgrade pip
+RUN /usr/local/bin/python3 -m pip --no-cache-dir install --upgrade pip
 COPY ./requirements.txt /home/appuser/requirements.txt
-RUN pip3 install -r requirements.txt
+RUN pip3 install -r requirements.txt --no-cache-dir
 COPY . /home/appuser/
 RUN addgroup -S appuser && adduser -S appuser -G appuser && \
     chown -R appuser:appuser /home/appuser/
@@ -28,7 +28,7 @@ RUN apk del \
 
 #### Debug
 FROM base AS debug
-RUN pip3 install ptvsd==4.3.2
+RUN pip3 install ptvsd==4.3.2 --no-cache-dir
 CMD ["python3", "-m", "ptvsd", "--host", "0.0.0.0", "--port", "5678", "--wait", "--multiprocess", "./update-cloud-hosts.py"]
 
 ###Prod
