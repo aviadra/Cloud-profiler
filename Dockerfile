@@ -8,7 +8,7 @@ ENV PYTHONUNBUFFERED 1
 
 RUN mkdir -p /home/appuser/
 WORKDIR /home/appuser/
-RUN apk update && apk add --no-cache \
+RUN apk -U add --no-cache \
     docker-cli \
     gcc \
     libc-dev
