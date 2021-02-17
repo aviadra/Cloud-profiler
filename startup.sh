@@ -1,17 +1,30 @@
 #!/usr/bin/env bash
 [ -z ${CP_Version+x} ] && CP_Version='v4.3.5'
 Personal_Static_Profiles="${HOME}/iTerm2-static-profiles"
-Config_File=".iTerm-cloud-profile-generator/config.yaml"
-Personal_Config_File="${HOME}/${Config_File}"
 SRC_Static_Profiles="/home/appuser/iTerm2-static-profiles"
 SRC_Docker_image_base="aviadra/cp"
-SRC_Docker_Image="${SRC_Docker_image_base}:${CP_Version}"
-DynamicProfiles_Location="Library/Application\ Support/iTerm2/DynamicProfiles/"
-if [[ -e ${HOME}/${Config_File} ]]; then
-  Shard_Key_Path="$( cat < "${HOME}/${Config_File}" | grep SSH_keys_path | awk '{print $2}' | sed -e 's/^"//' -e 's/"$//' )"
+#SRC_Docker_Image="${SRC_Docker_image_base}:${CP_Version}"
+SRC_Docker_Image="78f93f3165b7a292ba0f389d6fea57e1def395216fd1734d73c5b676f3aa5b90"
+if grep -qi Microsoft /proc/version; then
+  WSL="True"
+  Base_Path="$( wslpath "$(wslvar USERPROFILE)" )/Documents/Cloud-profiler"
+  Config_File="config.yaml"
+  Personal_Config_File="${Base_Path}/${Config_File}"
+  Personal_Static_Profiles="${Base_Path}/Static-profiles"
+  DynamicProfiles_Location="${Base_Path}/DynamicProfiles"
 else
-  mkdir -p "${HOME}/.iTerm-cloud-profile-generator/keys"
-  Shard_Key_Path="${HOME}/keys"
+  WSL="False"
+  Base_Path="${HOME}"
+  Config_File=".iTerm-cloud-profile-generator/config.yaml"
+  Personal_Config_File="${Base_Path}/${Config_File}"
+  Personal_Static_Profiles="${Base_Path}/iTerm2-static-profiles"
+  DynamicProfiles_Location="${HOME}/Library/Application\ Support/iTerm2/DynamicProfiles/"
+fi
+if [[ -e ${Base_Path}/${Config_File} ]]; then
+  Shard_Key_Path="$( cat < "${Base_Path}/${Config_File}" | grep SSH_keys_path | awk '{print $2}' | sed -e 's/[[:space:]]//' -e 's/^"//' -e 's/"$//' )"
+else
+  mkdir -p "${Base_Path}/.iTerm-cloud-profile-generator/keys"
+  Shard_Key_Path="${Base_Path}/keys"
 fi
 
 echo -e "Cloud-profiler - Welcome to the startup/setup script."
@@ -52,10 +65,11 @@ Normal_docker_start() {
     --log-opt max-file=5 \
     --name cloud-profiler \
     -e CP_Service=True \
+    -e WSL=${WSL} \
     -v "${HOME}"/.ssh/:/home/appuser/.ssh/ \
     -v "$(eval echo "${Personal_Config_File}:/home/appuser/${Config_File}" )" \
     -v "$(eval echo "${Personal_Static_Profiles}/:${SRC_Static_Profiles}" )" \
-    -v "$(eval echo "${HOME}/${DynamicProfiles_Location}:/home/appuser/${DynamicProfiles_Location}" )" \
+    -v "$(eval echo "${DynamicProfiles_Location}:/home/appuser/DynamicProfiles" )" \
     -v "$(eval echo "${Shard_Key_Path}:/home/appuser/Shard_Keys" )" \
     ${SRC_Docker_Image}
   exit_state "Start service container"
@@ -74,10 +88,11 @@ ROOT_docker_start() {
     --log-opt max-file=5 \
     --name cloud-profiler \
     -e CP_Service=True \
+    -e WSL=${WSL} \
     -v "${HOME}"/.ssh/:/root/.ssh/ \
     -v "$(eval echo "${Personal_Config_File}:/root/${Config_File}" )" \
     -v "$(eval echo "${Personal_Static_Profiles}/:${SRC_Static_Profiles}" )" \
-    -v "$(eval echo "${HOME}/${DynamicProfiles_Location}:/root/${DynamicProfiles_Location}" )" \
+    -v "$(eval echo "${HOME}/${DynamicProfiles_Location}:/root/DynamicProfiles/" )" \
     -v /var/run/docker.sock:/var/run/docker.sock \
     -v "$(eval echo "${HOME}/.docker/contexts/:/root/.docker/contexts/" )" \
     -v "$(eval echo "${Shard_Key_Path}:/home/appuser/Shard_Keys" )" \
@@ -97,29 +112,46 @@ setup() {
   echo "Cloud-profiler - Setup - This may take a while...."
   docker rm -f cloud-profiler-copy &> /dev/null
 
+  if [[ ! -e ${DynamicProfiles_Location} ]]; then
+    mkdir -p ${DynamicProfiles_Location} ; exit_state "Create directory ${DynamicProfiles_Location}"
+  fi
+  if [[ ! -e ${Personal_Static_Profiles} ]]; then
+    mkdir -p ${Personal_Static_Profiles} ; exit_state "Create directory ${Personal_Static_Profiles}"
+  fi
+  echo eph
+  echo ${Shard_Key_Path}
+  if [[ ! -e ${Shard_Key_Path} ]]; then
+    echo didnt
+    mkdir -p ${Shard_Key_Path} ; exit_state "Create directory ${Shard_Key_Path}"
+  fi
+
+
   if [[ ! -f ${HOME}/.ssh/config ]]; then
-    echo "Cloud-profiler - There was no SSH config, so creating one"
+    echo "Cloud-profiler - There was no SSH config, so creating one."
     if [[ ! -d ${HOME}/.ssh/ ]]; then
       mkdir -p "${HOME}"/.ssh/ ; exit_state "Create user's ssh config directory"
     fi
     touch "${HOME}"/.ssh/config ; exit_state "Create user default SSH config file"
   fi
-  docker create -it --name cloud-profiler-copy ${SRC_Docker_Image} bash &> /dev/null ; exit_state "Create copy container"
+  docker create -it --name cloud-profiler-copy ${SRC_Docker_Image} bash ; exit_state "Create copy container"
   if [[ ! -e $(eval "echo ${Personal_Static_Profiles}" ) ]]; then
     docker cp cloud-profiler-copy:${SRC_Static_Profiles} ~/ ; exit_state "Copy static profiles from copy container"
     echo -e "Cloud-profiler - We've put a default static profiles directory for you in \"${Personal_Static_Profiles}\"."
   fi
-  if [[ "$( grep "${CP_Version}" "${Personal_Static_Profiles}/Update iTerm profiles.json" 2> /dev/null |\
-        grep Name |\
-        awk -F ":" '{print $2}' |\
-        awk -F " " '{print $4}' |\
-        tr -d ",",'"' )" != "${CP_Version}" &&\
-      ( ${CP_Version} != "edge" && ${CP_Version} != "latest" ) ]]; then
-        rm -f "${Personal_Static_Profiles}"/Update* &> /dev/null
-        docker cp \
-          "$( eval echo "cloud-profiler-copy:${SRC_Static_Profiles}/Update iTerm profiles.json")" \
-          "$(eval echo "${Personal_Static_Profiles}" )" ; exit_state "Copy Update profile from copy container"
-        echo -e "Cloud-profiler - We've updated the \"Update profile\" in \"${Personal_Static_Profiles}\". It is now at ${CP_Version}"
+  #Update the iTerm "update profile"
+  if [[ ${WSL} == "False" ]]; then
+    if [[ "$( grep "${CP_Version}" "${Personal_Static_Profiles}/Update iTerm profiles.json" 2> /dev/null |\
+          grep Name |\
+          awk -F ":" '{print $2}' |\
+          awk -F " " '{print $4}' |\
+          tr -d ",",'"' )" != "${CP_Version}" &&\
+        ( ${CP_Version} != "edge" && ${CP_Version} != "latest" ) ]]; then
+          rm -f "${Personal_Static_Profiles}"/Update* &> /dev/null
+          docker cp \
+            "$( eval echo "cloud-profiler-copy:${SRC_Static_Profiles}/Update iTerm profiles.json")" \
+            "$(eval echo "${Personal_Static_Profiles}" )" ; exit_state "Copy Update profile from copy container"
+          echo -e "Cloud-profiler - We've updated the \"Update profile\" in \"${Personal_Static_Profiles}\". It is now at ${CP_Version}"
+    fi
   fi
   if [[ ! -e $(eval "echo ${Personal_Config_File}" ) ]]; then
     mkdir -p "$(eval dirname "${Personal_Config_File}" )" ; exit_state "Create personal config dir"
@@ -161,6 +193,12 @@ if [[ -z "$( command -v docker )" ]] ;then
 fi
 
 # Is a part of the installation missing?
+[[ ! -e ${DynamicProfiles_Location} ]] && setup
+[[ ! -e ${Personal_Static_Profiles} ]] && setup
+echo moo
+echo ${Shard_Key_Path}
+[[ ! -e ${Shard_Key_Path} ]] && setup
+echo foo
 [[ ! -e ${HOME}/.ssh/config ]] && setup
 [[ ! -e $(eval echo "${Personal_Static_Profiles}" ) ]] && setup
 [[ ! -e $(eval echo "${Personal_Config_File}" ) ]] && setup
@@ -177,6 +215,7 @@ fi
 
 # Is the correct path for the shared keys set to the desired location?
 org_dir="$( pwd )"
+echo ${Shard_Key_Path}
 desired_keys_dir="$( eval cd "${Shard_Key_Path}";pwd )"
 current_keys_dir="$( docker inspect cloud-profiler 2> /dev/null \
     | grep "/home/appuser/Shard_Keys" \
