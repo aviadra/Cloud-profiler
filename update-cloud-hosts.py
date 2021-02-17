@@ -741,7 +741,7 @@ def update_term(obj_list):
     for cloud_provider, machines in p_region_list.items():
         for machine in machines:
             instance_counter[machine.instance_source] += 1
-            connection_command = f"{script_config['Local']['SSH_command']}"
+            connection_command = f"{script_config['Local'].get('SSH_command', 'ssh')}"
             machine.tags = [f"Account: {machine.instance_source}, {machine.ip}"]
             for tag in machine.iterm_tags:
                 machine.tags.append(tag)
@@ -1027,9 +1027,9 @@ if __name__ == '__main__':
         if os.environ.get('CP_OutputDir', False):
             CP_OutputDir = os.environ['CP_OutputDir']
         elif platform.system() == 'Windows' or os.environ.get('CP_Windows', False):
-            CP_OutputDir = "~/Cloud_Profiler/"
+            CP_OutputDir = "~/Documents/Cloud-profiler/DynamicProfiles"
         else:
-            CP_OutputDir = "~/Library/Application Support/iTerm2/DynamicProfiles/"
+            CP_OutputDir = "~/DynamicProfiles/"
         print(f"CP_OutputDir to be used: {CP_OutputDir}")
 
         if not os.path.isdir(os.path.expanduser(CP_OutputDir)):
@@ -1113,9 +1113,11 @@ if __name__ == '__main__':
         for p in p_list:
             p.join()
 
-        if platform.system() == 'Windows' or os.environ.get('CP_Windows', False):
+        if platform.system() == 'Windows' or os.environ.get('CP_Windows', False) or os.environ.get('WSL', False):
             update_moba(cloud_instances_obj_list)
+            print("MOBAMOBA")
         else:
+            print("NOT NOT MOBA")
             update_term(cloud_instances_obj_list)
             # ssh_config
             if script_config['Local'].get('SSH_Config_create'):
