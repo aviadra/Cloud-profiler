@@ -1,4 +1,10 @@
 # Change Log
+## v4.4.0 - Ephraim (Deleteing is the best from of coding)
+Removed the colors submodule.
+Dockerfile improvements to reduce the image size.
+Updated the alpine version.
+Deleted unused code.
+
 ## v4.3.5 - Saimyōshō (Poison Insects of Hell)
 Reverted the change of looking for the tag directive anywhere in the value (introduced in v4.0.1).
 This caused too many collisions for the "Name" containing tag values (like Con_username and Bastion_Con_username).
