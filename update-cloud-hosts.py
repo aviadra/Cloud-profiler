@@ -167,9 +167,11 @@ def setting_resolver(
         if caller_type == 'DO':
             pass
         if not setting_value:
-            setting_value = resolver_script_config[caller_type].get(setting, False)
+            setting_value = profile.get(setting, False)
             if not setting_value:
-                setting_value = resolver_script_config["Local"].get(setting, False)
+                setting_value = resolver_script_config[caller_type].get(setting, False)
+                if not setting_value:
+                    setting_value = resolver_script_config["Local"].get(setting, False)
     return setting_value
 
 
@@ -1002,7 +1004,7 @@ def do_worker(do_script_config, do_instance_counter, do_cloud_instances_obj_list
 
 # MAIN
 if __name__ == '__main__':
-    VERSION = "v4.3.5"
+    VERSION = "v4.4.0"
     with open("marker.tmp", "w") as file:
         file.write("mark")
 

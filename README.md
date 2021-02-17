@@ -424,9 +424,9 @@ options at the bottom of the "profiles" tab in preferences.
 You can also set this location in the configuration files, in the path "from the repo" if you need to.
 
 ### Profile creation within iTerm
-In order to ease the setup,
-I've set the [iTerm2-Color-Schemes repository: "https://github.com/mbadolato/iTerm2-Color-Schemes"],
-as a submodule, so many color schemes are available "out of the box".
+As of v4.4.0, the inclusion of the [iTerm2-Color-Schemes repository](https://github.com/mbadolato/iTerm2-Color-Schemes),
+has been removed. This both increased the container size, and was not convenient to use when tucked in the container.
+
 The instructions below are the regular iTerm way of creating profiles.
 For example, to create "DRACULA" profile:
 - Create a new profile by clicking the plus (+) sign, in the profiles section of the "preferences".
@@ -436,7 +436,7 @@ For example, to create "DRACULA" profile:
 - Choose "Dracula.itermcolors".
 - Now the "DRACULA" schema is select-able in the dropdown list.
 Note: The "Red Alert" profile, which I recommend for production servers is part of the "Static profiles",
-so you can just use it by making it the value of the "iTerm_dynamic_profile_parent" tag.
+so you can just use it by making it the value of the "Cloud_profiler_dynamic_profile_parent" tag.
 
 We wish you calm clouds and a serene path...
 
