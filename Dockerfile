@@ -20,8 +20,8 @@ RUN apk -U add --no-cache \
     docker-cli
 RUN /usr/local/bin/python3 -m pip install --no-cache-dir --upgrade pip
 COPY ./requirements.txt /home/appuser/requirements.txt
-COPY --from=wheeler /pycryptodome-3.9.8-cp39-cp39-linux_x86_64.whl .
-RUN pip3 install pycryptodome-3.9.8-cp39-cp39-linux_x86_64.whl && rm -f pycryptodome-3.9.8-cp39-cp39-linux_x86_64.whl
+COPY --from=wheeler /*.whl .
+RUN pip3 install *.whl && rm -f *.whl
 RUN pip3 install -r requirements.txt --no-cache-dir --prefer-binary
 COPY . /home/appuser/
 RUN addgroup -S appuser && adduser -S appuser -G appuser && \
