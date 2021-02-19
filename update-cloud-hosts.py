@@ -1116,6 +1116,7 @@ if __name__ == '__main__':
             print("NOT NOT MOBA")
             update_term(cloud_instances_obj_list)
             # ssh_config
+        if platform.system() != 'Windows':
             if script_config['Local'].get('SSH_Config_create'):
                 print("Cloud-profiler - SSH_Config_create is set, so will create config.")
                 User_SSH_Config = os.path.expanduser("~/.ssh/config")
@@ -1126,8 +1127,8 @@ if __name__ == '__main__':
                             "Cloud-profiler - Found ssh_config include directive for CP in user's ssh config file, "
                             "so leaving it as is.")
                     else:
-                        print("Cloud-profiler - Did not find include directive  for CP in user's ssh config file, "
-                              "so adding it.")
+                        print('Cloud-profiler - Did not find include directive  for CP in user\'s ssh config file, '
+                              'so adding it.')
                         line_prepender(User_SSH_Config, "Include ~/.ssh/cloud-profiler")
                 update_ssh_config(list(cloud_instances_obj_list))
             if script_config['Local'].get('Docker_contexts_create'):
