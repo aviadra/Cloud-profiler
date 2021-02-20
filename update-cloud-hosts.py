@@ -1061,13 +1061,18 @@ if __name__ == '__main__':
 
         p_list = []
         # Static profiles iterator
-        p = mp.Process(
-            name="update_statics",
-            target=update_statics,
-            args=(CP_OutputDir, script_config, VERSION,)
-        )
-        p.start()
-        p_list.append(p)
+
+        if platform.system() == 'Windows' or os.environ.get('CP_Windows', False) == 'True' or \
+                os.environ.get('WSL', False) == 'True':
+            print("Cloud-profiler - Skipping creating \"static profiles\", as this seems to be a windows system.")
+        else:
+            p = mp.Process(
+                name="update_statics",
+                target=update_statics,
+                args=(CP_OutputDir, script_config, VERSION,)
+            )
+            p.start()
+            p_list.append(p)
 
         # AWS profiles iterator
         if script_config['AWS'].get('profiles', False):
