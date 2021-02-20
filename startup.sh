@@ -3,8 +3,7 @@
 Personal_Static_Profiles="${HOME}/iTerm2-static-profiles"
 SRC_Static_Profiles="/home/appuser/iTerm2-static-profiles"
 SRC_Docker_image_base="aviadra/cp"
-#SRC_Docker_Image="${SRC_Docker_image_base}:${CP_Version}"
-SRC_Docker_Image="78f93f3165b7a292ba0f389d6fea57e1def395216fd1734d73c5b676f3aa5b90"
+SRC_Docker_Image="${SRC_Docker_image_base}:${CP_Version}"
 if grep -qi Microsoft /proc/version; then
   WSL="True"
   Base_Path="$( wslpath "$(wslvar USERPROFILE)" )/Documents/Cloud-profiler"
@@ -58,6 +57,7 @@ Normal_docker_start() {
   echo -e "Cloud-profiler - Normal start - Starting service\n"
   echo -e "Cloud-profiler - Normal start - This may take a while....\n"
   docker run \
+    -u $(id -u) \
     --init \
     --restart=always \
     -d \

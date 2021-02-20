@@ -26,6 +26,7 @@ RUN pip3 install -r requirements.txt --no-cache-dir --prefer-binary
 COPY . /home/appuser/
 RUN addgroup -S appuser && adduser -S appuser -G appuser && \
     chown -R appuser:appuser /home/appuser/
+RUN chmod -R o+wr /home/appuser/
 
 #### Debug
 FROM base AS debug

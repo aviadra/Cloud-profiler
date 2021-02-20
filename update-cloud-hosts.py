@@ -4,7 +4,6 @@
 import base64
 import concurrent.futures
 import configparser
-import getpass
 import json
 import multiprocessing as mp
 import os
@@ -580,7 +579,7 @@ def get_ec2_instances(
     if ec2_role_arn:
         instance_source = f"{instance_source}.{ec2_role_arn}"
         role_session_name = f"{os.path.basename(__file__).rpartition('.')[0]}." \
-                            f"{getpass.getuser().replace(' ', '_')}@{platform.uname()[1]}"
+                            f"cloud_profiler@{platform.uname()[1]}"
         sts_client = boto3.client('sts')
         if profile.get("MFA_serial_number", False):
             retry = 3
@@ -1050,7 +1049,6 @@ if __name__ == '__main__':
 
         InstanceProfile.script_config = script_config
 
-        username = getpass.getuser()
         config = configparser.ConfigParser()
 
         # Clean legacy
@@ -1111,9 +1109,7 @@ if __name__ == '__main__':
 
         if platform.system() == 'Windows' or os.environ.get('CP_Windows', False) or os.environ.get('WSL', False):
             update_moba(cloud_instances_obj_list)
-            print("MOBAMOBA")
         else:
-            print("NOT NOT MOBA")
             update_term(cloud_instances_obj_list)
             # ssh_config
         if platform.system() != 'Windows':
