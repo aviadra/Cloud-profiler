@@ -1107,8 +1107,8 @@ if __name__ == '__main__':
         for p in p_list:
             p.join()
 
-        if platform.system() == 'Windows' or os.environ.get('CP_Windows', False) is True or \
-                os.environ.get('WSL', False) is True:
+        if platform.system() == 'Windows' or os.environ.get('CP_Windows', False) == 'True' or \
+                os.environ.get('WSL', False) == 'True':
             update_moba(cloud_instances_obj_list)
         else:
             update_term(cloud_instances_obj_list)
