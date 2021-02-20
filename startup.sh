@@ -4,7 +4,7 @@ Personal_Static_Profiles="${HOME}/iTerm2-static-profiles"
 SRC_Static_Profiles="/home/appuser/iTerm2-static-profiles"
 SRC_Docker_image_base="aviadra/cp"
 SRC_Docker_Image="${SRC_Docker_image_base}:${CP_Version}"
-if grep -qi Microsoft /proc/version; then
+if grep -qi Microsoft /proc/version 2> /dev/null; then
   WSL="True"
   Base_Path="$( wslpath "$(wslvar USERPROFILE)" )/Documents/Cloud-profiler"
   Config_File="config.yaml"

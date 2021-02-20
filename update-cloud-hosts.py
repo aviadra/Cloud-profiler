@@ -1107,11 +1107,12 @@ if __name__ == '__main__':
         for p in p_list:
             p.join()
 
-        if platform.system() == 'Windows' or os.environ.get('CP_Windows', False) or os.environ.get('WSL', False):
+        if platform.system() == 'Windows' or os.environ.get('CP_Windows', False) is True or \
+                os.environ.get('WSL', False) is True:
             update_moba(cloud_instances_obj_list)
         else:
             update_term(cloud_instances_obj_list)
-            # ssh_config
+        # ssh_config
         if platform.system() != 'Windows':
             if script_config['Local'].get('SSH_Config_create'):
                 print("Cloud-profiler - SSH_Config_create is set, so will create config.")
