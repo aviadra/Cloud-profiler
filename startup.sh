@@ -57,7 +57,7 @@ Normal_docker_start() {
   echo -e "Cloud-profiler - Normal start - Starting service\n"
   echo -e "Cloud-profiler - Normal start - This may take a while....\n"
   docker run \
-    -u $(id -u) \
+    -u "$(id -u)" \
     --init \
     --restart=always \
     -d \
@@ -112,17 +112,14 @@ setup() {
   echo "Cloud-profiler - Setup - This may take a while...."
   docker rm -f cloud-profiler-copy &> /dev/null
 
-  if [[ ! -e ${DynamicProfiles_Location} ]]; then
-    mkdir -p ${DynamicProfiles_Location} ; exit_state "Create directory ${DynamicProfiles_Location}"
+  if [[ ! -e "${DynamicProfiles_Location}" ]]; then
+    mkdir -p "${DynamicProfiles_Location}" ; exit_state "Create directory ${DynamicProfiles_Location}"
   fi
-  if [[ ! -e ${Personal_Static_Profiles} ]]; then
-    mkdir -p ${Personal_Static_Profiles} ; exit_state "Create directory ${Personal_Static_Profiles}"
+  if [[ ! -e "${Personal_Static_Profiles}" ]]; then
+    mkdir -p "${Personal_Static_Profiles}" ; exit_state "Create directory ${Personal_Static_Profiles}"
   fi
-  echo eph
-  echo ${Shard_Key_Path}
-  if [[ ! -e ${Shard_Key_Path} ]]; then
-    echo didnt
-    mkdir -p ${Shard_Key_Path} ; exit_state "Create directory ${Shard_Key_Path}"
+  if [[ ! -e "${Shard_Key_Path}" ]]; then
+    mkdir -p "${Shard_Key_Path}" ; exit_state "Create directory ${Shard_Key_Path}"
   fi
 
 
@@ -195,8 +192,6 @@ fi
 # Is a part of the installation missing?
 [[ ! -e ${DynamicProfiles_Location} ]] && setup
 [[ ! -e ${Personal_Static_Profiles} ]] && setup
-echo moo
-echo ${Shard_Key_Path}
 [[ ! -e ${Shard_Key_Path} ]] && setup
 echo foo
 [[ ! -e ${HOME}/.ssh/config ]] && setup
@@ -215,8 +210,7 @@ fi
 
 # Is the correct path for the shared keys set to the desired location?
 org_dir="$( pwd )"
-echo ${Shard_Key_Path}
-desired_keys_dir="$( eval cd "${Shard_Key_Path}";pwd )"
+desired_keys_dir="$( eval cd "${Shard_Key_Path}" 2> /dev/null;pwd 2> /dev/null )"
 current_keys_dir="$( docker inspect cloud-profiler 2> /dev/null \
     | grep "/home/appuser/Shard_Keys" \
     | grep -v Destination \

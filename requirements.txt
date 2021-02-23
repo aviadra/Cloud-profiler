@@ -17,3 +17,4 @@ PyCryptodome==3.9.8
 inputimeout==1.0.4
 progressbar2==3.53.1
 sshconf==0.2.2
+ntplib

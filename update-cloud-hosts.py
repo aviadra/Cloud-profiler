@@ -19,6 +19,8 @@ from Crypto.Cipher import PKCS1_v1_5
 from Crypto.PublicKey import RSA
 from inputimeout import TimeoutOccurred, inputimeout
 from sshconf import empty_ssh_config_file
+import ntplib
+import sys
 
 
 class InstanceProfile:
@@ -417,10 +419,10 @@ def fetch_ec2_instance(
             iterm_tags_fin.append(tag)
 
     if instance.get('Platform', '') == 'windows':
-        response = client.get_password_data(
+        pass_response = client.get_password_data(
             InstanceId=instance['InstanceId'],
         )
-        data = base64.b64decode(response.get('passwordData', "U29ycnkgbm8ga2V5IHVzZWQgdG8gY3JlYXRlIFZNPw=="))
+        data = base64.b64decode(pass_response.get('passwordData', "U29ycnkgbm8ga2V5IHVzZWQgdG8gY3JlYXRlIFZNPw=="))
         password = decrypt(data, os.path.join(fetch_script_config["Local"].get('SSH_keys_path', '.'), ssh_key))
 
     machine.name = f"{instance_source}.{name}"
@@ -487,8 +489,7 @@ def fetch_ec2_region(
         Filters=[{
             'Name': 'instance-state-name',
             'Values': search_states
-        }
-        ]
+        }]
     )
 
     vpc_data_all = client.describe_vpcs(
@@ -1004,6 +1005,14 @@ def do_worker(do_script_config, do_instance_counter, do_cloud_instances_obj_list
 # MAIN
 if __name__ == '__main__':
     VERSION = "v4.4.1"
+    c = ntplib.NTPClient()
+    time_response = c.request('time.google.com', version=3)
+    max_api_drift = 15 * 60
+    if time_response.offset > max_api_drift:
+        print("Cloud-Profiler - The current system time is more then 15 minutes offset from the world. "
+              "Fix this and try again.")
+        sys.exit(42)
+
     with open("marker.tmp", "w") as file:
         file.write("mark")
 
