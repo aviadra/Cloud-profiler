@@ -9,25 +9,28 @@ For most use cases, the installation is simply:
 The purpose of this script is to connect to cloud providers and generate profiles for quick SSHing.
 
 # Mini change-log
-As of v1.3, both **iTerm** for MacOS and **MobaXterm** for Windows, are supported.
+As of v1.3 ([Bankai](https://bleachfanfiction.fandom.com/wiki/Bankai)), both **iTerm** for MacOS and **MobaXterm** for Windows, are supported.
 Currently, the supported cloud providers are AWS and Digital Ocean.
-This project is a fork of [gmartinerro](https://gist.github.com/gmartinerro/40831c8874ebb32bc17711af95e1416b), 
-which gave me a good starting point.
 
-As of v2.0 it can also create **SSH config file** entries
+As of v2.0 ([Kaze no Kizu](https://inuyasha.fandom.com/wiki/Kaze_no_Kizu)) it can also create **SSH config file** entries
 and **[Docker contexts](https://docs.docker.com/engine/context/working-with-contexts/)** that tunnel over SSH.
 
-As of v3.0.2, it is with a heavy heart, that I have switched from using VScode to using
+As of v3.0.2 ([How the mighty have fallen](https://en.wiktionary.org/wiki/how_the_mighty_have_fallen)),
+  it is with a heavy heart, that I have switched from using VScode to using
 [IDAE](https://www.jetbrains.com/?from=https://github.com/aviadra/Cloud-profiler).
 After I asked, they have kindly provided me with a free "all pack" license,
 and I have found it to be a better tool for Python multiprocessor/multithreaded development.
  As well as very helpful with adhering to styling guides (like PEP8, but much more). 
 
-As of v4.3.0, the docker installer supports all mainstream CPU architectures in addition to the regular x86/x64.
-So it now works out of the box with "Apple M1" and other ARM based compute systems (like the rasberry pi),
+As of v4.3.0 ([Tenteikūra](https://bleach.fandom.com/wiki/Tenteik%C5%ABra)), the docker installer supports all mainstream CPU architectures in addition to the regular x86/x64.
+So it now works out of the box with "Apple M1" and other ARM based compute systems (like the raspberry pi),
 among other architectures.
 
-This project has some assumptions:
+As of v5.0.0 ([Hakuteiken](https://bleach.fandom.com/wiki/Sh%C5%ABkei:_Hakuteiken)), Windows WSLv2 support introduced
+  in order to make Windows more of a first class citizen then it was until now. 
+This Hakuteiken [dove](https://en.wikipedia.org/wiki/Doves_as_symbols) is an [olive_branch](https://en.wikipedia.org/wiki/Olive_branch) to all Windows users :)
+
+## This project has some assumptions
 - Your system has Docker, or python3 installed (if using the "system install" method).
 - When using a Mac, You have [iTerm](https://iterm2.com/) installed.
 - When using Windows, you have MobaXterm install.
@@ -52,32 +55,29 @@ Simply run the below one liner and follow the on screen instructions:
 curl -s https://raw.githubusercontent.com/aviadra/Cloud-profiler/main/startup.sh | bash`
 
 ##### Service on Windows
-I'm sorry... you're not a first class citizen... there is no script for you...
+As of v5.0.0 the regular installer script works with WSLv2 (test using Ubuntu 20.04).
+You need to enable the [Docker WSLv2 backend](https://docs.docker.com/docker-for-windows/wsl/), 
+  and then simply run the installation command from the TL;DR.
+
+###### Legacy Windows support
+If you're not using WSL and want to do this on Windows directly, then I'm sorry... you're not a first class citizen... there is no script for you...
 You're going to have to create the config directory and file on your own (help here is welcomed).
 Once they are in place, run:
 
 `docker run --init --restart=always -d -e CP_Windows=True -e CP_Service=True -v "%HOMEDRIVE%%HOMEPATH%"\Cloud_Profiler/:/home/appuserCloud_Profiler/ -v "%HOMEDRIVE%%HOMEPATH%"\.iTerm-cloud-profile-generator/config.yaml:/home/appuser.iTerm-cloud-profile-generator/config.yaml -v "%HOMEDRIVE%%HOMEPATH%"\iTerm2-static-profiles/:/opt/CloudProfile/iTerm2-static-profiles/ aviadra/cp`
-
-#### Run ad-hoc
-It is absolutely possible to run the script on a per-needed basis (a.k.a. "ad-hoc").
-To do so, when using the "system install" method (less favorable),
-simply issue the same command, only omitting the "-d", "-e CP_Service=True" and "--restart=always" parameters.
 
 ##### Ad-hoc on MacOS
 
 As of v1.6.3 the "Update" profile was added to the "static" profiles distributed with the repository.
 In order to use it, simply call it like any other profile (CMD + O)
 Note: As of v1.6.5, if you set the variable CP_Version (in your zshrc file for example),
-the update profile will use it to determine which version to use to pull (if you want a development version for example).
+  the update profile will use it to determine which version to use to pull (if you want a development version for example).
 
-`docker run --init --rm -v ~/Library/Application\ Support/iTerm2/DynamicProfiles/:/home/appuserLibrary/Application\ Support/iTerm2/DynamicProfiles/ -v ~/.iTerm-cloud-profile-generator/config.yaml:/home/appuser.iTerm-cloud-profile-generator/config.yaml -v ~/iTerm2-static-profiles/:/opt/CloudProfile/iTerm2-static-profiles/ aviadra/cp`
+In order to trigger an "Ad-hoc" run without using the "update profile",
+  you can simply issue the "install command" from the TL;DR.
 
-##### Ad-hoc on windows
-
-`docker run -it --init --rm -e CP_Windows=True -v "%HOMEDRIVE%%HOMEPATH%"\Cloud_Profiler/:/home/appuserCloud_Profiler/ -v "%HOMEDRIVE%%HOMEPATH%"\.iTerm-cloud-profile-generator\config.yaml:/home/appuser.iTerm-cloud-profile-generator/config.yaml -v ~/iTerm2-static-profiles/:/opt/CloudProfile/iTerm2-static-profiles/ aviadra/cp`
-
-Note: While not required, I've added to the above the 
-"[--rm](https://docs.docker.com/engine/reference/run/#clean-up---rm)" option just for tightness.
+##### Ad-hoc on Windows
+TODO: update profile for moba
 
 You should be all set, just go to the Configuration section.
 
