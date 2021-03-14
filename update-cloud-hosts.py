@@ -1006,7 +1006,7 @@ def do_worker(do_script_config, do_instance_counter, do_cloud_instances_obj_list
 
 # MAIN
 if __name__ == '__main__':
-    VERSION = "v4.4.1"
+    VERSION = "v4.4.2"
     with open("marker.tmp", "w") as file:
         file.write("mark")
 
