@@ -1,50 +1,58 @@
 # Change Log
-## v4.4.0 - Ephraim (Deleteing is the best from of coding)
+## v4.4.2 - [Shrapnel](https://tfwiki.net/wiki/Shrapnel_(G1))
+Fixed a bud, where profiling did not work for non STS users.  
+
+## v4.4.1 - [kickback](https://tfwiki.net/wiki/Kickback_(G1))
+Corrected Dockerfile for multi platform
+Added links to version names in the changelog
+
+## v4.4.0 - [Ephraim](https://www.facebook.com/guy.ephraim) (Deleteing is the best from of coding)
 Removed the colors submodule.
 Dockerfile improvements to reduce the image size.
 Updated the alpine version.
 Deleted unused code.
 
-## v4.3.5 - Saimyōshō (Poison Insects of Hell)
+
+## v4.3.5 - [Saimyōshō](https://inuyasha.fandom.com/wiki/Saimy%C5%8Dsh%C5%8D) (Poison Insects of Hell)
 Reverted the change of looking for the tag directive anywhere in the value (introduced in v4.0.1).
 This caused too many collisions for the "Name" containing tag values (like Con_username and Bastion_Con_username).
 The amount of work that would be required to maintain such a generic value from not colliding with others was deemed to be too great,
 and with the potential of affecting too many "legacy" configurations already set on instances.
 Also, the advantages of doing this type of "search" were greatly diminished due to clean up work done since that version.
 
-## v4.3.4 - Shira (Not the warrior princess)
+## v4.3.4 - [Shira](https://www.facebook.com/shira.cohen.712) (Not the warrior princess)
 Fixed update for "normal" users that don't run Cloud_profiler with root for "Docker context" creation.
 
-## v4.3.3 - Kōtotsu (Wresting-Surge)
+## v4.3.3 - [Kōtotsu](https://bleach.fandom.com/wiki/Dangai) (Wresting-Surge)
 Startup script cleanups to remove logic of not knowing the version and reduce restarts of container.
 
-## v4.3.2 - Haien (Abolishing Flames)
+## v4.3.2 - [Haien](https://bleach.fandom.com/wiki/Haien) (Abolishing Flames)
 Start of removing "master" branch. (It will be maintained for legacy compatabilety for now)
 
-## v4.3.1 - Kakushitsuijaku (Footprint-Attentive Pursuing-Sparrows)
+## v4.3.1 - [Kakushitsuijaku](https://bleach.fandom.com/wiki/Kakushitsuijaku) (Footprint-Attentive Pursuing-Sparrows)
 Seeing that the "Update profile" is the most likely path to become a beta tester,
 I've removed the branch selection from the "TL;DR" installer.
 
-## v4.3.0 - Tenteikūra (Heavenly Rickshaws in Silken Air)
+## v4.3.0 - [Tenteikūra](https://bleach.fandom.com/wiki/Tenteik%C5%ABra) (Heavenly Rickshaws in Silken Air)
 Adding multi arch support!! (M1 mac users, you're welcome).
 Moved to 3 digit versioning.
 Changed the update profile file name to not contain the version for easier upgrades.
 
-## v4.2 - Kurohitsugi (Black Coffin)
+## v4.2 - [Kurohitsugi](https://bleach.fandom.com/wiki/Kurohitsugi) (Black Coffin)
 Moved to using Alpine as the base image to reduce CVEs.
 Removing "sh" from the final form of the container required weaning off GNU usage.
 Fixed docker contex creation to actually work.
 
-## v4.1.3 - Nega Scott
+## v4.1.3 - [Nega Scott](https://scottpilgrim.fandom.com/wiki/Nega_Scott)
 SSH config - Bastions where not used when they should have been,
 
-## v4.1.2 - Akuma
+## v4.1.2 - [Akuma](https://miraculousladybug.fandom.com/wiki/Akuma)
 SSH config - bastions were self looping.
 
-## v4.1.1 - Cero (Hollow Flash)
+## v4.1.1 - [Cero](https://bleach.fandom.com/wiki/Cero) (Hollow Flash)
 Fixed Docker context and SSH config creations (they were still using pre v4.0 methods to access data).
 
-## v4.1 - Hōrin (Disintegrating Circle)
+## v4.1 - [Hōrin](https://bleach.fandom.com/wiki/H%C5%8Drin) (Disintegrating Circle)
 Added ability to set the SSH command to use from the config file.
 Dockerfile: Added OS upgrade to lower CVEs.
 Moved where we copy the requirements, 
@@ -54,12 +62,12 @@ Added deleting the container if the version has changed (as indicated by the fil
 Reduced linting issues from "startup" script.
 Updated README to include instructions about the new "SSH_command" directive, and for better readability.
 
-## v4.0.1 - Tsuriboshi (Suspending Star)
+## v4.0.1 - [Tsuriboshi](https://bleach.fandom.com/wiki/Tsuriboshi) (Suspending Star)
 Changed it so the value of the tag we're looking for, can be anywhere in the tag value we get from AWS.
 The tag "dynamic_profile_parent_name" was changed to "dynamic_profile_parent", in order to not collide with the "Name"
 tag.
 
-## v4.0 - Daiyōkai (in a "class" of my own :)
+## v4.0 - [Daiyōkai](https://inuyasha.fandom.com/wiki/Daiy%C5%8Dkai) (in a "class" of my own :)
 Moved to using a "class" for the machines profiles instead of a nested dict ＼(｀0´)／.
 
 Added "legacy cleaner"/"dynamic profile file versioner", to remove all files that don't match the current version. 
@@ -87,7 +95,7 @@ Parallel_exec bug - This was set to False when I developed and skewed my results
 
 Changed the way we handle the creation of ssh config.
 
-## v3.0 - Bakusaiga
+## v3.0 - [Bakusaiga](https://inuyasha.fandom.com/wiki/Bakusaiga)
 Started using intellij Pycharm and IDEA.
 Switched to using multiprocessing (instead of threads), dramatically improving the execution time,
 as processes don't share the boto client connection state.
@@ -100,7 +108,7 @@ Fixed SSH config directory error for new users that don't have any configuration
 ## v2.0.1
 Fixed windows detection typo
 
-## v2.0 - Kaze no Kizu
+## v2.0 - [Kaze no Kizu](https://inuyasha.fandom.com/wiki/Kaze_no_Kizu)
 Added creating docker contexts.
 
 Added preliminary support for creating SSH configs.
@@ -151,7 +159,7 @@ Updated documentation.
 ## v1.6.5
 Added CP_Version variable, which if set (in your zshrc file for example) will be used to determine which version to pull
 
-## v1.6.4 - Bankotsu
+## v1.6.4 - [Bankotsu](https://inuyasha.fandom.com/wiki/Bankotsu)
 You get capitalisation, and you get capitalisation... everybody gets CAPITALISATION!!! ＼(｀0´)／
 
 Added Login_command to be executed right after a login to the remote system. (Useful for automatically "sudo -i")
@@ -169,7 +177,7 @@ Removed install of time update as it seems to not work in a container
 
 Some README updates due to improved docker usage.
 
-## v1.6 - Sōryūha
+## v1.6 - [Sōryūha](https://inuyasha.fandom.com/wiki/S%C5%8Dry%C5%ABha)
 Docker for windows support is now a first class citizen.
 
 Moved to use multi-stage builds.
@@ -183,7 +191,7 @@ Now syncing container time with NTP before running, due to Windows finicky behav
 ## v1.5.1
 Changed Docker base to use "python:slim-buster". This reduced the image size from 1.13G to 392M. \m/ (>_<) \m/
 
-## v1.5 - Tokijin
+## v1.5 - [Tokijin](https://inuyasha.fandom.com/wiki/T%C5%8Dkijin)
 Docker support :)
 
 Changed placement of the profiles to be atomic due to change in iTerm 3.8.8
@@ -209,7 +217,7 @@ Added setting Bastion username and port
 Changed repo/project name from "iTerm-cloud-profile-generator" to "Cloud_Profiler"
 
 
-## v1.3 - Bankai
+## v1.3 - [Bankai](https://bleachfanfiction.fandom.com/wiki/Bankai)
 Now supporting running on windows and creating "MobaXterm" profiles (test on v12.4)
 
 Moved to use PEP 498 with f strings
@@ -256,7 +264,7 @@ Fixed Bastion decision (again).
 Added PyCryptodome to requirements.
 
 
-## v1.0.1 - Shikay
+## v1.0.1 - [Shikai](https://bleachfanfiction.fandom.com/wiki/Shikai)
 Added the ability to block the use of a Bastion, by setting the tag iTerm_bastion to the value of "no".
 
 Corrected DO bug not using Bastion.
