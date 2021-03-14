@@ -137,7 +137,7 @@ def decrypt(ciphertext, keyfile):
     with open(os.path.expanduser(keyfile)) as finput:
         fkey = RSA.importKey(finput.read())
     cipher = PKCS1_v1_5.new(fkey)
-    plaintext = cipher.decrypt(ciphertext).decode('utf-8')
+    plaintext = cipher.decrypt(ciphertext, "unable to decrypt").decode('utf-8')
     return [True, plaintext]
 
 
@@ -422,7 +422,7 @@ def fetch_ec2_instance(
         pass_response = client.get_password_data(
             InstanceId=instance['InstanceId'],
         )
-        data = base64.b64decode(pass_response.get('passwordData', "U29ycnkgbm8ga2V5IHVzZWQgdG8gY3JlYXRlIFZNPw=="))
+        data = base64.b64decode(pass_response.get('PasswordData', "U29ycnkgbm8ga2V5IHVzZWQgdG8gY3JlYXRlIFZNPw=="))
         password = decrypt(data, os.path.join(fetch_script_config["Local"].get('SSH_keys_path', '.'), ssh_key))
 
     machine.name = f"{instance_source}.{name}"
@@ -772,21 +772,22 @@ def update_term(obj_list):
                 connection_command = f"{connection_command} -J {bastion_connection_command}"
 
                 if not machine.con_username and machine.platform == 'windows':
-                    connection_command = f"function random_unused_port {{ local port=$( echo " \
-                                         f"$((2000 + ${{RANDOM}} % 65000))); (echo " \
-                                         f">/dev/tcp/127.0.0.1/$port) &> /dev/null ; if [[ $? != 0 ]] ; then export " \
-                                         f"RANDOM_PORT=$port; else random_unused_port ;fi }}; " \
-                                         f"if [[ -n ${{RANDOM_PORT+x}} && -n \"$( ps aux | grep \"ssh -f\" " \
-                                         f"| grep -v grep | awk \'{{print $2}}\' )\" ]]; " \
-                                         f" then kill -9 $( ps aux | grep \"ssh -f\" | grep -v grep " \
-                                         f"| awk \'{{print $2}}\' ) ; else random_unused_port; fi ;ssh -f -o " \
-                                         f"ExitOnForwardFailure=yes -L ${{RANDOM_PORT}}:{ip_for_connection}:" \
-                                         f"{machine.con_port_windows} " \
-                                         f"{bastion_connection_command} sleep 10 ; open " \
-                                         f"'rdp://full%20address=s:127.0.0.1:'\"${{RANDOM_PORT}}\"'" \
-                                         f"&audiomode=i:2&disable%20themes=i:0&screen%20mode%20id=i:1&use%20multimon" \
-                                         f":i:0&username:s:{con_username}" \
-                                         f"&desktopwidth=i:1024&desktopheight=i:768'"
+                    connection_command = \
+                         "function random_unused_port() { LOW_BOUND=49152 ; RANGE=16384 ; " \
+                         "while true; do RANDOM_PORT=$[$LOW_BOUND + ($RANDOM % $RANGE)]; " \
+                         "(echo '' >/dev/tcp/127.0.0.1/${RANDOM_PORT}) &>/dev/null;" \
+                         "if [ $? -ne 0 ]; then echo $RANDOM_PORT ; break ; fi; done };" \
+                         f"if [[ -n ${{RANDOM_PORT+x}} && -n \"$( ps aux | grep \"ssh -f\" " \
+                         f"| grep -v grep | awk \'{{print $2}}\' )\" ]]; " \
+                         f" then kill -9 $( ps aux | grep 'ssh -f' | grep -v grep " \
+                         f"| awk \'{{print $2}}\' ) ; else random_unused_port; fi ;ssh -f -o " \
+                         f"ExitOnForwardFailure=yes -L ${{RANDOM_PORT}}:{ip_for_connection}:" \
+                         f"{machine.con_port_windows} " \
+                         f"{bastion_connection_command} sleep 10 ; open " \
+                         f"'rdp://full%20address=s:127.0.0.1:'\"${{RANDOM_PORT}}\"'" \
+                         f"&audiomode=i:2&disable%20themes=i:0&screen%20mode%20id=i:1&use%20multimon" \
+                         f":i:0&username:s:{con_username}" \
+                         f"&desktopwidth=i:1024&desktopheight=i:768'"
             elif machine.platform == 'windows':
                 con_username = machine.con_username
                 connection_command = f"open 'rdp://full%20address=s:{ip_for_connection}:" \
@@ -796,11 +797,11 @@ def update_term(obj_list):
                                      f"&desktopwidth=i:1024&desktopheight=i:768'"
 
             if machine.password[0] and machine.platform == 'windows':
-                connection_command = f"echo \"\\nThe Windows password on record is:\\n" \
-                                     f"{machine.password[1].rstrip()}\\n\\n\" " \
-                                     f"\n;echo -n '{machine.password[1].rstrip()}' " \
-                                     f"|pbcopy; echo \"\\nIt has been sent to your clipboard for easy pasting\\n\\n\"" \
-                                     f";{connection_command}"
+                connection_command = f"#The Windows password on record is:\n" \
+                                     f"#\"{machine.password[1].rstrip()}\"\n\n" \
+                                     f"echo -n '{machine.password[1].rstrip()}'|pbcopy\n\n" \
+                                     f"#The password has been copied to your clipboard for easy pasting.\n" \
+                                     f"{connection_command}"
 
             elif machine.platform == 'windows':
                 connection_command = f'echo \"\\nThe Windows password could not be decrypted...\\n' \
@@ -976,8 +977,10 @@ def aws_profiles_from_config_file(script_config_f, instance_counter_f, cloud_ins
                 process.join()
 
         else:
+            role_arn_s = False
             get_ec2_instances(
                 profile,
+                role_arn_s,
                 instance_counter_f,
                 script_config_f,
                 cloud_instances_obj_list_f
@@ -1028,10 +1031,13 @@ if __name__ == '__main__':
         with open(os.path.join(script_dir, 'config.yaml')) as conf_file:
             script_config_repo = yaml.full_load(conf_file)
 
+        print(platform.system())
         if os.environ.get('CP_OutputDir', False):
             CP_OutputDir = os.environ['CP_OutputDir']
         elif platform.system() == 'Windows' or os.environ.get('CP_Windows', False):
             CP_OutputDir = "~/Documents/Cloud-profiler/DynamicProfiles"
+        elif platform.system() == 'Darwin':
+            CP_OutputDir = "~/Library/Application Support/iTerm2/DynamicProfiles/"
         else:
             CP_OutputDir = "~/DynamicProfiles/"
         print(f"CP_OutputDir to be used: {CP_OutputDir}")
@@ -1069,8 +1075,8 @@ if __name__ == '__main__':
                         os.remove(entry.path)
 
         p_list = []
+        
         # Static profiles iterator
-
         if platform.system() == 'Windows' or os.environ.get('CP_Windows', False) == 'True' or \
                 os.environ.get('WSL', False) == 'True':
             print("Cloud-profiler - Skipping creating \"static profiles\", as this seems to be a windows system.")
