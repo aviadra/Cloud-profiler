@@ -976,8 +976,10 @@ def aws_profiles_from_config_file(script_config_f, instance_counter_f, cloud_ins
                 process.join()
 
         else:
+            role_arn_s = False
             get_ec2_instances(
                 profile,
+                role_arn_s,
                 instance_counter_f,
                 script_config_f,
                 cloud_instances_obj_list_f
