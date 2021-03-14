@@ -4,6 +4,7 @@
 import base64
 import concurrent.futures
 import configparser
+import getpass
 import json
 import multiprocessing as mp
 import os
@@ -19,8 +20,6 @@ from Crypto.Cipher import PKCS1_v1_5
 from Crypto.PublicKey import RSA
 from inputimeout import TimeoutOccurred, inputimeout
 from sshconf import empty_ssh_config_file
-import ntplib
-import sys
 
 
 class InstanceProfile:
@@ -137,7 +136,7 @@ def decrypt(ciphertext, keyfile):
     with open(os.path.expanduser(keyfile)) as finput:
         fkey = RSA.importKey(finput.read())
     cipher = PKCS1_v1_5.new(fkey)
-    plaintext = cipher.decrypt(ciphertext, "unable to decrypt").decode('utf-8')
+    plaintext = cipher.decrypt(ciphertext).decode('utf-8')
     return [True, plaintext]
 
 
@@ -419,10 +418,10 @@ def fetch_ec2_instance(
             iterm_tags_fin.append(tag)
 
     if instance.get('Platform', '') == 'windows':
-        pass_response = client.get_password_data(
+        response = client.get_password_data(
             InstanceId=instance['InstanceId'],
         )
-        data = base64.b64decode(pass_response.get('PasswordData', "U29ycnkgbm8ga2V5IHVzZWQgdG8gY3JlYXRlIFZNPw=="))
+        data = base64.b64decode(response.get('passwordData', "U29ycnkgbm8ga2V5IHVzZWQgdG8gY3JlYXRlIFZNPw=="))
         password = decrypt(data, os.path.join(fetch_script_config["Local"].get('SSH_keys_path', '.'), ssh_key))
 
     machine.name = f"{instance_source}.{name}"
@@ -489,7 +488,8 @@ def fetch_ec2_region(
         Filters=[{
             'Name': 'instance-state-name',
             'Values': search_states
-        }]
+        }
+        ]
     )
 
     vpc_data_all = client.describe_vpcs(
@@ -580,7 +580,7 @@ def get_ec2_instances(
     if ec2_role_arn:
         instance_source = f"{instance_source}.{ec2_role_arn}"
         role_session_name = f"{os.path.basename(__file__).rpartition('.')[0]}." \
-                            f"cloud_profiler@{platform.uname()[1]}"
+                            f"{getpass.getuser().replace(' ', '_')}@{platform.uname()[1]}"
         sts_client = boto3.client('sts')
         if profile.get("MFA_serial_number", False):
             retry = 3
@@ -737,7 +737,7 @@ def update_term(obj_list):
     for cloud_provider, machines in p_region_list.items():
         for machine in machines:
             instance_counter[machine.instance_source] += 1
-            connection_command = f"{script_config['Local'].get('SSH_command', 'ssh')}"
+            connection_command = f"{script_config['Local']['SSH_command']}"
             machine.tags = [f"Account: {machine.instance_source}, {machine.ip}"]
             for tag in machine.iterm_tags:
                 machine.tags.append(tag)
@@ -772,22 +772,21 @@ def update_term(obj_list):
                 connection_command = f"{connection_command} -J {bastion_connection_command}"
 
                 if not machine.con_username and machine.platform == 'windows':
-                    connection_command = \
-                         "function random_unused_port() { LOW_BOUND=49152 ; RANGE=16384 ; " \
-                         "while true; do RANDOM_PORT=$[$LOW_BOUND + ($RANDOM % $RANGE)]; " \
-                         "(echo '' >/dev/tcp/127.0.0.1/${RANDOM_PORT}) &>/dev/null;" \
-                         "if [ $? -ne 0 ]; then echo $RANDOM_PORT ; break ; fi; done };" \
-                         f"if [[ -n ${{RANDOM_PORT+x}} && -n \"$( ps aux | grep \"ssh -f\" " \
-                         f"| grep -v grep | awk \'{{print $2}}\' )\" ]]; " \
-                         f" then kill -9 $( ps aux | grep 'ssh -f' | grep -v grep " \
-                         f"| awk \'{{print $2}}\' ) ; else random_unused_port; fi ;ssh -f -o " \
-                         f"ExitOnForwardFailure=yes -L ${{RANDOM_PORT}}:{ip_for_connection}:" \
-                         f"{machine.con_port_windows} " \
-                         f"{bastion_connection_command} sleep 10 ; open " \
-                         f"'rdp://full%20address=s:127.0.0.1:'\"${{RANDOM_PORT}}\"'" \
-                         f"&audiomode=i:2&disable%20themes=i:0&screen%20mode%20id=i:1&use%20multimon" \
-                         f":i:0&username:s:{con_username}" \
-                         f"&desktopwidth=i:1024&desktopheight=i:768'"
+                    connection_command = f"function random_unused_port {{ local port=$( echo " \
+                                         f"$((2000 + ${{RANDOM}} % 65000))); (echo " \
+                                         f">/dev/tcp/127.0.0.1/$port) &> /dev/null ; if [[ $? != 0 ]] ; then export " \
+                                         f"RANDOM_PORT=$port; else random_unused_port ;fi }}; " \
+                                         f"if [[ -n ${{RANDOM_PORT+x}} && -n \"$( ps aux | grep \"ssh -f\" " \
+                                         f"| grep -v grep | awk \'{{print $2}}\' )\" ]]; " \
+                                         f" then kill -9 $( ps aux | grep \"ssh -f\" | grep -v grep " \
+                                         f"| awk \'{{print $2}}\' ) ; else random_unused_port; fi ;ssh -f -o " \
+                                         f"ExitOnForwardFailure=yes -L ${{RANDOM_PORT}}:{ip_for_connection}:" \
+                                         f"{machine.con_port_windows} " \
+                                         f"{bastion_connection_command} sleep 10 ; open " \
+                                         f"'rdp://full%20address=s:127.0.0.1:'\"${{RANDOM_PORT}}\"'" \
+                                         f"&audiomode=i:2&disable%20themes=i:0&screen%20mode%20id=i:1&use%20multimon" \
+                                         f":i:0&username:s:{con_username}" \
+                                         f"&desktopwidth=i:1024&desktopheight=i:768'"
             elif machine.platform == 'windows':
                 con_username = machine.con_username
                 connection_command = f"open 'rdp://full%20address=s:{ip_for_connection}:" \
@@ -797,11 +796,11 @@ def update_term(obj_list):
                                      f"&desktopwidth=i:1024&desktopheight=i:768'"
 
             if machine.password[0] and machine.platform == 'windows':
-                connection_command = f"#The Windows password on record is:\n" \
-                                     f"#\"{machine.password[1].rstrip()}\"\n\n" \
-                                     f"echo -n '{machine.password[1].rstrip()}'|pbcopy\n\n" \
-                                     f"#The password has been copied to your clipboard for easy pasting.\n" \
-                                     f"{connection_command}"
+                connection_command = f"echo \"\\nThe Windows password on record is:\\n" \
+                                     f"{machine.password[1].rstrip()}\\n\\n\" " \
+                                     f"\n;echo -n '{machine.password[1].rstrip()}' " \
+                                     f"|pbcopy; echo \"\\nIt has been sent to your clipboard for easy pasting\\n\\n\"" \
+                                     f";{connection_command}"
 
             elif machine.platform == 'windows':
                 connection_command = f'echo \"\\nThe Windows password could not be decrypted...\\n' \
@@ -1007,15 +1006,7 @@ def do_worker(do_script_config, do_instance_counter, do_cloud_instances_obj_list
 
 # MAIN
 if __name__ == '__main__':
-    VERSION = "v4.4.1"
-    c = ntplib.NTPClient()
-    time_response = c.request('time.google.com', version=3)
-    max_api_drift = 15 * 60
-    if time_response.offset > max_api_drift:
-        print("Cloud-Profiler - The current system time is more then 15 minutes offset from the world. "
-              "Fix this and try again.")
-        sys.exit(42)
-
+    VERSION = "v4.4.2"
     with open("marker.tmp", "w") as file:
         file.write("mark")
 
@@ -1031,15 +1022,12 @@ if __name__ == '__main__':
         with open(os.path.join(script_dir, 'config.yaml')) as conf_file:
             script_config_repo = yaml.full_load(conf_file)
 
-        print(platform.system())
         if os.environ.get('CP_OutputDir', False):
             CP_OutputDir = os.environ['CP_OutputDir']
         elif platform.system() == 'Windows' or os.environ.get('CP_Windows', False):
-            CP_OutputDir = "~/Documents/Cloud-profiler/DynamicProfiles"
-        elif platform.system() == 'Darwin':
-            CP_OutputDir = "~/Library/Application Support/iTerm2/DynamicProfiles/"
+            CP_OutputDir = "~/Cloud_Profiler/"
         else:
-            CP_OutputDir = "~/DynamicProfiles/"
+            CP_OutputDir = "~/Library/Application Support/iTerm2/DynamicProfiles/"
         print(f"CP_OutputDir to be used: {CP_OutputDir}")
 
         if not os.path.isdir(os.path.expanduser(CP_OutputDir)):
@@ -1064,6 +1052,7 @@ if __name__ == '__main__':
 
         InstanceProfile.script_config = script_config
 
+        username = getpass.getuser()
         config = configparser.ConfigParser()
 
         # Clean legacy
@@ -1075,19 +1064,14 @@ if __name__ == '__main__':
                         os.remove(entry.path)
 
         p_list = []
-        
         # Static profiles iterator
-        if platform.system() == 'Windows' or os.environ.get('CP_Windows', False) == 'True' or \
-                os.environ.get('WSL', False) == 'True':
-            print("Cloud-profiler - Skipping creating \"static profiles\", as this seems to be a windows system.")
-        else:
-            p = mp.Process(
-                name="update_statics",
-                target=update_statics,
-                args=(CP_OutputDir, script_config, VERSION,)
-            )
-            p.start()
-            p_list.append(p)
+        p = mp.Process(
+            name="update_statics",
+            target=update_statics,
+            args=(CP_OutputDir, script_config, VERSION,)
+        )
+        p.start()
+        p_list.append(p)
 
         # AWS profiles iterator
         if script_config['AWS'].get('profiles', False):
@@ -1127,13 +1111,11 @@ if __name__ == '__main__':
         for p in p_list:
             p.join()
 
-        if platform.system() == 'Windows' or os.environ.get('CP_Windows', False) == 'True' or \
-                os.environ.get('WSL', False) == 'True':
+        if platform.system() == 'Windows' or os.environ.get('CP_Windows', False):
             update_moba(cloud_instances_obj_list)
         else:
             update_term(cloud_instances_obj_list)
-        # ssh_config
-        if platform.system() != 'Windows':
+            # ssh_config
             if script_config['Local'].get('SSH_Config_create'):
                 print("Cloud-profiler - SSH_Config_create is set, so will create config.")
                 User_SSH_Config = os.path.expanduser("~/.ssh/config")
@@ -1144,8 +1126,8 @@ if __name__ == '__main__':
                             "Cloud-profiler - Found ssh_config include directive for CP in user's ssh config file, "
                             "so leaving it as is.")
                     else:
-                        print('Cloud-profiler - Did not find include directive  for CP in user\'s ssh config file, '
-                              'so adding it.')
+                        print("Cloud-profiler - Did not find include directive  for CP in user's ssh config file, "
+                              "so adding it.")
                         line_prepender(User_SSH_Config, "Include ~/.ssh/cloud-profiler")
                 update_ssh_config(list(cloud_instances_obj_list))
             if script_config['Local'].get('Docker_contexts_create'):

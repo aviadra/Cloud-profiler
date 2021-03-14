@@ -2,6 +2,9 @@
 ## v5.0.0 - [Hakuteiken](https://bleach.fandom.com/wiki/Sh%C5%ABkei:_Hakuteiken)
 Windows WSLv2 support.
 
+## v4.4.2 - [Shrapnel](https://tfwiki.net/wiki/Shrapnel_(G1))
+Fixed a bud, where profiling did not work for non STS users.
+
 ## v4.4.1 - [kickback](https://tfwiki.net/wiki/Kickback_(G1))
 Corrected Dockerfile for multi platform.
 Added links to version names in the changelog.
