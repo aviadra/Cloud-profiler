@@ -146,8 +146,8 @@ AWS:
   profiles:
     -
       name: "Work_account"
-      aws_access_key_id: "AKI78Oga$Htf@N%0jNdzL"
-      aws_secret_access_key: "sJwQ3GMmc54esG$GcGsNXfVBFB!e5^602jrutqUI"
+      aws_access_key_id: "EWRSGDY$#^FDERH"
+      aws_secret_access_key: "#@$%@#GSRDFGBE%^$##%$DF"
       role_arns: {
         dev: "arn:aws:iam::946*********:role/iTerm_RO_from_TGT",
         oper: "arn:aws:iam::438*********:role/iTerm_RO_from_TGT",
@@ -157,18 +157,18 @@ AWS:
     -
       instance_use_ip_public: True
       name: "My_account"
-      aws_access_key_id: "AKIAYDM3PVNYPSUDQ7XO"
-      aws_secret_access_key: "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"
+      aws_access_key_id: "ASDAS%#@SDFGSDFDFSG"
+      aws_secret_access_key: "FDGDFG#$%#SDFVSDGFSFDGW@#$%"
 
 DO:
   instance_use_ip_public: True
   profiles:
     -
       name: "Work_account"
-      token: "^!Bt0zxLc1rH2FwEy!3IOC!2xlD050ZMQre2MPwwxvl9CfL7Q*^Z1IDEdD0OavXA"
+      token: "snow"
     -
       name: "My_account"
-      token: "9CMEoTCbBFfQGZ03HXm!nMB2Z35rA*LDAv5L2ratUR#br!sAz@7MOw@GdX^&^PPP"
+      token: "flake"
       Con_username: root
 ```
 
