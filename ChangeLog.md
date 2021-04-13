@@ -1,6 +1,8 @@
 # Change Log
 ## v5.0.0 - [Hakuteiken](https://bleach.fandom.com/wiki/Sh%C5%ABkei:_Hakuteiken)
 Windows WSLv2 support.
+Parallelized AWS accounts as well :)
+Work around for MS RDP prog no longer "opening" files correctly
 
 ## v4.4.2 - [Shrapnel](https://tfwiki.net/wiki/Shrapnel_(G1))
 Fixed a bud, where profiling did not work for non STS users.

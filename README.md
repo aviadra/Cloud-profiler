@@ -99,9 +99,12 @@ For some cases it is easier to copy from here, so here you go:
 Local:
   Static_profiles: "./iTerm2-static-profiles"
   SSH_base_string: "-oStrictHostKeyChecking=no -oUpdateHostKeys=yes -oServerAliveInterval=30 -oAddKeysToAgent=no"
+  # Con_username: "ec2-user"
+  # Bastion_Con_username: "aviadcye"
   Bastion: False
   SSH_keys_path: "~/Downloads"
   Use_shared_key: False
+  Login_command: "sudo -i"
   Parallel_exec: True
   Skip_stopped: True
   Badge_info_to_display:
@@ -113,12 +116,11 @@ Local:
     Bastion_Con_username: False
     Con_port: False
     Con_username: False
-    dynamic_profile_parent: False
+    Dynamic_profile_parent: False
     Group: False
-    Id: False
+    Id: True
     Instance_use_Bastion: False
-    Instance_use_Ip_public: False
-    Ip_public: True
+    Instance_use_ip_public: False
     Iterm_tags_prefixs: ["ENV"]
     # Iterm_tags_prefixs: []
     Password: False
@@ -126,37 +128,48 @@ Local:
     Region: True
     SSH_key: False
     Use_shared_key: False
-    VPC: True
+    VPC: False
+    Ip_public: True
+  Docker_contexts_create: False
   SSH_Config_create: True
-  Docker_contexts_create: True
-  CNC: True
 
 AWS:
-  exclude_regions: ["ap-southeast-1", "ap-southeast-2","sa-east-1","ap-northeast-1","ap-northeast-2","ap-south-1"]
+  exclude_regions: ["ap-southeast-1", "ap-southeast-2","sa-east-1","ap-northeast-2","ap-south-1"]
   aws_credentials_file: "~/.aws/credentials"
   Con_username: False
   Bastion_Con_port: 22
-  use_Ip_public: False
+  instance_use_ip_public: False
   Skip_stopped: True
   exclude_accounts: []
   use_awscli_profiles: False
+  update_hosts: False
   profiles:
     -
-      name: "Company_TGT"
-      aws_access_key_id: "AKIAW*********"
-      aws_secret_access_key: "D5am******************"
+      name: "Work_account"
+      aws_access_key_id: "AKI78Oga$Htf@N%0jNdzL"
+      aws_secret_access_key: "sJwQ3GMmc54esG$GcGsNXfVBFB!e5^602jrutqUI"
       role_arns: {
-        sts_oper: "arn:aws:iam::438**********:role/iTerm_RO_from_TGT",
-        sts_devops: "arn:aws:iam::168**********:role/iTerm_RO_from_TGT",
-        sts_client1: "arn:aws:iam::701**********:role/iTerm_RO_from_TGT",
+        dev: "arn:aws:iam::946*********:role/iTerm_RO_from_TGT",
+        oper: "arn:aws:iam::438*********:role/iTerm_RO_from_TGT",
+        devops: "arn:aws:iam::168*********:role/iTerm_RO_from_TGT",
+        haim: "arn:aws:iam::701*********:role/iTerm_RO_from_TGT",
       }
+    -
+      instance_use_ip_public: True
+      name: "My_account"
+      aws_access_key_id: "AKIAYDM3PVNYPSUDQ7XO"
+      aws_secret_access_key: "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"
 
 DO:
+  instance_use_ip_public: True
   profiles:
-#    -
-#      name: "The one"
-#      token: "secretspecialuniquesnowflake"
-#      use_Ip_public: True
+    -
+      name: "Work_account"
+      token: "^!Bt0zxLc1rH2FwEy!3IOC!2xlD050ZMQre2MPwwxvl9CfL7Q*^Z1IDEdD0OavXA"
+    -
+      name: "My_account"
+      token: "9CMEoTCbBFfQGZ03HXm!nMB2Z35rA*LDAv5L2ratUR#br!sAz@7MOw@GdX^&^PPP"
+      Con_username: root
 ```
 
 ## Local options
