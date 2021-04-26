@@ -696,10 +696,6 @@ def update_moba(obj_list):
         else:
             shard_key_path = ''
         tags = ','.join(tags)
-        if machine.bastion_con_port != 22:
-            bastion_port = machine.bastion_con_port
-        else:
-            bastion_port = ''
         if machine.bastion_con_username:
             bastion_user = machine.con_username
         else:
@@ -709,16 +705,16 @@ def update_moba(obj_list):
         else:
             login_command = ''
         profile = (
-            f"\n{short_name}= {connection_type}{ip_for_connection}%{machine.con_port}%"
-            f"{con_username}%%-1%-1%{login_command}%{bastion_for_profile}%{bastion_port}%{bastion_user}%0%"
+            f"\n{short_name} = {connection_type}{ip_for_connection}%{machine.con_port}%"
+            f"{con_username}%%-1%-1%{login_command}%{bastion_for_profile}%{machine.bastion_con_port}%{bastion_user}%0%"
             f"0%0%{shard_key_path}%%"
             f"-1%0%0%0%%1080%%0%0%1#MobaFont%10%0%0%0%15%236,"
             f"236,236%30,30,30%180,180,192%0%-1%0%%xterm%-1%"
-            f"-1%_Std_Colors_0_%80%24%0%1%-1%<none>%%0#0# {tags}\n"
+            f"-1%_Std_Colors_0_%80%24%0%1%-1%<none>%%0%1%-1#0# {tags}  #-1\n"
         )
         profiles += profile
         bookmark_counter += 1
-
+    print(os.path.expanduser(os.path.join(CP_OutputDir, 'Cloud-profiler-Moba.mxtsessions')))
     with open(os.path.expanduser(os.path.join(CP_OutputDir, 'Cloud-profiler-Moba.mxtsessions')), 'wt') as handle:
         handle.write(profiles)
 
@@ -1025,7 +1021,7 @@ if __name__ == '__main__':
         if os.environ.get('CP_OutputDir', False):
             CP_OutputDir = os.environ['CP_OutputDir']
         elif platform.system() == 'Windows' or os.environ.get('CP_Windows', False):
-            CP_OutputDir = "~/Cloud_Profiler/"
+            CP_OutputDir = "~/Documents/Cloud_Profiler/"
         else:
             CP_OutputDir = "~/Library/Application Support/iTerm2/DynamicProfiles/"
         print(f"CP_OutputDir to be used: {CP_OutputDir}")
