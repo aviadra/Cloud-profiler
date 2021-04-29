@@ -958,10 +958,10 @@ def update_ssh_config(dict_list):
 
 
 def aws_profiles_from_config_file(script_config_f, instance_counter_f, cloud_instances_obj_list_f):
+    processes = []
     for profile in script_config_f['AWS']['profiles']:
-        print(f"Working on {profile['name']}")
+        print(f"AWS: Working on {profile['name']}")
         if isinstance(profile.get("role_arns", False), dict):
-            processes = []
             for role_arn_s in profile["role_arns"]:
                 aws_p = mp.Process(
                     target=get_ec2_instances,
@@ -975,19 +975,23 @@ def aws_profiles_from_config_file(script_config_f, instance_counter_f, cloud_ins
                 )
                 aws_p.start()
                 processes.append(aws_p)
-
-            for process in processes:
-                process.join()
-
         else:
             role_arn_s = False
-            get_ec2_instances(
-                profile,
-                role_arn_s,
-                instance_counter_f,
-                script_config_f,
-                cloud_instances_obj_list_f
+            aws_p = mp.Process(
+                target=get_ec2_instances,
+                args=(
+                    profile,
+                    role_arn_s,
+                    instance_counter_f,
+                    script_config_f,
+                    cloud_instances_obj_list_f
+                )
             )
+            aws_p.start()
+            processes.append(aws_p)
+
+    for process in processes:
+        process.join()
 
 
 def aws_profiles_from_awscli_config(aws_script_config):
@@ -1004,7 +1008,7 @@ def aws_profiles_from_awscli_config(aws_script_config):
 
 def do_worker(do_script_config, do_instance_counter, do_cloud_instances_obj_list):
     for profile in do_script_config['DO']['profiles']:
-        print(f"Working on {profile['name']}")
+        print(f"DO: Working on {profile['name']}")
         get_do_instances(profile, do_instance_counter, do_script_config, do_cloud_instances_obj_list)
 
 
