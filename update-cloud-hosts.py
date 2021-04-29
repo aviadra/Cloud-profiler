@@ -464,9 +464,6 @@ def fetch_ec2_region(
         fetch_script_config=None,
         ec2_cloud_instances_obj_list=None
 ) -> None:
-    if region in fetch_script_config['AWS']['exclude_regions']:
-        print(f'{instance_source}: region "{region}", is in excluded list')
-        return
 
     if credentials:
         client = boto3.client('ec2',
@@ -632,7 +629,14 @@ def get_ec2_instances(
         print(f"The exception was:\n{e}")
         return
 
-    for region in ec2_regions:
+    from_config_region_filters = [
+        *ec2_script_config['AWS'].get('exclude_regions', []),
+        *profile.get('exclude_regions', [])
+    ]
+    print(f"{instance_source}: filtering out these regions: {from_config_region_filters}")
+    ec2_regions_filtered = list(set(ec2_regions) - set(from_config_region_filters))
+
+    for region in ec2_regions_filtered:
         fetch_ec2_region(
             region,
             groups,
