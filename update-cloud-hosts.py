@@ -648,8 +648,17 @@ def update_moba(obj_list):
     bookmark_counter = 1
 
     profiles = "[Bookmarks]\nSubRep=\nImgNum=42"
-    for machine in obj_list:
+    s = sorted(
+            obj_list,
+            key=lambda i: (
+                i.name.lower(),
+                i.instance_source.lower(),
 
+            )
+    )
+
+    for machine in s:
+        print(machine.name)
         instance_counter[machine.instance_source] += 1
 
         profiles += f"""\n[Bookmarks_{bookmark_counter}]
@@ -714,7 +723,6 @@ def update_moba(obj_list):
         )
         profiles += profile
         bookmark_counter += 1
-    print(os.path.expanduser(os.path.join(CP_OutputDir, 'Cloud-profiler-Moba.mxtsessions')))
     with open(os.path.expanduser(os.path.join(CP_OutputDir, 'Cloud-profiler-Moba.mxtsessions')), 'wt') as handle:
         handle.write(profiles)
 
@@ -1112,22 +1120,24 @@ if __name__ == '__main__':
         else:
             update_term(cloud_instances_obj_list)
             # ssh_config
-            if script_config['Local'].get('SSH_Config_create'):
-                print("Cloud-profiler - SSH_Config_create is set, so will create config.")
-                User_SSH_Config = os.path.expanduser("~/.ssh/config")
-                CP_SSH_Config = os.path.expanduser("~/.ssh/cloud-profiler")
-                with open(User_SSH_Config) as f:
-                    if f"Include ~/.ssh/cloud-profiler" in f.read():
-                        print(
-                            "Cloud-profiler - Found ssh_config include directive for CP in user's ssh config file, "
-                            "so leaving it as is.")
-                    else:
-                        print("Cloud-profiler - Did not find include directive  for CP in user's ssh config file, "
-                              "so adding it.")
-                        line_prepender(User_SSH_Config, "Include ~/.ssh/cloud-profiler")
-                update_ssh_config(list(cloud_instances_obj_list))
             if script_config['Local'].get('Docker_contexts_create'):
                 docker_contexts_creator(list(cloud_instances_obj_list))
+
+        if script_config['Local'].get('SSH_Config_create'):
+            print("Cloud-profiler - SSH_Config_create is set, so will create config.")
+            User_SSH_Config = os.path.expanduser("~/.ssh/config")
+            CP_SSH_Config = os.path.expanduser("~/.ssh/cloud-profiler")
+            with open(User_SSH_Config) as f:
+                if f"Include ~/.ssh/cloud-profiler" in f.read():
+                    print(
+                        "Cloud-profiler - Found ssh_config include directive for CP in user's ssh config file, "
+                        "so leaving it as is.")
+                else:
+                    print("Cloud-profiler - Did not find include directive  for CP in user's ssh config file, "
+                            "so adding it.")
+                    line_prepender(User_SSH_Config, "Include ~/.ssh/cloud-profiler")
+            update_ssh_config(list(cloud_instances_obj_list))
+        
 
         if os.path.exists('marker.tmp'):
             os.remove("marker.tmp")
