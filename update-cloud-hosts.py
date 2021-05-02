@@ -650,23 +650,22 @@ def get_ec2_instances(
 
 def update_moba(obj_list):
     bookmark_counter = 1
-
     profiles = "[Bookmarks]\nSubRep=\nImgNum=42"
+
     s = sorted(
             obj_list,
             key=lambda i: (
+                i.region.lower(),
                 i.name.lower(),
-                i.instance_source.lower(),
-
+                i.name.split(f"{i.instance_source}.")[1].lower()
             )
-    )
-
+        )
     for machine in s:
         print(machine.name)
         instance_counter[machine.instance_source] += 1
 
-        profiles += f"""\n[Bookmarks_{bookmark_counter}]
-                    SubRep={machine.provider_short}\\{machine.instance_source}\\{machine.region}\nImgNum=41\n"""
+        profiles += f"\n[Bookmarks_{bookmark_counter}]" \
+                    f"\nSubRep={machine.provider_short}\\{machine.instance_source}\\{machine.region}\nImgNum=41\n"
 
         short_name = machine.name.rpartition('.')[2]
 
@@ -692,16 +691,19 @@ def update_moba(obj_list):
         if machine.platform == 'windows':
             if not machine.con_username:
                 con_username = "Administrator"
+            if machine.con_port == 22:
+                machine.con_port = 3389
             connection_type = "#91#4%"
+            bastion_for_profile = '%0%0'
+            bastion_prefix = '%0%0%-1%%'
         else:
             connection_type = "#109#0%"
+            bastion_for_profile = ''
+            bastion_prefix = ''
 
         if (isinstance(machine.bastion, str) and not machine.instance_use_ip_public) \
                 or machine.instance_use_bastion:
-
-            bastion_for_profile = machine.bastion
-        else:
-            bastion_for_profile = ''
+            bastion_for_profile = f"{bastion_prefix}{machine.bastion}"
 
         if machine.ssh_key and machine.use_shared_key:
             shard_key_path = os.path.join(connection_command, os.path.expanduser(
@@ -713,18 +715,30 @@ def update_moba(obj_list):
             bastion_user = machine.con_username
         else:
             bastion_user = ''
-        if machine.login_command:
+        if machine.login_command and not machine.platform == 'windows':
             login_command = machine.login_command.replace('"', "").replace("|", "__PIPE__").replace("#", "__DIEZE__")
+        elif machine.platform == 'windows':
+            login_command = '-1%-1'
         else:
             login_command = ''
-        profile = (
-            f"\n{short_name} = {connection_type}{ip_for_connection}%{machine.con_port}%"
-            f"{con_username}%%-1%-1%{login_command}%{bastion_for_profile}%{machine.bastion_con_port}%{bastion_user}%0%"
-            f"0%0%{shard_key_path}%%"
-            f"-1%0%0%0%%1080%%0%0%1#MobaFont%10%0%0%0%15%236,"
-            f"236,236%30,30,30%180,180,192%0%-1%0%%xterm%-1%"
-            f"-1%_Std_Colors_0_%80%24%0%1%-1%<none>%%0%1%-1#0# {tags}  #-1\n"
-        )
+        if connection_type == "#91#4%":
+            profile = (
+                f"\n{short_name} = {connection_type}{ip_for_connection}%{machine.con_port}%"
+                f"{con_username}%0%-1%-1%{login_command}{bastion_for_profile}%{machine.bastion_con_port}%{bastion_user}%0%"
+                f"0%{shard_key_path}%"
+                f"-1%%-1%-1%0%-1%0%-1#MobaFont%10%0%0%0%15%236,236,236%30,30,30%180,180,192"
+                f"%0%-1%0%%xterm%-1%-1%_Std_Colors_0_%80%24%0%1%-1%<none>%%0%1%-1#0#"
+                f" {tags} #-1\n"
+            )
+        else:
+            profile = (
+                f"\n{short_name} = {connection_type}{ip_for_connection}%{machine.con_port}%"
+                f"{con_username}%%-1%-1%{login_command}%{bastion_for_profile}%{machine.bastion_con_port}%{bastion_user}%0%"
+                f"0%0%{shard_key_path}%%"
+                f"-1%0%0%0%0%1%1080%0%0%1#MobaFont%10%0%0%0%15%236,"
+                f"236,236%30,30,30%180,180,192%0%-1%0%%xterm%-1%"
+                f"-1%_Std_Colors_0_%80%24%0%1%-1%<none>%%0%1%-1#0# {tags}      #-1\n"
+            )
         profiles += profile
         bookmark_counter += 1
     with open(os.path.expanduser(os.path.join(CP_OutputDir, 'Cloud-profiler-Moba.mxtsessions')), 'wt') as handle:
