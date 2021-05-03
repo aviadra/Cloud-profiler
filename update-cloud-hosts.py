@@ -732,7 +732,7 @@ def update_moba(obj_list):
             )
         else:
             profile = (
-                f"\n{short_name} = {connection_type}{ip_for_connection}%{machine.con_port}%"
+                f"\n{short_name} ({machine.id}) = {connection_type}{ip_for_connection}%{machine.con_port}%"
                 f"{con_username}%%-1%-1%{login_command}%{bastion_for_profile}%{machine.bastion_con_port}%{bastion_user}%0%"
                 f"0%0%{shard_key_path}%%"
                 f"-1%0%0%0%0%1%1080%0%0%1#MobaFont%10%0%0%0%15%236,"
