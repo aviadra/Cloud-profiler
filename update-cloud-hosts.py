@@ -741,7 +741,15 @@ def update_moba(obj_list):
             )
         profiles += profile
         bookmark_counter += 1
-    with open(os.path.expanduser(os.path.join(CP_OutputDir, 'Cloud-profiler-Moba.mxtsessions')), 'wt') as handle:
+    with open(
+            os.path.expanduser(
+                os.path.join(
+                    CP_OutputDir,
+                    "CP-Moba.mxtsessions"
+                )
+            ),
+            'wt'
+    ) as handle:
         handle.write(profiles)
 
 
@@ -1091,13 +1099,14 @@ if __name__ == '__main__':
 
         p_list = []
         # Static profiles iterator
-        p = mp.Process(
-            name="update_statics",
-            target=update_statics,
-            args=(CP_OutputDir, script_config, VERSION,)
-        )
-        p.start()
-        p_list.append(p)
+        if not platform.system() == 'Windows' and not os.environ.get('CP_Windows', False):
+            p = mp.Process(
+                name="update_statics",
+                target=update_statics,
+                args=(CP_OutputDir, script_config, VERSION,)
+            )
+            p.start()
+            p_list.append(p)
 
         # AWS profiles iterator
         if script_config['AWS'].get('profiles', False):
