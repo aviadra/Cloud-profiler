@@ -1094,7 +1094,8 @@ if __name__ == '__main__':
             for entry in os.scandir(os.path.expanduser(CP_OutputDir)):
                 if not entry.is_dir(follow_symlinks=False):
                     if "CP" not in entry.name or \
-                            VERSION not in entry.name:
+                            (not platform.system() == 'Windows' and not os.environ.get('CP_Windows', False)
+                            and VERSION not in entry.name):
                         os.remove(entry.path)
 
         p_list = []
