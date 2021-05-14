@@ -6,26 +6,30 @@ SRC_Docker_image_base="aviadra/cp"
 SRC_Docker_Image="${SRC_Docker_image_base}:${CP_Version}"
 if grep -qi Microsoft /proc/version 2> /dev/null; then
   WSL="True"
-  Base_Path="$( wslpath "$(wslvar USERPROFILE)" )/Documents/Cloud-profiler"
+  Base_Path="$( wslpath "$(wslvar USERPROFILE)" )/Documents/Cloud_profiler"
   Config_File="config.yaml"
-  Personal_Config_File="${Base_Path}/${Config_File}"
   Personal_Static_Profiles="${Base_Path}/Static-profiles"
   DynamicProfiles_Location="${Base_Path}/DynamicProfiles"
 else
   WSL="False"
   Base_Path="${HOME}"
   Config_File=".iTerm-cloud-profile-generator/config.yaml"
-  Personal_Config_File="${Base_Path}/${Config_File}"
+  
   Personal_Static_Profiles="${Base_Path}/iTerm2-static-profiles"
   DynamicProfiles_Location="${HOME}/Library/Application\ Support/iTerm2/DynamicProfiles/"
 fi
-if [[ -e ${Base_Path}/${Config_File} ]]; then
-  Shard_Key_Path="$( cat < "${Base_Path}/${Config_File}" | grep SSH_keys_path | awk '{print $2}' | sed -e 's/[[:space:]]//' -e 's/^"//' -e 's/"$//' )"
+Personal_Config_File="${Base_Path}/${Config_File}"
+if [[ -e ${Personal_Config_File} ]]; then
+  Shard_Key_Path="$( cat < "${Personal_Config_File}" | grep SSH_keys_path | awk '{print $2}' | sed -e 's/[[:space:]]//' -e 's/^"//' -e 's/"$//' )"
 else
-  mkdir -p "${Base_Path}/.iTerm-cloud-profile-generator/keys"
+  if [[ ${WSL} == "False" ]]; then
+    mkdir -p "${Base_Path}/.iTerm-cloud-profile-generator/keys"
+  fi
   Shard_Key_Path="${Base_Path}/keys"
 fi
 
+
+echo "Personal_Config_File: ${Personal_Config_File}"
 echo -e "Cloud-profiler - Welcome to the startup/setup script."
 
 user_waiter() {
@@ -42,6 +46,12 @@ exit_state() {
   # shellcheck disable=SC2181
   if [[ $? != 0 ]]; then
     echo "Cloud-profiler - Something went wrong with \"$1\"..."
+    if [[ ${WSL} == "True" ]]; then
+      echo "I have found that in these types of cases, creating a new terminal session is a good idea."
+      echo "if that failes, restating the WSL-vm."
+      echo -e "To do so, from an elevated PowerShell prompt, issue:\nwsl --shutdown"
+      echo "Once that is done, Docker should promot you to restart it. Do it..."
+    fi
     echo "Aborting."
     docker rm -f cloud-profiler-copy &> /dev/null
     exit 42
@@ -56,8 +66,15 @@ clear_service_container() {
 Normal_docker_start() {
   echo -e "Cloud-profiler - Normal start - Starting service\n"
   echo -e "Cloud-profiler - Normal start - This may take a while....\n"
+  if [[ ${WSL} == "False" ]]; then
+    UID_FOR_CONTAINER="$(id -u)"
+    Dlocation="$( -v "$(eval echo "${DynamicProfiles_Location}:/home/appuser/DynamicProfiles" )" )"
+  else
+    Dlocation=""
+    UID_FOR_CONTAINER=0
+  fi
   docker run \
-    -u "$(id -u)" \
+    -u ${UID_FOR_CONTAINER} \
     --init \
     --restart=always \
     -d \
@@ -65,13 +82,13 @@ Normal_docker_start() {
     --log-opt max-file=5 \
     --name cloud-profiler \
     -e CP_Service=True \
-    -e WSL=${WSL} \
+    -e CP_Windows=${WSL} \
     -v "${HOME}"/.ssh/:/home/appuser/.ssh/ \
     -v "$(eval echo "${Personal_Config_File}:/home/appuser/${Config_File}" )" \
     -v "$(eval echo "${Personal_Static_Profiles}/:${SRC_Static_Profiles}" )" \
-    -v "$(eval echo "${DynamicProfiles_Location}:/home/appuser/DynamicProfiles" )" \
+    ${Dlocation} \
     -v "$(eval echo "${Shard_Key_Path}:/home/appuser/Shard_Keys" )" \
-    ${SRC_Docker_Image}
+    ${SRC_Docker_Image} >/dev/null
   exit_state "Start service container"
 }
 
@@ -88,7 +105,7 @@ ROOT_docker_start() {
     --log-opt max-file=5 \
     --name cloud-profiler \
     -e CP_Service=True \
-    -e WSL=${WSL} \
+    -e CP_Windows=${WSL} \
     -v "${HOME}"/.ssh/:/root/.ssh/ \
     -v "$(eval echo "${Personal_Config_File}:/root/${Config_File}" )" \
     -v "$(eval echo "${Personal_Static_Profiles}/:${SRC_Static_Profiles}" )" \
@@ -112,7 +129,7 @@ setup() {
   echo "Cloud-profiler - Setup - This may take a while...."
   docker rm -f cloud-profiler-copy &> /dev/null
 
-  if [[ ! -e "${DynamicProfiles_Location}" ]]; then
+  if [[ ! -e "${DynamicProfiles_Location}" && ${WSL} == "False" ]]; then
     mkdir -p "${DynamicProfiles_Location}" ; exit_state "Create directory ${DynamicProfiles_Location}"
   fi
   if [[ ! -e "${Personal_Static_Profiles}" ]]; then
@@ -130,9 +147,9 @@ setup() {
     fi
     touch "${HOME}"/.ssh/config ; exit_state "Create user default SSH config file"
   fi
-  docker create -it --name cloud-profiler-copy ${SRC_Docker_Image} bash ; exit_state "Create copy container"
+  docker create -it --name cloud-profiler-copy ${SRC_Docker_Image} bash >/dev/null ; exit_state "Create copy container"
   if [[ ! -e $(eval "echo ${Personal_Static_Profiles}" ) ]]; then
-    docker cp cloud-profiler-copy:${SRC_Static_Profiles} ~/ ; exit_state "Copy static profiles from copy container"
+    docker cp cloud-profiler-copy:${SRC_Static_Profiles} ${Base_Path} ; exit_state "Copy static profiles from copy container"
     echo -e "Cloud-profiler - We've put a default static profiles directory for you in \"${Personal_Static_Profiles}\"."
   fi
   #Update the iTerm "update profile"
