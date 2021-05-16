@@ -210,7 +210,6 @@ fi
 [[ ! -e ${DynamicProfiles_Location} ]] && setup
 [[ ! -e ${Personal_Static_Profiles} ]] && setup
 [[ ! -e ${Shard_Key_Path} ]] && setup
-echo foo
 [[ ! -e ${HOME}/.ssh/config ]] && setup
 [[ ! -e $(eval echo "${Personal_Static_Profiles}" ) ]] && setup
 [[ ! -e $(eval echo "${Personal_Config_File}" ) ]] && setup
