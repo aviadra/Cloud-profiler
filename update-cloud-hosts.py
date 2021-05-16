@@ -649,9 +649,13 @@ def get_ec2_instances(
 
 
 def update_moba(obj_list):
-    bookmark_counter = 1
     profiles = "[Bookmarks]\nSubRep=\nImgNum=42"
 
+    #update profile
+    profiles += f"\n[Bookmarks_1]" \
+                f"\nUpdate profiles v5.0 =  #151#14%Default%%Interactive shell%__PTVIRG__bash <(curl -s https://raw.githubusercontent.com/aviadra/Cloud-profiler/feature/windows_wsl_support/startup.sh) && exit 0__PTVIRG____PTVIRG__%%0#MobaFont%10%0%0%-1%15%236,236,236%30,30,30%180,180,192%0%-1%0%%xterm%-1%-1%_Std_Colors_0_%80%24%0%1%-1%<none>%12:2:0:curl -s https__DBLDOT__//raw.githubusercontent.com/aviadra/Cloud-profiler/feature/windows_wsl_support/startup.sh __PIIPE__ bash__PIPE__%0%0%-1#0# #-1"
+    #update profile
+    bookmark_counter = 2
     s = sorted(
             obj_list,
             key=lambda i: (

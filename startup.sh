@@ -48,7 +48,7 @@ exit_state() {
     echo "Cloud-profiler - Something went wrong with \"$1\"..."
     if [[ ${WSL} == "True" ]]; then
       echo "I have found that in these types of cases, creating a new terminal session is a good idea."
-      echo "if that failes, restating the WSL-vm."
+      echo "If that failes, restat the WSL-vm."
       echo -e "To do so, from an elevated PowerShell prompt, issue:\nwsl --shutdown"
       echo "Once that is done, Docker should promot you to restart it. Do it..."
     fi
