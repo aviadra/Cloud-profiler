@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-[ -z ${CP_Version+x} ] && CP_Version='v4.4.2'
+[ -z ${CP_Version+x} ] && CP_Version='edge'
 Personal_Static_Profiles="${HOME}/iTerm2-static-profiles"
 SRC_Static_Profiles="/home/appuser/iTerm2-static-profiles"
 SRC_Docker_image_base="aviadra/cp"
@@ -14,12 +14,20 @@ else
   WSL="False"
   Base_Path="${HOME}"
   Config_File=".iTerm-cloud-profile-generator/config.yaml"
-  
   Personal_Static_Profiles="${Base_Path}/iTerm2-static-profiles"
   DynamicProfiles_Location="${HOME}/Library/Application\ Support/iTerm2/DynamicProfiles/"
 fi
 Personal_Config_File="${Base_Path}/${Config_File}"
-if [[ -e ${Personal_Config_File} ]]; then
+if [[ -d ${Personal_Config_File} ]]; then
+  echo "Cloud-profiler - Your config \"file\" seems to be a directory..."
+  echo "The location is:"
+  echo "${Personal_Config_File}"
+  echo "Unfortunately, this usually means there was an issue with your setup."
+  echo "Fix this and come back…"
+  echo "Aborting hard."
+  exit 42
+fi
+if [[ -f ${Personal_Config_File} ]]; then
   Shard_Key_Path="$( cat < "${Personal_Config_File}" | grep SSH_keys_path | awk '{print $2}' | sed -e 's/[[:space:]]//' -e 's/^"//' -e 's/"$//' )"
 else
   if [[ ${WSL} == "False" ]]; then
@@ -180,6 +188,29 @@ setup() {
 
 ##MAIN
 
+#Is Docker installed on the system?
+if [[ -z "$( command -v docker 2>/dev/null )" ]]; then
+  echo "Cloud-profiler - We can't seem to find docker on the system :\\"
+  echo "Cloud-profiler - Make it so the \"which\" command can find it and run gain."
+  echo "Cloud-profiler - Goodbye for now..."
+  exit 42
+fi
+#Is it working enough to even attempt a pass?
+if [[ $( docker images -q ) ]]; then
+  echo "Cloud-profiler - Seems to be running, so continuing."
+else
+  echo "Cloud-profiler - Was unable to query what images are on the system..."
+  echo "Cloud-profiler - Make sure Docker is running"
+  echo "Cloud-profiler - Goodbye for now..."
+  exit 42
+fi
+
+if [[ ${WSL} == "True" && -z "$( wslvar USERPROFILE )" ]]; then
+  echo "Cloud-profiler - This terminal session is corrupted."
+  echo "Cloud-profiler - Open a new one and try again."
+  echo "Cloud-profiler - Goodbye for now..."
+  exit 42
+fi
 if [[ -z "$( docker images ${SRC_Docker_image_base} | grep -v TAG )" ]] ; then
   echo -e "Cloud-profiler - This script will install the \"Cloud Profiler\" service using a docker container."
   user_waiter
@@ -197,14 +228,6 @@ for f in ${HOME}/iTerm2-static-profiles/Update\ iTerm\ profiles?*.json; do
     fi
     break
   done
-
-#Is Docker installed on the system?
-if [[ -z "$( command -v docker )" ]] ;then
-  echo "Cloud-profiler - We can't seem to find docker on the system :\\"
-  echo "Cloud-profiler - Make it so the \"which\" command can find it and run gain."
-  echo "Cloud-profiler - Goodbye for now..."
-  exit 42
-fi
 
 # Is a part of the installation missing?
 [[ ! -e ${DynamicProfiles_Location} ]] && setup
@@ -277,3 +300,4 @@ else
 fi
 
 docker ps -f name=cloud-profiler ; exit_state "Finding the service profile in docker ps"
+exit 0
