@@ -1074,16 +1074,20 @@ if __name__ == '__main__':
         # From user home directory
         script_config = {}
         script_config_user = {}
-        if os.path.isfile(os.path.expanduser("~/.iTerm-cloud-profile-generator/config.yaml")):
+        if not platform.system() == 'Windows' and not os.environ.get('CP_Windows', False):
+            home_dir = "~/.iTerm-cloud-profile-generator/"
+        else:
+            home_dir = "~/Documents/Cloud_Profiler/"
+        if os.path.isfile(os.path.expanduser((os.path.join(home_dir,"config.yaml")))):
             print("Cloud-profiler - Found conf file in place")
-            with open(os.path.expanduser("~/.iTerm-cloud-profile-generator/config.yaml")) as conf_file:
+            with open(os.path.expanduser((os.path.join(home_dir,"config.yaml")))) as conf_file:
                 script_config_user = yaml.full_load(conf_file)
         else:
-            if not os.path.isdir(os.path.expanduser("~/.iTerm-cloud-profile-generator/")):
-                os.makedirs(os.path.expanduser("~/.iTerm-cloud-profile-generator/"))
+            if not os.path.isdir(os.path.expanduser(home_dir)):
+                os.makedirs(os.path.expanduser(home_dir))
             shutil.copy2(os.path.join(script_dir, 'config.yaml'),
-                         os.path.expanduser("~/.iTerm-cloud-profile-generator/"))
-            print(f"Copy default config to home dir {os.path.expanduser('~/.iTerm-cloud-profile-generator/')}")
+                         os.path.expanduser(home_dir))
+            print(f"Copy default config to home dir {os.path.expanduser(home_dir)}")
 
         for key in script_config_repo:
             script_config[key] = {**script_config_repo.get(key, {}), **script_config_user.get(key, {})}
@@ -1097,10 +1101,11 @@ if __name__ == '__main__':
         if script_config["Local"].get("CNC", True):
             for entry in os.scandir(os.path.expanduser(CP_OutputDir)):
                 if not entry.is_dir(follow_symlinks=False):
-                    if "CP" not in entry.name or \
-                            (not platform.system() == 'Windows' and not os.environ.get('CP_Windows', False)
-                            and VERSION not in entry.name):
-                        os.remove(entry.path)
+                    if "config.yaml" not in entry.name:
+                        if "CP" not in entry.name or \
+                                (not platform.system() == 'Windows' and not os.environ.get('CP_Windows', False)
+                                and VERSION not in entry.name):
+                            os.remove(entry.path)
 
         p_list = []
         # Static profiles iterator

@@ -155,7 +155,7 @@ setup() {
     fi
     touch "${HOME}"/.ssh/config ; exit_state "Create user default SSH config file"
   fi
-  docker create -it --name cloud-profiler-copy ${SRC_Docker_Image} bash >/dev/null ; exit_state "Create copy container"
+  docker create --name cloud-profiler-copy ${SRC_Docker_Image} bash >/dev/null ; exit_state "Create copy container"
   if [[ ! -e $(eval "echo ${Personal_Static_Profiles}" ) ]]; then
     docker cp cloud-profiler-copy:${SRC_Static_Profiles} ${Base_Path} ; exit_state "Copy static profiles from copy container"
     echo -e "Cloud-profiler - We've put a default static profiles directory for you in \"${Personal_Static_Profiles}\"."
@@ -177,7 +177,7 @@ setup() {
   fi
   if [[ ! -e $(eval "echo ${Personal_Config_File}" ) ]]; then
     mkdir -p "$(eval dirname "${Personal_Config_File}" )" ; exit_state "Create personal config dir"
-    docker cp cloud-profiler-copy:/home/appuser/config.yaml "$(eval echo "${Personal_Config_File}" )"
+    docker cp cloud-profiler-copy:/home/appuser/config.yaml "$( eval echo "${Personal_Config_File}" )"
     exit_state "Copy personal config template from copy container"
     echo -e "Cloud-profiler - We've put a default configuration file for you in \"${Personal_Config_File}\"."
     echo -e "\nCloud-profiler - Please edit it to set your credentials and preferences"
