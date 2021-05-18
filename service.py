@@ -15,6 +15,7 @@ else:
 LoopInt = LoopInt
 
 if os.environ.get('CP_Service', False):
+    os.environ['HOME'] = '/home/appuser'
     print(f"Cloud_Profiler Service - Running in Service mode.")
     while True:
         print("Clour Profiler Service - Start of loop")

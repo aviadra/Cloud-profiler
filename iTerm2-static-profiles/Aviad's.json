@@ -113,6 +113,11 @@
   "Use Italic Font" : true,
   "Unlimited Scrollback" : true,
   "Keyboard Map" : {
+    "0x66-0x140000-0x3" : {
+      "Label" : "",
+      "Action" : 25,
+      "Text" : "Find...\nFind.Find..."
+    },
     "0xf703-0x380000" : {
       "Action" : 0,
       "Text" : ""

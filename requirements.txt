@@ -13,7 +13,8 @@ idna==2.10
 jsonpickle==1.4.1
 python-digitalocean==1.15.0
 requests==2.24.0
-PyCryptodome==3.9.8
+PyCryptodome==3.10.1
 inputimeout==1.0.4
 progressbar2==3.53.1
 sshconf==0.2.2
+ntplib
