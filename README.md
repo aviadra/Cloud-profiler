@@ -85,6 +85,8 @@ You should be all set, just go to the Configuration section.
 There is a YAML configuration file within the repo that gives the default values for the script behavior.
 On the first run of the script, if a personal configuration is missing,
 it will be created in `~/.iTerm-cloud-profile-generator/config.yaml`.
+As of v5.0 [Hakuteiken](https://bleach.fandom.com/wiki/Sh%C5%ABkei:_Hakuteiken), for Windows this will be Cloud_Profiler under the Documents foler of your user's home directory.
+For example: C:\Users\aviad\Documents\Cloud_Profiler.
 So, you don't have to fork the repo in order to have your own settings.
 Settings in the personal file will take precedence over the default ones from the repo file.
 See below for possible options of the configuration file.
@@ -319,7 +321,7 @@ Note: The example is deliberately commented out, so that if you don't configure 
 
 ## Configuration directives from tags and/or configuration files
 The script can change the end result of the connections/profiles it creates,
-due to tags discovered on the cloud or directives from the conf files.
+due to tags discovered on the cloud platfrom or directives from the conf files.
 These range from whether to use the public IP for the connection,
 to should a Bastion be used or what the address of it should be.
 
@@ -387,8 +389,9 @@ the key name on the instance is used.
 Digital Ocean's implementation of VPC is such that there isn't a way to set tags on it (that I have seen).
 On DO, you set a tag by adding it to the instance. The format to be used is: "tag_name:value".
 Note that there are no spaces between the key and the value.
-Also note, that underscores(_) in the value part of the tag are replaced with spaces,
-and dashes(-) are replaced with dots(.).
+Also note that the value part of the tag is processed with following rules:
+1. Underscores(_) in the value part of the tag are replaced with spaces.
+2. Dashes(-) are replaced with dots(.).
 DO does have one special tag "iTerm_host_name", which changes the node's hostname to the value in the tag.
 Other than that, the tags are the same as for AWS.
 
@@ -411,7 +414,7 @@ The default location of the generated configuration file is "~/Cloud_Profiler/Cl
 Again, in general you don't need to change anything in your iTerm configuration.
 With that said, it is recommended that you create in your iTerm,
 the profiles you're going to reference when using the "iTerm_dynamic_profile_parent" tag.
-If you don't, nothing major will happen, iTerm will simply use the default profile.
+If you don't, nothing major will happen.
 However as of v3.3.8 of iTerm, it will throw errors to an error log and will give popups to note it has done so...
 
 ### RDP support for MacOS (optional)

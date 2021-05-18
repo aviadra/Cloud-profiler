@@ -1,8 +1,12 @@
 # Change Log
 ## v5.0.0 - [Hakuteiken](https://bleach.fandom.com/wiki/Sh%C5%ABkei:_Hakuteiken)
 Windows WSLv2 support.
+Added "Update" profile to Moba created sessions file.
+Changed it so that on windows the "Cloud_Profiler" within documents is used for everything (dot somthing dir with conf in them is more of a POSIX thing).
 Parallelized AWS accounts as well :)
-Work around for MS RDP prog no longer "opening" files correctly
+Now filtering the AWS region before even calling the thread that should collect the data.
+More outputs now include the instance id (mainly to avoide collitions).
+
 
 ## v4.4.2 - [Shrapnel](https://tfwiki.net/wiki/Shrapnel_(G1))
 Fixed a bud, where profiling did not work for non STS users.
