@@ -178,9 +178,9 @@ def setting_resolver(
 def get_do_tag_value(tags, q_tag, q_tag_value) -> Union[int, str]:
     for tag in tags:
         tag = tag.casefold()
-        if ':' in tag and ('iterm' in tag or 'cloud_profiler' in tags):
+        if ':' in tag and ('iterm' in tag or 'cloud_profiler' in tag):
             tag_key, tag_value = tag.split(':')
-            if tag_key == q_tag.casefold():
+            if q_tag.casefold() in tag_key:
                 q_tag_value = tag_value.replace('-', '.').replace('_', ' ')
                 break
     return q_tag_value
@@ -251,7 +251,7 @@ def get_do_instances(profile, do_instance_counter, do_script_config, do_cloud_in
         iterm_tags = []
         docker_context = setting_resolver('Docker_contexts_create', drop, {}, "DO", False, profile, do_script_config)
         instance_use_ip_public = setting_resolver(
-            'instance_use_ip_public', drop, {}, "DO", True, profile, do_script_config
+            'instance_use_ip_public', drop, {}, "DO", False, profile, do_script_config
         )
         instance_use_bastion = setting_resolver('Use_bastion', drop, {}, "DO", False, profile, do_script_config)
         or_host_name = setting_resolver('Host_name', drop, {}, "DO", False, profile, do_script_config)

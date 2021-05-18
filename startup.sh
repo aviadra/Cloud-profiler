@@ -76,9 +76,9 @@ Normal_docker_start() {
   echo -e "Cloud-profiler - Normal start - This may take a while....\n"
   if [[ ${WSL} == "False" ]]; then
     UID_FOR_CONTAINER="$(id -u)"
-    Dlocation="$( -v "$(eval echo "${DynamicProfiles_Location}:/home/appuser/DynamicProfiles" )" )"
+    Dlocation="$( echo -v "$( eval echo "${DynamicProfiles_Location}:/home/appuser/DynamicProfiles" )" )"
   else
-    Dlocation=""
+    Dlocation="$( echo -v "$( eval echo "${Base_Path}:/home/appuser/Documents/Cloud_Profiler" )" )"
     UID_FOR_CONTAINER=0
   fi
   docker run \
