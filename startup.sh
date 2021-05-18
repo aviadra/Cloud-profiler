@@ -75,13 +75,25 @@ Normal_docker_start() {
   echo -e "Cloud-profiler - Normal start - Starting service\n"
   echo -e "Cloud-profiler - Normal start - This may take a while....\n"
   if [[ ${WSL} == "False" ]]; then
-    UID_FOR_CONTAINER="$(id -u)"
-    Dlocation="$( echo -v "$( eval echo "${DynamicProfiles_Location}:/home/appuser/DynamicProfiles" )" )"
+    docker run \
+      --init \
+      --restart=always \
+      -d \
+      --log-opt max-size=2m \
+      --log-opt max-file=5 \
+      --name cloud-profiler \
+      -e CP_Service=True \
+      -v "${HOME}"/.ssh/:/home/appuser/.ssh/ \
+      -v "$(eval echo "${Personal_Config_File}:/home/appuser/${Config_File}" )" \
+      -v "$(eval echo "${Personal_Static_Profiles}/:${SRC_Static_Profiles}" )" \
+      -v "$(eval echo "${HOME}/${DynamicProfiles_Location}:/home/appuser/${DynamicProfiles_Location}" )" \
+      -v "$(eval echo "${Shard_Key_Path}:/home/appuser/Shard_Keys" )" \
+      ${SRC_Docker_Image}
+    exit_state "Start service container"
   else
     Dlocation="$( echo -v "$( eval echo "${Base_Path}:/home/appuser/Documents/Cloud_Profiler" )" )"
     UID_FOR_CONTAINER=0
-  fi
-  docker run \
+    docker run \
     -u ${UID_FOR_CONTAINER} \
     --init \
     --restart=always \
@@ -92,13 +104,37 @@ Normal_docker_start() {
     -e CP_Service=True \
     -e CP_Windows=${WSL} \
     -v "${HOME}"/.ssh/:/home/appuser/.ssh/ \
-    -v "$(eval echo "${Personal_Config_File}:/home/appuser/${Config_File}" )" \
-    -v "$(eval echo "${Personal_Static_Profiles}/:${SRC_Static_Profiles}" )" \
+    -v "$( eval echo "${Personal_Config_File}:/home/appuser/${Config_File}" )" \
+    -v "$( eval echo "${Personal_Static_Profiles}/:${SRC_Static_Profiles}" )" \
     ${Dlocation} \
-    -v "$(eval echo "${Shard_Key_Path}:/home/appuser/Shard_Keys" )" \
+    -v "$( eval echo "${Shard_Key_Path}:/home/appuser/Shard_Keys" )" \
     ${SRC_Docker_Image} >/dev/null
   exit_state "Start service container"
+  fi
+  
 }
+
+Normal_docker_start() {
+  echo -e "Cloud-profiler - Normal start - Starting service\n"
+  echo -e "Cloud-profiler - Normal start - This may take a while....\n"
+  docker run \
+    --init \
+    --restart=always \
+    -d \
+    --log-opt max-size=2m \
+    --log-opt max-file=5 \
+    --name cloud-profiler \
+    -e CP_Service=True \
+    -v "${HOME}"/.ssh/:/home/appuser/.ssh/ \
+    -v "$(eval echo "${Personal_Config_File}:/home/appuser/${Config_File}" )" \
+    -v "$(eval echo "${Personal_Static_Profiles}/:${SRC_Static_Profiles}" )" \
+    -v "$(eval echo "${HOME}/${DynamicProfiles_Location}:/home/appuser/${DynamicProfiles_Location}" )" \
+    -v "$(eval echo "${Shard_Key_Path}:/home/appuser/Shard_Keys" )" \
+    ${SRC_Docker_Image}
+  exit_state "Start service container"
+}
+
+
 
 ROOT_docker_start() {
   echo -e "Cloud-profiler - Starting service with ROOT."
