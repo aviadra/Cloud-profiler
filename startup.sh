@@ -196,7 +196,7 @@ if [[ -z "$( command -v docker 2>/dev/null )" ]]; then
   exit 42
 fi
 #Is it working enough to even attempt a pass?
-if [[ $( docker images -q ) ]]; then
+if [[ $( docker images ) ]]; then
   echo "Cloud-profiler - Seems to be running, so continuing."
 else
   echo "Cloud-profiler - Was unable to query what images are on the system..."
