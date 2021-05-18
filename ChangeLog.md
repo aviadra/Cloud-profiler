@@ -1,4 +1,8 @@
 # Change Log
+## v5.0.1 - [Horseshoe Crab](https://havenmaine.fandom.com/wiki/Horseshoe_crab#:~:text=The%20Horseshoe%20Crab%20appearing%20in,one%20following%20her%20in%20Crush.)
+Actually, I myself moved back to windows and couldn't be happier...
+Aslo fixed depency of PyYAML from dependabot.
+
 ## v5.0.0 - [Hakuteiken](https://bleach.fandom.com/wiki/Sh%C5%ABkei:_Hakuteiken)
 Windows WSLv2 support.
 Added "Update" profile to Moba created sessions file.

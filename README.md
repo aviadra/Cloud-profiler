@@ -26,7 +26,7 @@ As of v4.3.0 ([Tenteikūra](https://bleach.fandom.com/wiki/Tenteik%C5%ABra)), th
 So it now works out of the box with "Apple M1" and other ARM based compute systems (like the raspberry pi),
 among other architectures.
 
-As of v5.0.0 ([Hakuteiken](https://bleach.fandom.com/wiki/Sh%C5%ABkei:_Hakuteiken)), Windows WSLv2 support introduced
+As of v5.0 ([Hakuteiken](https://bleach.fandom.com/wiki/Sh%C5%ABkei:_Hakuteiken)), Windows WSLv2 support introduced
   in order to make Windows more of a first class citizen then it was until now. 
 This Hakuteiken [dove](https://en.wikipedia.org/wiki/Doves_as_symbols) is an [olive_branch](https://en.wikipedia.org/wiki/Olive_branch) to all Windows users :)
 
