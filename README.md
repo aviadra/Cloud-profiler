@@ -9,25 +9,28 @@ For most use cases, the installation is simply:
 The purpose of this script is to connect to cloud providers and generate profiles for quick SSHing.
 
 # Mini change-log
-As of v1.3, both **iTerm** for MacOS and **MobaXterm** for Windows, are supported.
+As of v1.3 ([Bankai](https://bleachfanfiction.fandom.com/wiki/Bankai)), both **iTerm** for MacOS and **MobaXterm** for Windows, are supported.
 Currently, the supported cloud providers are AWS and Digital Ocean.
-This project is a fork of [gmartinerro](https://gist.github.com/gmartinerro/40831c8874ebb32bc17711af95e1416b), 
-which gave me a good starting point.
 
-As of v2.0 it can also create **SSH config file** entries
+As of v2.0 ([Kaze no Kizu](https://inuyasha.fandom.com/wiki/Kaze_no_Kizu)) it can also create **SSH config file** entries
 and **[Docker contexts](https://docs.docker.com/engine/context/working-with-contexts/)** that tunnel over SSH.
 
-As of v3.0.2, it is with a heavy heart, that I have switched from using VScode to using
+As of v3.0.2 ([How the mighty have fallen](https://en.wiktionary.org/wiki/how_the_mighty_have_fallen)),
+  it is with a heavy heart, that I have switched from using VScode to using
 [IDAE](https://www.jetbrains.com/?from=https://github.com/aviadra/Cloud-profiler).
 After I asked, they have kindly provided me with a free "all pack" license,
 and I have found it to be a better tool for Python multiprocessor/multithreaded development.
  As well as very helpful with adhering to styling guides (like PEP8, but much more). 
 
-As of v4.3.0, the docker installer supports all mainstream CPU architectures in addition to the regular x86/x64.
-So it now works out of the box with "Apple M1" and other ARM based compute systems (like the rasberry pi),
+As of v4.3.0 ([Tenteikūra](https://bleach.fandom.com/wiki/Tenteik%C5%ABra)), the docker installer supports all mainstream CPU architectures in addition to the regular x86/x64.
+So it now works out of the box with "Apple M1" and other ARM based compute systems (like the raspberry pi),
 among other architectures.
 
-This project has some assumptions:
+As of v5.0.0 ([Hakuteiken](https://bleach.fandom.com/wiki/Sh%C5%ABkei:_Hakuteiken)), Windows WSLv2 support introduced
+  in order to make Windows more of a first class citizen then it was until now. 
+This Hakuteiken [dove](https://en.wikipedia.org/wiki/Doves_as_symbols) is an [olive_branch](https://en.wikipedia.org/wiki/Olive_branch) to all Windows users :)
+
+## This project has some assumptions
 - Your system has Docker, or python3 installed (if using the "system install" method).
 - When using a Mac, You have [iTerm](https://iterm2.com/) installed.
 - When using Windows, you have MobaXterm install.
@@ -52,32 +55,29 @@ Simply run the below one liner and follow the on screen instructions:
 curl -s https://raw.githubusercontent.com/aviadra/Cloud-profiler/main/startup.sh | bash`
 
 ##### Service on Windows
-I'm sorry... you're not a first class citizen... there is no script for you...
+As of v5.0.0 the regular installer script works with WSLv2 (test using Ubuntu 20.04).
+You need to enable the [Docker WSLv2 backend](https://docs.docker.com/docker-for-windows/wsl/), 
+  and then simply run the installation command from the TL;DR.
+
+###### Legacy Windows support
+If you're not using WSL and want to do this on Windows directly, then I'm sorry... you're not a first class citizen... there is no script for you...
 You're going to have to create the config directory and file on your own (help here is welcomed).
 Once they are in place, run:
 
 `docker run --init --restart=always -d -e CP_Windows=True -e CP_Service=True -v "%HOMEDRIVE%%HOMEPATH%"\Cloud_Profiler/:/home/appuserCloud_Profiler/ -v "%HOMEDRIVE%%HOMEPATH%"\.iTerm-cloud-profile-generator/config.yaml:/home/appuser.iTerm-cloud-profile-generator/config.yaml -v "%HOMEDRIVE%%HOMEPATH%"\iTerm2-static-profiles/:/opt/CloudProfile/iTerm2-static-profiles/ aviadra/cp`
-
-#### Run ad-hoc
-It is absolutely possible to run the script on a per-needed basis (a.k.a. "ad-hoc").
-To do so, when using the "system install" method (less favorable),
-simply issue the same command, only omitting the "-d", "-e CP_Service=True" and "--restart=always" parameters.
 
 ##### Ad-hoc on MacOS
 
 As of v1.6.3 the "Update" profile was added to the "static" profiles distributed with the repository.
 In order to use it, simply call it like any other profile (CMD + O)
 Note: As of v1.6.5, if you set the variable CP_Version (in your zshrc file for example),
-the update profile will use it to determine which version to use to pull (if you want a development version for example).
+  the update profile will use it to determine which version to use to pull (if you want a development version for example).
 
-`docker run --init --rm -v ~/Library/Application\ Support/iTerm2/DynamicProfiles/:/home/appuserLibrary/Application\ Support/iTerm2/DynamicProfiles/ -v ~/.iTerm-cloud-profile-generator/config.yaml:/home/appuser.iTerm-cloud-profile-generator/config.yaml -v ~/iTerm2-static-profiles/:/opt/CloudProfile/iTerm2-static-profiles/ aviadra/cp`
+In order to trigger an "Ad-hoc" run without using the "update profile",
+  you can simply issue the "install command" from the TL;DR.
 
-##### Ad-hoc on windows
-
-`docker run -it --init --rm -e CP_Windows=True -v "%HOMEDRIVE%%HOMEPATH%"\Cloud_Profiler/:/home/appuserCloud_Profiler/ -v "%HOMEDRIVE%%HOMEPATH%"\.iTerm-cloud-profile-generator\config.yaml:/home/appuser.iTerm-cloud-profile-generator/config.yaml -v ~/iTerm2-static-profiles/:/opt/CloudProfile/iTerm2-static-profiles/ aviadra/cp`
-
-Note: While not required, I've added to the above the 
-"[--rm](https://docs.docker.com/engine/reference/run/#clean-up---rm)" option just for tightness.
+##### Ad-hoc on Windows
+TODO: update profile for moba
 
 You should be all set, just go to the Configuration section.
 
@@ -85,6 +85,8 @@ You should be all set, just go to the Configuration section.
 There is a YAML configuration file within the repo that gives the default values for the script behavior.
 On the first run of the script, if a personal configuration is missing,
 it will be created in `~/.iTerm-cloud-profile-generator/config.yaml`.
+As of v5.0 [Hakuteiken](https://bleach.fandom.com/wiki/Sh%C5%ABkei:_Hakuteiken), for Windows this will be Cloud_Profiler under the Documents foler of your user's home directory.
+For example: C:\Users\aviad\Documents\Cloud_Profiler.
 So, you don't have to fork the repo in order to have your own settings.
 Settings in the personal file will take precedence over the default ones from the repo file.
 See below for possible options of the configuration file.
@@ -99,9 +101,12 @@ For some cases it is easier to copy from here, so here you go:
 Local:
   Static_profiles: "./iTerm2-static-profiles"
   SSH_base_string: "-oStrictHostKeyChecking=no -oUpdateHostKeys=yes -oServerAliveInterval=30 -oAddKeysToAgent=no"
+  # Con_username: "ec2-user"
+  # Bastion_Con_username: "aviadcye"
   Bastion: False
   SSH_keys_path: "~/Downloads"
   Use_shared_key: False
+  Login_command: "sudo -i"
   Parallel_exec: True
   Skip_stopped: True
   Badge_info_to_display:
@@ -113,12 +118,11 @@ Local:
     Bastion_Con_username: False
     Con_port: False
     Con_username: False
-    dynamic_profile_parent: False
+    Dynamic_profile_parent: False
     Group: False
-    Id: False
+    Id: True
     Instance_use_Bastion: False
-    Instance_use_Ip_public: False
-    Ip_public: True
+    Instance_use_ip_public: False
     Iterm_tags_prefixs: ["ENV"]
     # Iterm_tags_prefixs: []
     Password: False
@@ -126,37 +130,48 @@ Local:
     Region: True
     SSH_key: False
     Use_shared_key: False
-    VPC: True
+    VPC: False
+    Ip_public: True
+  Docker_contexts_create: False
   SSH_Config_create: True
-  Docker_contexts_create: True
-  CNC: True
 
 AWS:
-  exclude_regions: ["ap-southeast-1", "ap-southeast-2","sa-east-1","ap-northeast-1","ap-northeast-2","ap-south-1"]
+  exclude_regions: ["ap-southeast-1", "ap-southeast-2","sa-east-1","ap-northeast-2","ap-south-1"]
   aws_credentials_file: "~/.aws/credentials"
   Con_username: False
   Bastion_Con_port: 22
-  use_Ip_public: False
+  instance_use_ip_public: False
   Skip_stopped: True
   exclude_accounts: []
   use_awscli_profiles: False
+  update_hosts: False
   profiles:
     -
-      name: "Company_TGT"
-      aws_access_key_id: "AKIAW*********"
-      aws_secret_access_key: "D5am******************"
+      name: "Work_account"
+      aws_access_key_id: "EWRSGDY$#^FDERH"
+      aws_secret_access_key: "#@$%@#GSRDFGBE%^$##%$DF"
       role_arns: {
-        sts_oper: "arn:aws:iam::438**********:role/iTerm_RO_from_TGT",
-        sts_devops: "arn:aws:iam::168**********:role/iTerm_RO_from_TGT",
-        sts_client1: "arn:aws:iam::701**********:role/iTerm_RO_from_TGT",
+        dev: "arn:aws:iam::946*********:role/iTerm_RO_from_TGT",
+        oper: "arn:aws:iam::438*********:role/iTerm_RO_from_TGT",
+        devops: "arn:aws:iam::168*********:role/iTerm_RO_from_TGT",
+        haim: "arn:aws:iam::701*********:role/iTerm_RO_from_TGT",
       }
+    -
+      instance_use_ip_public: True
+      name: "My_account"
+      aws_access_key_id: "ASDAS%#@SDFGSDFDFSG"
+      aws_secret_access_key: "FDGDFG#$%#SDFVSDGFSFDGW@#$%"
 
 DO:
+  instance_use_ip_public: True
   profiles:
-#    -
-#      name: "The one"
-#      token: "secretspecialuniquesnowflake"
-#      use_Ip_public: True
+    -
+      name: "Work_account"
+      token: "snow"
+    -
+      name: "My_account"
+      token: "flake"
+      Con_username: root
 ```
 
 ## Local options
@@ -306,7 +321,7 @@ Note: The example is deliberately commented out, so that if you don't configure 
 
 ## Configuration directives from tags and/or configuration files
 The script can change the end result of the connections/profiles it creates,
-due to tags discovered on the cloud or directives from the conf files.
+due to tags discovered on the cloud platfrom or directives from the conf files.
 These range from whether to use the public IP for the connection,
 to should a Bastion be used or what the address of it should be.
 
@@ -374,8 +389,9 @@ the key name on the instance is used.
 Digital Ocean's implementation of VPC is such that there isn't a way to set tags on it (that I have seen).
 On DO, you set a tag by adding it to the instance. The format to be used is: "tag_name:value".
 Note that there are no spaces between the key and the value.
-Also note, that underscores(_) in the value part of the tag are replaced with spaces,
-and dashes(-) are replaced with dots(.).
+Also note that the value part of the tag is processed with following rules:
+1. Underscores(_) in the value part of the tag are replaced with spaces.
+2. Dashes(-) are replaced with dots(.).
 DO does have one special tag "iTerm_host_name", which changes the node's hostname to the value in the tag.
 Other than that, the tags are the same as for AWS.
 
@@ -398,7 +414,7 @@ The default location of the generated configuration file is "~/Cloud_Profiler/Cl
 Again, in general you don't need to change anything in your iTerm configuration.
 With that said, it is recommended that you create in your iTerm,
 the profiles you're going to reference when using the "iTerm_dynamic_profile_parent" tag.
-If you don't, nothing major will happen, iTerm will simply use the default profile.
+If you don't, nothing major will happen.
 However as of v3.3.8 of iTerm, it will throw errors to an error log and will give popups to note it has done so...
 
 ### RDP support for MacOS (optional)

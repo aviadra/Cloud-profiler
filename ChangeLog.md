@@ -1,17 +1,25 @@
 # Change Log
+## v5.0.0 - [Hakuteiken](https://bleach.fandom.com/wiki/Sh%C5%ABkei:_Hakuteiken)
+Windows WSLv2 support.
+Added "Update" profile to Moba created sessions file.
+Changed it so that on windows the "Cloud_Profiler" within documents is used for everything (dot somthing dir with conf in them is more of a POSIX thing).
+Parallelized AWS accounts as well :)
+Now filtering the AWS region before even calling the thread that should collect the data.
+More outputs now include the instance id (mainly to avoide collitions).
+
+
 ## v4.4.2 - [Shrapnel](https://tfwiki.net/wiki/Shrapnel_(G1))
-Fixed a bud, where profiling did not work for non STS users.  
+Fixed a bud, where profiling did not work for non STS users.
 
 ## v4.4.1 - [kickback](https://tfwiki.net/wiki/Kickback_(G1))
-Corrected Dockerfile for multi platform
-Added links to version names in the changelog
+Corrected Dockerfile for multi platform.
+Added links to version names in the changelog.
 
 ## v4.4.0 - [Ephraim](https://www.facebook.com/guy.ephraim) (Deleteing is the best from of coding)
 Removed the colors submodule.
 Dockerfile improvements to reduce the image size.
 Updated the alpine version.
 Deleted unused code.
-
 
 ## v4.3.5 - [Saimyōshō](https://inuyasha.fandom.com/wiki/Saimy%C5%8Dsh%C5%8D) (Poison Insects of Hell)
 Reverted the change of looking for the tag directive anywhere in the value (introduced in v4.0.1).
@@ -84,7 +92,7 @@ This version is mainly to force the deletion of all update profiles with the iss
 
 Also, removed the guid from the update profile all together, so this will not happen again.
 
-## v3.0.2 - How the mighty have fallen (leaving VScode)
+## v3.0.2 - [How the mighty have fallen](https://en.wiktionary.org/wiki/how_the_mighty_have_fallen) (leaving VScode)
 Now actually using threads within the subprocesses and Parallel_exec is no longer used (not even for debugging...
 thank you Intellij)
 
