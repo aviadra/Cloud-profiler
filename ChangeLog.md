@@ -1,4 +1,7 @@
 # Change Log
+## v5.0.3 - [Hal Roach](https://pixar.fandom.com/wiki/Hal#:~:text=He%20is%20a%20cockroach%20that,EVE%2C%20he%20suffers%20no%20harm.)
+Seems I got the "normal start" defained both in the new way and the old in startup.sh. Removed it so it works corecctly.
+
 ## v5.0.2 - [Bombshell](https://tfwiki.net/wiki/Bombshell_(G1))
 Forgot to move Moba update profile back to main
 
