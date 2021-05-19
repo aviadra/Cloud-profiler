@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-[ -z ${CP_Version+x} ] && CP_Version='v5.0.2'
+[ -z ${CP_Version+x} ] && CP_Version='v5.0.3'
 Personal_Static_Profiles="${HOME}/iTerm2-static-profiles"
 SRC_Static_Profiles="/home/appuser/iTerm2-static-profiles"
 SRC_Docker_image_base="aviadra/cp"
@@ -113,28 +113,6 @@ Normal_docker_start() {
   fi
   
 }
-
-Normal_docker_start() {
-  echo -e "Cloud-profiler - Normal start - Starting service\n"
-  echo -e "Cloud-profiler - Normal start - This may take a while....\n"
-  docker run \
-    --init \
-    --restart=always \
-    -d \
-    --log-opt max-size=2m \
-    --log-opt max-file=5 \
-    --name cloud-profiler \
-    -e CP_Service=True \
-    -v "${HOME}"/.ssh/:/home/appuser/.ssh/ \
-    -v "$(eval echo "${Personal_Config_File}:/home/appuser/${Config_File}" )" \
-    -v "$(eval echo "${Personal_Static_Profiles}/:${SRC_Static_Profiles}" )" \
-    -v "$(eval echo "${HOME}/${DynamicProfiles_Location}:/home/appuser/${DynamicProfiles_Location}" )" \
-    -v "$(eval echo "${Shard_Key_Path}:/home/appuser/Shard_Keys" )" \
-    ${SRC_Docker_Image}
-  exit_state "Start service container"
-}
-
-
 
 ROOT_docker_start() {
   echo -e "Cloud-profiler - Starting service with ROOT."

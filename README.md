@@ -29,6 +29,7 @@ among other architectures.
 As of v5.0 ([Hakuteiken](https://bleach.fandom.com/wiki/Sh%C5%ABkei:_Hakuteiken)), Windows WSLv2 support introduced
   in order to make Windows more of a first class citizen then it was until now. 
 This Hakuteiken [dove](https://en.wikipedia.org/wiki/Doves_as_symbols) is an [olive_branch](https://en.wikipedia.org/wiki/Olive_branch) to all Windows users :)
+Note: Right now on Windows, the user uid for the container is always root, due to interation with the host issues.
 
 ## This project has some assumptions
 - Your system has Docker, or python3 installed (if using the "system install" method).
