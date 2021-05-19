@@ -653,7 +653,7 @@ def update_moba(obj_list):
 
     #update profile
     profiles += f"\n[Bookmarks_1]" \
-                f"\nCP Update profiles {VERSION} =  ;  logout#151#14%Default%%Interactive shell%__PTVIRG__bash <(curl -s https://raw.githubusercontent.com/aviadra/Cloud-profiler/feature/windows_wsl_support/startup.sh)%%0#MobaFont%10%0%0%-1%15%236,236,236%30,30,30%180,180,192%0%-1%0%%xterm%-1%-1%_Std_Colors_0_%80%24%0%1%-1%<none>%12:2:0:curl -s https__DBLDOT__//raw.githubusercontent.com/aviadra/Cloud-profiler/feature/windows_wsl_support/startup.sh __PIIPE__ bash__PIPE__%0%0%-1#0# #-1"
+                f"\nCP Update profiles {VERSION} =  ;  logout#151#14%Default%%Interactive shell%__PTVIRG__bash <(curl -s https://raw.githubusercontent.com/aviadra/Cloud-profiler/main/startup.sh)%%0#MobaFont%10%0%0%-1%15%236,236,236%30,30,30%180,180,192%0%-1%0%%xterm%-1%-1%_Std_Colors_0_%80%24%0%1%-1%<none>%12:2:0:curl -s https__DBLDOT__//raw.githubusercontent.com/aviadra/Cloud-profiler/feature/windows_wsl_support/startup.sh __PIIPE__ bash__PIPE__%0%0%-1#0# #-1"f"\nCP Update profiles {VERSION} =  ;  logout#151#14%Default%%Interactive shell%__PTVIRG__bash <(curl -s https://raw.githubusercontent.com/aviadra/Cloud-profiler/main/startup.sh)%%0#MobaFont%10%0%0%-1%15%236,236,236%30,30,30%180,180,192%0%-1%0%%xterm%-1%-1%_Std_Colors_0_%80%24%0%1%-1%<none>%12:2:0:curl -s https__DBLDOT__//raw.githubusercontent.com/aviadra/Cloud-profiler/feature/windows_wsl_support/startup.sh __PIIPE__ bash__PIPE__%0%0%-1#0# #-1"
     #update profile
     bookmark_counter = 2
     s = sorted(
@@ -1044,7 +1044,7 @@ def do_worker(do_script_config, do_instance_counter, do_cloud_instances_obj_list
 
 # MAIN
 if __name__ == '__main__':
-    VERSION = "v5.0.1"
+    VERSION = "v5.0.2"
     with open("marker.tmp", "w") as file:
         file.write("mark")
 
