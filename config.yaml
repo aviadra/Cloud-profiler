@@ -35,6 +35,33 @@ Local:
     Ip_public: True
   SSH_Config_create: False
   Docker_contexts_create: False
+  Moba:
+    colors:
+      - name: "Red Alert"
+        RGBs: >-
+          #MobaFont
+          %10%0%0%-1%15
+          %255,255,255
+          %160,0,0
+          %180,180,192
+          %0%-1%0%
+          %xterm%-1%-1
+          %68,71,90
+          %30,30,30
+          %128,128,128
+          %255,96,96
+          %255,128,128
+          %14,177,108
+          %24,237,147
+          %190,190,18
+          %222,220,18
+          %18,150,190
+          %27,186,233
+          %255,77,255
+          %255,125,255
+          %84,204,239
+          %142,221,244
+          %204,204,204
 
 AWS:
   exclude_regions: ["ap-southeast-1", "ap-southeast-2","sa-east-1","ap-northeast-1","ap-northeast-2","ap-south-1"]

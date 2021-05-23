@@ -671,6 +671,17 @@ def update_moba(obj_list):
         profiles += f"\n[Bookmarks_{bookmark_counter}]" \
                     f"\nSubRep={machine.provider_short}\\{machine.instance_source}\\{machine.region}\nImgNum=41\n"
 
+        pcolors = "f#MobaFont%10%0%0%-1%15%236,236,236%30,30,30""%180,180,192%0%-1%0%%%xterm%-1%-1%_Std_Colors_0_"
+        if machine.dynamic_profile_parent:
+            res = next(
+                (
+                    sub for sub in script_config['Local']['Moba']['colors']
+                    if sub['name'] == machine.dynamic_profile_parent
+                ),
+                None
+            )
+            pcolors = res.get('RGBs', pcolors).replace(" ", "")
+
         short_name = machine.name.rpartition('.')[2]
 
         connection_command = f"{short_name}= "
@@ -728,20 +739,25 @@ def update_moba(obj_list):
         if connection_type == "#91#4%":
             profile = (
                 f"\n{short_name} = {connection_type}{ip_for_connection}%{machine.con_port}%"
-                f"{con_username}%0%-1%-1%{login_command}{bastion_for_profile}%{machine.bastion_con_port}%{bastion_user}%0%"
-                f"0%{shard_key_path}%"
-                f"-1%%-1%-1%0%-1%0%-1#MobaFont%10%0%0%0%15%236,236,236%30,30,30%180,180,192"
-                f"%0%-1%0%%xterm%-1%-1%_Std_Colors_0_%80%24%0%1%-1%<none>%%0%1%-1#0#"
+                f"{con_username}%0%-1%-1%{login_command}{bastion_for_profile}%{machine.bastion_con_port}"
+                f"%{bastion_user}%0%"
+                f"0%{shard_key_path}"
+                f"%-1%%-1%-1%0%-1%0%-1"
+                f"{pcolors}"
+                f"%80%24%0%1%-1%"
+                f"<none>%%0%1%-1#0#"
                 f" {tags} #-1\n"
             )
         else:
             profile = (
                 f"\n{short_name} [{machine.id}] = {connection_type}{ip_for_connection}%{machine.con_port}%"
-                f"{con_username}%%-1%-1%{login_command}%{bastion_for_profile}%{machine.bastion_con_port}%{bastion_user}%0%"
+                f"{con_username}%%-1%-1%{login_command}%{bastion_for_profile}%{machine.bastion_con_port}"
+                f"%{bastion_user}%0%"
                 f"0%0%{shard_key_path}%%"
-                f"-1%0%0%0%0%1%1080%0%0%1#MobaFont%10%0%0%0%15%236,"
-                f"236,236%30,30,30%180,180,192%0%-1%0%%xterm%-1%"
-                f"-1%_Std_Colors_0_%80%24%0%1%-1%<none>%%0%1%-1#0# {tags}      #-1\n"
+                f"-1%0%0%0%0%1%1080%0%0%1"
+                f"{pcolors}"
+                f"%80%24%0%1%-1%"
+                f"<none>%%0%1%-1#0# {tags}      #-1\n"
             )
         profiles += profile
         bookmark_counter += 1
