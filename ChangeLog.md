@@ -1,6 +1,10 @@
 # Change Log
+## v5.1.1 - [Myōga](https://inuyasha.fandom.com/wiki/My%C5%8Dga)
+Fixed incorrect mounts for windows which caused the "reading the repo config file" & "SSH config",
+  to not work.
+
 ## v5.1.0 - [Ruri'iro Kujaku](https://bleach.fandom.com/wiki/Yumichika_Ayasegawa#Zanpakut.C5.8D)
-Added the abilety to set color profiles for Moba.
+Added the ability to set color profiles for Moba.
 
 ## v5.0.3 - [Hal Roach](https://pixar.fandom.com/wiki/Hal#:~:text=He%20is%20a%20cockroach%20that,EVE%2C%20he%20suffers%20no%20harm.)
 Seems I got the "normal start" defained both in the new way and the old in startup.sh. Removed it so it works corecctly.
