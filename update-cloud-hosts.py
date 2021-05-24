@@ -1060,7 +1060,7 @@ def do_worker(do_script_config, do_instance_counter, do_cloud_instances_obj_list
 
 # MAIN
 if __name__ == '__main__':
-    VERSION = "v5.1.1"
+    VERSION = "v5.1.2"
     with open("marker.tmp", "w") as file:
         file.write("mark")
 
@@ -1185,14 +1185,14 @@ if __name__ == '__main__':
             User_SSH_Config = os.path.expanduser("~/.ssh/config")
             CP_SSH_Config = os.path.expanduser("~/.ssh/cloud-profiler")
             with open(User_SSH_Config) as f:
-                if f"Include ~/.ssh/cloud-profiler" in f.read():
+                if f"Include {CP_SSH_Config}" in f.read():
                     print(
                         "Cloud-profiler - Found ssh_config include directive for CP in user's ssh config file, "
                         "so leaving it as is.")
                 else:
                     print("Cloud-profiler - Did not find include directive  for CP in user's ssh config file, "
                             "so adding it.")
-                    line_prepender(User_SSH_Config, "Include ~/.ssh/cloud-profiler")
+                    line_prepender(User_SSH_Config, f"Include {CP_SSH_Config}")
             update_ssh_config(list(cloud_instances_obj_list))
         
 
