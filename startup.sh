@@ -103,7 +103,7 @@ Normal_docker_start() {
     --name cloud-profiler \
     -e CP_Service=True \
     -e CP_Windows=${WSL} \
-    -v "${HOME}"/.ssh/:/root/.ssh/ \
+    -v "${HOME}"/.ssh/:/home/appuser/.ssh/ \
     -v "$( eval echo "${Personal_Config_File}:/root/Documents/Cloud_Profiler/${Config_File}" )" \
     -v "$( eval echo "${Personal_Static_Profiles}/:${SRC_Static_Profiles}" )" \
     ${Dlocation} \
