@@ -15,7 +15,7 @@ else
   Base_Path="${HOME}"
   Config_File=".iTerm-cloud-profile-generator/config.yaml"
   Personal_Static_Profiles="${Base_Path}/iTerm2-static-profiles"
-  DynamicProfiles_Location="${HOME}/Library/Application\ Support/iTerm2/DynamicProfiles/"
+  DynamicProfiles_Location="/Library/Application\ Support/iTerm2/DynamicProfiles/"
 fi
 Personal_Config_File="${Base_Path}/${Config_File}"
 if [[ -d ${Personal_Config_File} ]]; then
@@ -146,13 +146,14 @@ update_container() {
 }
 
 setup() {
+  echo "Called by \"$1\""
   echo "Cloud-profiler - Basic setup parts missing. Will now setup."
   echo "Cloud-profiler - Creating the container to copy profiles and config from."
   echo "Cloud-profiler - Setup - This may take a while...."
   docker rm -f cloud-profiler-copy &> /dev/null
 
   if [[ ! -e "${DynamicProfiles_Location}" && ${WSL} == "False" ]]; then
-    mkdir -p "${DynamicProfiles_Location}" ; exit_state "Create directory ${DynamicProfiles_Location}"
+    mkdir -p "${HOME}/${DynamicProfiles_Location}" ; exit_state "Create directory ${DynamicProfiles_Location}"
   fi
   if [[ ! -e "${Personal_Static_Profiles}" ]]; then
     mkdir -p "${Personal_Static_Profiles}" ; exit_state "Create directory ${Personal_Static_Profiles}"
@@ -244,21 +245,20 @@ for f in ${HOME}/iTerm2-static-profiles/Update\ iTerm\ profiles?*.json; do
   done
 
 # Is a part of the installation missing?
-[[ ! -e ${DynamicProfiles_Location} ]] && setup
-[[ ! -e ${Personal_Static_Profiles} ]] && setup
-[[ ! -e ${Shard_Key_Path} ]] && setup
-[[ ! -e ${HOME}/.ssh/config ]] && setup
-[[ ! -e $(eval echo "${Personal_Static_Profiles}" ) ]] && setup
-[[ ! -e $(eval echo "${Personal_Config_File}" ) ]] && setup
+[[ ! -e ${DynamicProfiles_Location} && ${WSL} == "False" ]] && setup 'DynamicProfiles_Location'
+[[ ! -e ${Shard_Key_Path} ]] && setup 'Shard_Key_Path'
+[[ ! -e ${HOME}/.ssh/config ]] && setup '${HOME}/.ssh/config'
+[[ ! -e $(eval echo "${Personal_Static_Profiles}" ) ]] && setup 'Personal_Static_Profiles'
+[[ ! -e $(eval echo "${Personal_Config_File}" ) ]] && setup 'Personal_Config_File'
 if [[ "$( grep "${CP_Version}"  \
         "${Personal_Static_Profiles}/Update iTerm profiles.json" 2> /dev/null |\
         grep Name |\
         awk -F ":" '{print $2}' |\
         awk -F " " '{print $4}' |\
         tr -d ",",'"' )" != "${CP_Version}" &&\
-      ( ${CP_Version} != "edge" && ${CP_Version} != "latest" ) ]] ; then
+      ( ${CP_Version} != "edge" && ${CP_Version} != "latest" ) && ${WSL} == "False" ]] ; then
   clear_service_container
-  setup
+  setup 'CP_Version'
 fi
 
 # Is the correct path for the shared keys set to the desired location?
