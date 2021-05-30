@@ -665,7 +665,6 @@ def update_moba(obj_list):
             )
         )
     for machine in s:
-        print(machine.name)
         instance_counter[machine.instance_source] += 1
 
         profiles += f"\n[Bookmarks_{bookmark_counter}]" \
@@ -751,7 +750,7 @@ def update_moba(obj_list):
         else:
             profile = (
                 f"\n{short_name} [{machine.id}] = {connection_type}{ip_for_connection}%{machine.con_port}%"
-                f"{con_username}%%-1%-1%{login_command}%{bastion_for_profile}%{machine.bastion_con_port}"
+                f"{con_username}%%0%-1%{login_command}%{bastion_for_profile}%{machine.bastion_con_port}"
                 f"%{bastion_user}%0%"
                 f"0%0%{shard_key_path}%%"
                 f"-1%0%0%0%0%1%1080%0%0%1"
