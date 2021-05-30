@@ -38,7 +38,7 @@ Note: Right now on Windows, the user uid for the container is always root, due t
 ## This project has some assumptions
 - Your system has Docker, or python3 installed (if using the "system install" method).
 - When using a Mac, You have [iTerm](https://iterm2.com/) installed.
-- When using Windows, you have MobaXterm install.
+- When using Windows, you have [MobaXterm](https://mobaxterm.mobatek.net/) installed.
 
 ## Getting started
 
