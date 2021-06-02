@@ -1,4 +1,5 @@
 # Change Log
+## v5.2.1 - [Tracks's](https://tfwiki.net/wiki/Tracks_(G1)) [Raoul](https://tfwiki.net/wiki/Raoul)
 ## v5.2.0 - [Tracks](https://tfwiki.net/wiki/Tracks_(G1))
 Changing vanity to include the version name (not just the number)
 Now checking internet connectivity before trying to issue API calls.
