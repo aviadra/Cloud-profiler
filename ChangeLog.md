@@ -1,5 +1,11 @@
 # Change Log
-## v5.1.3 - [Buckbeak](https://harrypotter.fandom.com/wiki/Buckbeak)
+## v5.2.0 - [Tracks](https://tfwiki.net/wiki/Tracks_(G1))
+Changing vanity to include the version name (not just the number)
+Now checking internet connectivity before trying to issue API calls.
+Dependabot upgrade for "urllib3" and "requests".
+Updated python base container.
+
+## v5.1.3 -  [Buckbeak](https://harrypotter.fandom.com/wiki/Buckbeak)
 Corrected mounts (again).
 Fixed ssh config adding the wrong location (regression bug)
 
@@ -14,29 +20,29 @@ Fixed incorrect mounts for windows which caused the "reading the repo config fil
 Added the ability to set color profiles for Moba.
 
 ## v5.0.3 - [Hal Roach](https://pixar.fandom.com/wiki/Hal#:~:text=He%20is%20a%20cockroach%20that,EVE%2C%20he%20suffers%20no%20harm.)
-Seems I got the "normal start" defained both in the new way and the old in startup.sh. Removed it so it works corecctly.
+Seems I got the "normal start" defined both in the new way and the old in startup.sh. Removed it so it works corecctly.
 
 ## v5.0.2 - [Bombshell](https://tfwiki.net/wiki/Bombshell_(G1))
 Forgot to move Moba update profile back to main
 
 ## v5.0.1 - [Horseshoe Crab](https://havenmaine.fandom.com/wiki/Horseshoe_crab#:~:text=The%20Horseshoe%20Crab%20appearing%20in,one%20following%20her%20in%20Crush.)
-Actually, I myself moved back to windows and couldn't be happier...
-Aslo fixed depency of PyYAML from dependabot.
+Actually, I myself moved back to Windows and couldn't be happier...
+Also fixed decency of PyYAML from dependabot.
 
 ## v5.0.0 - [Hakuteiken](https://bleach.fandom.com/wiki/Sh%C5%ABkei:_Hakuteiken)
 Windows WSLv2 support.
 Added "Update" profile to Moba created sessions file.
-Changed it so that on windows the "Cloud_Profiler" within documents is used for everything (dot somthing dir with conf in them is more of a POSIX thing).
+Changed it so that on Windows the "Cloud_Profiler" within documents is used for everything (dot somthing dir with conf in them is more of a POSIX thing).
 Parallelized AWS accounts as well :)
 Now filtering the AWS region before even calling the thread that should collect the data.
-More outputs now include the instance id (mainly to avoide collitions).
+More outputs now include the instance id (mainly to avoid collisions).
 
 
 ## v4.4.2 - [Shrapnel](https://tfwiki.net/wiki/Shrapnel_(G1))
 Fixed a bud, where profiling did not work for non STS users.
 
 ## v4.4.1 - [kickback](https://tfwiki.net/wiki/Kickback_(G1))
-Corrected Dockerfile for multi platform.
+Corrected Dockerfile for multi-platform.
 Added links to version names in the changelog.
 
 ## v4.4.0 - [Ephraim](https://www.facebook.com/guy.ephraim) (Deleteing is the best from of coding)
@@ -59,7 +65,7 @@ Fixed update for "normal" users that don't run Cloud_profiler with root for "Doc
 Startup script cleanups to remove logic of not knowing the version and reduce restarts of container.
 
 ## v4.3.2 - [Haien](https://bleach.fandom.com/wiki/Haien) (Abolishing Flames)
-Start of removing "master" branch. (It will be maintained for legacy compatabilety for now)
+Start of removing "master" branch. (It will be maintained for legacy compatibility for now)
 
 ## v4.3.1 - [Kakushitsuijaku](https://bleach.fandom.com/wiki/Kakushitsuijaku) (Footprint-Attentive Pursuing-Sparrows)
 Seeing that the "Update profile" is the most likely path to become a beta tester,
@@ -88,7 +94,7 @@ Fixed Docker context and SSH config creations (they were still using pre v4.0 me
 Added ability to set the SSH command to use from the config file.
 Dockerfile: Added OS upgrade to lower CVEs.
 Moved where we copy the requirements, 
-so it doesn't invalidate the cache too soon and its visually closer to where it is used.
+so it doesn't invalidate the cache too soon and it's visually closer to where it is used.
 BUG: Corrected the name of the attribute we're looking for in the "script_config".
 Added deleting the container if the version has changed (as indicated by the file name).
 Reduced linting issues from "startup" script.
