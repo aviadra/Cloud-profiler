@@ -1,5 +1,10 @@
 # Change Log
+## v5.2.2 - [Trackss](https://tfwiki.net/wiki/Tracks_(G1)) [Raoul](https://tfwiki.net/wiki/Raoul)
+The "'" was not a good idea...
+
 ## v5.2.1 - [Tracks's](https://tfwiki.net/wiki/Tracks_(G1)) [Raoul](https://tfwiki.net/wiki/Raoul)
+Tracks's Raoul: Added checking if the container image matches the expected version.
+
 ## v5.2.0 - [Tracks](https://tfwiki.net/wiki/Tracks_(G1))
 Changing vanity to include the version name (not just the number)
 Now checking internet connectivity before trying to issue API calls.
