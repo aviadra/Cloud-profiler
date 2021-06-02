@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-[ -z ${CP_Version+x} ] && CP_Version='v5.2.0_Tracks'
+[ -z ${CP_Version+x} ] && CP_Version='v5.2.1_Tracks's_Raoul'
 Personal_Static_Profiles="${HOME}/iTerm2-static-profiles"
 SRC_Static_Profiles="/home/appuser/iTerm2-static-profiles"
 SRC_Docker_image_base="aviadra/cp"
@@ -146,12 +146,12 @@ update_container() {
 }
 
 setup() {
-  echo "Called by \"$1\""
-  echo "Cloud-profiler - Basic setup parts missing. Will now setup."
-  echo "Cloud-profiler - Creating the container to copy profiles and config from."
+  echo "Cloud-profiler - Setup - Called by \"$1\""
+  echo "Cloud-profiler - Setup - Basic setup parts missing. Will now setup."
+  echo "Cloud-profiler - Setup - Creating the container to copy profiles and config from."
   echo "Cloud-profiler - Setup - This may take a while...."
   docker rm -f cloud-profiler-copy &> /dev/null
-
+  [[ -z "$( docker ps --filter ancestor=${SRC_Docker_Image} -q )" ]] && clear_service_container && update_container
   if [[ ! -e "${DynamicProfiles_Location}" && ${WSL} == "False" ]]; then
     mkdir -p "${HOME}/${DynamicProfiles_Location}" ; exit_state "Create directory ${DynamicProfiles_Location}"
   fi
@@ -245,6 +245,7 @@ for f in ${HOME}/iTerm2-static-profiles/Update\ iTerm\ profiles?*.json; do
   done
 
 # Is a part of the installation missing?
+[[ -z "$( docker ps --filter ancestor=${SRC_Docker_Image} -q )" ]] && setup "image version changed"
 [[ ! -e ${DynamicProfiles_Location} && ${WSL} == "False" ]] && setup 'DynamicProfiles_Location'
 [[ ! -e ${Shard_Key_Path} ]] && setup 'Shard_Key_Path'
 [[ ! -e ${HOME}/.ssh/config ]] && setup '${HOME}/.ssh/config'

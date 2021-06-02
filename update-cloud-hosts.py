@@ -1071,7 +1071,7 @@ def checkInternetSocket(host="8.8.8.8", port=53, timeout=3):
 
 # MAIN
 if __name__ == '__main__':
-    VERSION = "v5.2.0_Tracks"
+    VERSION = "v5.2.1_Tracks's_Raoul"
     checkInternetSocket()
     with open("marker.tmp", "w") as file:
         file.write("mark")
