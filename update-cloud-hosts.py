@@ -12,7 +12,7 @@ import platform
 import shutil
 import subprocess
 from typing import Any, Dict, Union
-
+import socket
 import boto3
 import digitalocean
 import yaml
@@ -1057,9 +1057,22 @@ def do_worker(do_script_config, do_instance_counter, do_cloud_instances_obj_list
         get_do_instances(profile, do_instance_counter, do_script_config, do_cloud_instances_obj_list)
 
 
+def checkInternetSocket(host="8.8.8.8", port=53, timeout=3):
+    print("Cloud-profiler - Testing internet connectivety")
+    try:
+        socket.setdefaulttimeout(timeout)
+        socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect((host, port))
+        return True
+    except socket.error as ex:
+        print(ex)
+        print("Cloud-profiler - This means there was no internet connectivety to do our API calles...\nGoodbye for now.")
+        exit()
+        return False
+
 # MAIN
 if __name__ == '__main__':
-    VERSION = "v5.1.3"
+    VERSION = "v5.2.0_Tracks"
+    checkInternetSocket()
     with open("marker.tmp", "w") as file:
         file.write("mark")
 
