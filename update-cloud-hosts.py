@@ -20,6 +20,8 @@ from Crypto.Cipher import PKCS1_v1_5
 from Crypto.PublicKey import RSA
 from inputimeout import TimeoutOccurred, inputimeout
 from sshconf import empty_ssh_config_file
+import requests
+
 
 
 class InstanceProfile:
@@ -1057,11 +1059,10 @@ def do_worker(do_script_config, do_instance_counter, do_cloud_instances_obj_list
         get_do_instances(profile, do_instance_counter, do_script_config, do_cloud_instances_obj_list)
 
 
-def checkInternetSocket(host="8.8.8.8", port=53, timeout=3):
+def checkInternetRequests(url='http://www.google.com/', timeout=3):
     print("Cloud-profiler - Testing internet connectivety")
     try:
-        socket.setdefaulttimeout(timeout)
-        socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect((host, port))
+        r = requests.head(url, timeout=timeout)
         return True
     except socket.error as ex:
         print(ex)
@@ -1072,7 +1073,7 @@ def checkInternetSocket(host="8.8.8.8", port=53, timeout=3):
 # MAIN
 if __name__ == '__main__':
     VERSION = "v5.2.2_Trackss_Raoul"
-    checkInternetSocket()
+    checkInternetRequests()
     with open("marker.tmp", "w") as file:
         file.write("mark")
 
