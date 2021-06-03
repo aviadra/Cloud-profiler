@@ -992,14 +992,14 @@ def update_ssh_config(dict_list):
             name,
             Hostname=machine.ip,
             Port=machine.con_port,
-            User=machine.con_username,
-            ProxyJump=machine.bastion
+            
+            User=machine.con_username
         )
         if not machine.con_username:
             ssh_conf_file.unset(name, "user")
-        if not ((isinstance(machine.bastion, str) and not machine.instance_use_ip_public)
-                or machine.instance_use_bastion):
-            ssh_conf_file.unset(name, "proxyjump")
+        if (isinstance(machine.bastion, str) and not machine.instance_use_ip_public) \
+                or machine.instance_use_bastion:
+            ssh_conf_file.set(name, ProxyJump=machine.bastion)
         print(f"Added {name} to SSH config list.")
     ssh_conf_file.write(CP_SSH_Config)
 
