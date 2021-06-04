@@ -23,7 +23,6 @@ from sshconf import empty_ssh_config_file
 import requests
 
 
-
 class InstanceProfile:
     script_config = {}
     """This is an instance profile"""
@@ -466,7 +465,6 @@ def fetch_ec2_region(
         fetch_script_config=None,
         ec2_cloud_instances_obj_list=None
 ) -> None:
-
     if credentials:
         client = boto3.client('ec2',
                               aws_access_key_id=credentials['AccessKeyId'],
@@ -653,19 +651,25 @@ def get_ec2_instances(
 def update_moba(obj_list):
     profiles = "[Bookmarks]\nSubRep=\nImgNum=42"
 
-    #update profile
+    # update profile
     profiles += f"\n[Bookmarks_1]" \
-                f"\nCP Update profiles {VERSION} =  ;  logout#151#14%Default%%Interactive shell%__PTVIRG__bash <(curl -s https://raw.githubusercontent.com/aviadra/Cloud-profiler/main/startup.sh)%%0#MobaFont%10%0%0%-1%15%236,236,236%30,30,30%180,180,192%0%-1%0%%xterm%-1%-1%_Std_Colors_0_%80%24%0%1%-1%<none>%12:2:0:curl -s https__DBLDOT__//raw.githubusercontent.com/aviadra/Cloud-profiler/main/startup.sh __PIIPE__ bash__PIPE__%0%0%-1#0# #-1"
-    #update profile
+                f"\nCP Update profiles {VERSION} =" \
+                f"  ;  logout#151#14%Default%%Interactive shell%__PTVIRG__bash " \
+                f"<(curl -s https://raw.githubusercontent.com/aviadra/Cloud-profiler/main/startup.sh)%%0" \
+                f"#MobaFont%10%0%0%-1%15%236,236,236%30,30,30%180,180,192%0%-1%0%%" \
+                f"xterm%-1%-1%_Std_Colors_0_%80%24%0%1%-1%<none>%12:2:0:curl -s " \
+                f"https__DBLDOT__//raw.githubusercontent.com/aviadra/Cloud-profiler/main/startup.sh __PIIPE__ " \
+                f"bash__PIPE__%0%0%-1#0# #-1"
+    # update profile
     bookmark_counter = 2
     s = sorted(
-            obj_list,
-            key=lambda i: (
-                i.region.lower(),
-                i.name.lower(),
-                i.name.split(f"{i.instance_source}.")[1].lower()
-            )
+        obj_list,
+        key=lambda i: (
+            i.region.lower(),
+            i.name.lower(),
+            i.name.split(f"{i.instance_source}.")[1].lower()
         )
+    )
     for machine in s:
         instance_counter[machine.instance_source] += 1
 
@@ -1008,8 +1012,8 @@ def update_ssh_config(dict_list):
         if machine.ssh_key and machine.use_shared_key:
             shard_key_path = os.path.join(
                 os.path.expanduser(script_config["Local"].get('ssh_keys_path', '.')),
-                    machine.ssh_key
-                )
+                machine.ssh_key
+            )
             ssh_conf_file.set(name, IdentityFile=shard_key_path)
         print(f"Cloud-profiler - SSH_Config_create - Added {name} to SSH config list.")
     ssh_conf_file.write(CP_SSH_Config)
@@ -1070,21 +1074,23 @@ def do_worker(do_script_config, do_instance_counter, do_cloud_instances_obj_list
         get_do_instances(profile, do_instance_counter, do_script_config, do_cloud_instances_obj_list)
 
 
-def checkInternetRequests(url='http://www.google.com/', timeout=3):
+def checkinternetrequests(url='http://www.google.com/', timeout=3):
     print("Cloud-profiler - Testing internet connectivety")
     try:
-        r = requests.head(url, timeout=timeout)
+        requests.head(url, timeout=timeout)
         return True
     except socket.error as ex:
         print(ex)
-        print("Cloud-profiler - This means there was no internet connectivety to do our API calles...\nGoodbye for now.")
+        print(
+            "Cloud-profiler - This means there was no internet connectivety to do our API calles...\nGoodbye for now.")
         exit()
         return False
+
 
 # MAIN
 if __name__ == '__main__':
     VERSION = "v5.2.2_Trackss_Raoul"
-    checkInternetRequests()
+    checkinternetrequests()
     with open("marker.tmp", "w") as file:
         file.write("mark")
 
@@ -1118,9 +1124,9 @@ if __name__ == '__main__':
             home_dir = "~/.iTerm-cloud-profile-generator/"
         else:
             home_dir = "~/Documents/Cloud_Profiler/"
-        if os.path.isfile(os.path.expanduser((os.path.join(home_dir,"config.yaml")))):
+        if os.path.isfile(os.path.expanduser((os.path.join(home_dir, "config.yaml")))):
             print("Cloud-profiler - Found conf file in place")
-            with open(os.path.expanduser((os.path.join(home_dir,"config.yaml")))) as conf_file:
+            with open(os.path.expanduser((os.path.join(home_dir, "config.yaml")))) as conf_file:
                 script_config_user = yaml.full_load(conf_file)
         else:
             if not os.path.isdir(os.path.expanduser(home_dir)):
@@ -1144,7 +1150,7 @@ if __name__ == '__main__':
                     if "config.yaml" not in entry.name:
                         if "CP" not in entry.name or \
                                 (not platform.system() == 'Windows' and not os.environ.get('CP_Windows', False)
-                                and VERSION not in entry.name):
+                                 and VERSION not in entry.name):
                             os.remove(entry.path)
 
         p_list = []
@@ -1215,12 +1221,11 @@ if __name__ == '__main__':
                         "so leaving it as is.")
                 else:
                     print("Cloud-profiler - Did not find include directive  for CP in user's ssh config file, "
-                            "so adding it.")
+                          "so adding it.")
                     line_prepender(User_SSH_Config, "Include ~/.ssh/cloud-profiler")
             update_ssh_config(list(cloud_instances_obj_list))
         else:
             print("Cloud-profiler - SSH_Config_create - \"SSH_Config_create\" is not set, so skipping it.")
-        
 
         if os.path.exists('marker.tmp'):
             os.remove("marker.tmp")
