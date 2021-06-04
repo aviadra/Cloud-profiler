@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-[ -z ${CP_Version+x} ] && CP_Version='v5.2.2_Trackss_Raoul'
+[ -z ${CP_Version+x} ] && CP_Version='v5.3.0_Actual'
 Personal_Static_Profiles="${HOME}/iTerm2-static-profiles"
 SRC_Static_Profiles="/home/appuser/iTerm2-static-profiles"
 SRC_Docker_image_base="aviadra/cp"
@@ -29,6 +29,7 @@ if [[ -d ${Personal_Config_File} ]]; then
 fi
 if [[ -f ${Personal_Config_File} ]]; then
   Shard_Key_Path="$( cat < "${Personal_Config_File}" | grep SSH_keys_path | awk '{print $2}' | sed -e 's/[[:space:]]//' -e 's/^"//' -e 's/"$//' )"
+  SSH_Config_create="$( cat < "${Personal_Config_File}" | grep SSH_Config_create | awk '{print $2}' | sed -e 's/[[:space:]]//' -e 's/^"//' -e 's/"$//' )"
 else
   if [[ ${WSL} == "False" ]]; then
     mkdir -p "${Base_Path}/.iTerm-cloud-profile-generator/keys"
@@ -147,8 +148,6 @@ update_container() {
 
 setup() {
   echo "Cloud-profiler - Setup - Called by \"$1\""
-  echo "Cloud-profiler - Setup - Basic setup parts missing. Will now setup."
-  echo "Cloud-profiler - Setup - Creating the container to copy profiles and config from."
   echo "Cloud-profiler - Setup - This may take a while...."
   docker rm -f cloud-profiler-copy &> /dev/null
   [[ -z "$( docker ps --filter ancestor=${SRC_Docker_Image} -q )" ]] && clear_service_container && update_container
@@ -161,8 +160,12 @@ setup() {
   if [[ ! -e "${Shard_Key_Path}" ]]; then
     mkdir -p "${Shard_Key_Path}" ; exit_state "Create directory ${Shard_Key_Path}"
   fi
-
-
+  if [[ -z "$( grep "Include $( eval echo $( wslpath $(wslvar USERPROFILE) ) )/.ssh/cloud-profiler" ~/.ssh/config )" \
+    && ${WSL} == "True" \
+    && ${SSH_Config_create} == "True" ]]; then
+      echo "Cloud-profiler - Setup - Prepending \"include $( wslpath "$(wslvar USERPROFILE)" )/.ssh/cloud-profiler\", to \"~/.ssh/config\""
+      echo -e "Include $( wslpath "$(wslvar USERPROFILE)" )/.ssh/cloud-profiler\n$(cat ~/.ssh/config)" > ~/.ssh/config
+  fi
   if [[ ! -f ${HOME}/.ssh/config ]]; then
     echo "Cloud-profiler - There was no SSH config, so creating one."
     if [[ ! -d ${HOME}/.ssh/ ]]; then
@@ -245,6 +248,9 @@ for f in ${HOME}/iTerm2-static-profiles/Update\ iTerm\ profiles?*.json; do
   done
 
 # Is a part of the installation missing?
+[[ -z "$( grep "Include $( eval echo $( wslpath $(wslvar USERPROFILE) ) )/.ssh/cloud-profiler" ~/.ssh/config )" \
+  && ${WSL} == "True" \
+  && ${SSH_Config_create} == "True" ]] && setup "SSH config includer"
 [[ -z "$( docker ps --filter ancestor=${SRC_Docker_Image} -q )" ]] && setup "image version changed"
 [[ ! -e ${DynamicProfiles_Location} && ${WSL} == "False" ]] && setup 'DynamicProfiles_Location'
 [[ ! -e ${Shard_Key_Path} ]] && setup 'Shard_Key_Path'
