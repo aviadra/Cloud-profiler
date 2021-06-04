@@ -988,19 +988,30 @@ def update_ssh_config(dict_list):
     ssh_conf_file = empty_ssh_config_file()
     for machine in dict_list:
         name = f"{machine.name}-{machine.ip}-{machine.id}"
+        if machine.platform == 'windows':
+            print(f"Cloud-profiler - SSH_Config_create - Skipping this {name}, as it is a Windows machine.")
+            continue
+        if machine.instance_use_ip_public or not machine.bastion:
+            ip_for_connection = machine.ip_public
+        else:
+            ip_for_connection = machine.ip
         ssh_conf_file.add(
             name,
-            Hostname=machine.ip,
+            Hostname=ip_for_connection,
             Port=machine.con_port,
-            
-            User=machine.con_username
         )
-        if not machine.con_username:
-            ssh_conf_file.unset(name, "user")
+        if machine.con_username:
+            ssh_conf_file.set(name, User=machine.con_username)
         if (isinstance(machine.bastion, str) and not machine.instance_use_ip_public) \
                 or machine.instance_use_bastion:
             ssh_conf_file.set(name, ProxyJump=machine.bastion)
-        print(f"Added {name} to SSH config list.")
+        if machine.ssh_key and machine.use_shared_key:
+            shard_key_path = os.path.join(
+                os.path.expanduser(script_config["Local"].get('ssh_keys_path', '.')),
+                    machine.ssh_key
+                )
+            ssh_conf_file.set(name, IdentityFile=shard_key_path)
+        print(f"Cloud-profiler - SSH_Config_create - Added {name} to SSH config list.")
     ssh_conf_file.write(CP_SSH_Config)
 
 
@@ -1208,7 +1219,7 @@ if __name__ == '__main__':
                     line_prepender(User_SSH_Config, "Include ~/.ssh/cloud-profiler")
             update_ssh_config(list(cloud_instances_obj_list))
         else:
-            print("Cloud-profiler - SSH_Config_create is not set, so skipping it.")
+            print("Cloud-profiler - SSH_Config_create - \"SSH_Config_create\" is not set, so skipping it.")
         
 
         if os.path.exists('marker.tmp'):

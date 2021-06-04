@@ -160,9 +160,11 @@ setup() {
   if [[ ! -e "${Shard_Key_Path}" ]]; then
     mkdir -p "${Shard_Key_Path}" ; exit_state "Create directory ${Shard_Key_Path}"
   fi
-  if [[ -z "$( grep "Include $( eval echo $( wslpath $(wslvar USERPROFILE) ) )/.ssh/cloud-profiler" ~/.ssh/config )" && ${WSL} == "True" && ${SSH_Config_create} == "True" ]]; then
-    echo "Cloud-profiler - Setup - Prepending \"include $( wslpath "$(wslvar USERPROFILE)" )/.ssh/cloud-profiler\", to \"~/.ssh/config\""
-    echo -e "Include $( wslpath "$(wslvar USERPROFILE)" )/.ssh/cloud-profiler\n$(cat ~/.ssh/config)" > ~/.ssh/config
+  if [[ -z "$( grep "Include $( eval echo $( wslpath $(wslvar USERPROFILE) ) )/.ssh/cloud-profiler" ~/.ssh/config )" \
+    && ${WSL} == "True" \
+    && ${SSH_Config_create} == "True" ]]; then
+      echo "Cloud-profiler - Setup - Prepending \"include $( wslpath "$(wslvar USERPROFILE)" )/.ssh/cloud-profiler\", to \"~/.ssh/config\""
+      echo -e "Include $( wslpath "$(wslvar USERPROFILE)" )/.ssh/cloud-profiler\n$(cat ~/.ssh/config)" > ~/.ssh/config
   fi
   if [[ ! -f ${HOME}/.ssh/config ]]; then
     echo "Cloud-profiler - There was no SSH config, so creating one."
@@ -246,7 +248,9 @@ for f in ${HOME}/iTerm2-static-profiles/Update\ iTerm\ profiles?*.json; do
   done
 
 # Is a part of the installation missing?
-[[ -z "$( grep "Include $( eval echo $( wslpath $(wslvar USERPROFILE) ) )/.ssh/cloud-profiler" ~/.ssh/config )" && ${WSL} == "True" && ${SSH_Config_create} == "True" ]] && setup "SSH config includer"
+[[ -z "$( grep "Include $( eval echo $( wslpath $(wslvar USERPROFILE) ) )/.ssh/cloud-profiler" ~/.ssh/config )" \
+  && ${WSL} == "True" \
+  && ${SSH_Config_create} == "True" ]] && setup "SSH config includer"
 [[ -z "$( docker ps --filter ancestor=${SRC_Docker_Image} -q )" ]] && setup "image version changed"
 [[ ! -e ${DynamicProfiles_Location} && ${WSL} == "False" ]] && setup 'DynamicProfiles_Location'
 [[ ! -e ${Shard_Key_Path} ]] && setup 'Shard_Key_Path'
