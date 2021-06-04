@@ -1,21 +1,39 @@
 # Change Log
+## v5.3.0 - [Actual](https://en.battlestarwikiclone.org/wiki/Actual)
+Version name thoughts: While I don't use the ssh config method as much as others, 
+  it is the most basic method of connecting... So if you're one of the people who insist like
+  [Adama](https://en.battlestarwikiclone.org/wiki/William_Adama) to keep old tech, I'm going to at least not be in your way.
+Generally made SSH_config closer to other updates.
+  Added ability to use an IdentityFile (untested).
+  ssh_config_actual: Added skipping machine if it is a Windows one (may change if the demand comes up).
+  Added understanding if the public ip should be used.
+  update-hosts: Moved the bastion decision out of the host creation and made it work the same as other updaters.
+  ssh_config_actual: startup.sh: If ssh directive is set, 
+    the WSL config is set to include the same cloud-profiler file that "Windows" uses.
+Changed internet connectivity checker to both use a DNS (which seems to actually be the issue with WSL) and not only open a socket, but actually obtain some headers from google.
+PEP8 stuff.
+
 ## v5.2.2 - [Trackss](https://tfwiki.net/wiki/Tracks_(G1)) [Raoul](https://tfwiki.net/wiki/Raoul)
 The "'" was not a good idea...
 
 ## v5.2.1 - [Tracks's](https://tfwiki.net/wiki/Tracks_(G1)) [Raoul](https://tfwiki.net/wiki/Raoul)
+Version name thoughts: Raoul can fix anything without even knowing what it is (like a freaking autobot).
 Tracks's Raoul: Added checking if the container image matches the expected version.
 
 ## v5.2.0 - [Tracks](https://tfwiki.net/wiki/Tracks_(G1))
+Version name thoughts: Tracks's main trait is that he's vain... just like this version features.
 Changing vanity to include the version name (not just the number)
 Now checking internet connectivity before trying to issue API calls.
 Dependabot upgrade for "urllib3" and "requests".
 Updated python base container.
 
 ## v5.1.3 -  [Buckbeak](https://harrypotter.fandom.com/wiki/Buckbeak)
+Version name thoughts: I've asked Shir for a name for a "mount"... 
+  This is what her [Teletraan I](https://tfwiki.net/wiki/Teletraan_I) come up with... Mean anything to you?
 Corrected mounts (again).
-Fixed ssh config adding the wrong location (regression bug)
+Fixed ssh config adding the wrong location (regression bug).
 
-## v5.1.2 - [Mō-Mō](https://inuyasha.fandom.com/wiki/M%C5%8D-M%C5%8D)
+## v5.1.2 - [Mō-Mō](https://inuyasha.fandom.com/wiki/M%C5%8D-M%C5%8D) 
 Fixed mounts again...
 
 ## v5.1.1 - [Myōga](https://inuyasha.fandom.com/wiki/My%C5%8Dga)
@@ -36,9 +54,11 @@ Actually, I myself moved back to Windows and couldn't be happier...
 Also fixed decency of PyYAML from dependabot.
 
 ## v5.0.0 - [Hakuteiken](https://bleach.fandom.com/wiki/Sh%C5%ABkei:_Hakuteiken)
+Version name thoughts: Ichigo said: "Sorry, but I don't have any amazing technics like that". 
+  This is what this version is... a beautiful white dove of peace that brought me back from MacOS to Windows.
 Windows WSLv2 support.
 Added "Update" profile to Moba created sessions file.
-Changed it so that on Windows the "Cloud_Profiler" within documents is used for everything (dot somthing dir with conf in them is more of a POSIX thing).
+Changed it so that on Windows the "Cloud_Profiler" within documents is used for everything (dot something dir with conf in them is more of a POSIX thing).
 Parallelized AWS accounts as well :)
 Now filtering the AWS region before even calling the thread that should collect the data.
 More outputs now include the instance id (mainly to avoid collisions).
@@ -80,12 +100,12 @@ I've removed the branch selection from the "TL;DR" installer.
 ## v4.3.0 - [Tenteikūra](https://bleach.fandom.com/wiki/Tenteik%C5%ABra) (Heavenly Rickshaws in Silken Air)
 Adding multi arch support!! (M1 mac users, you're welcome).
 Moved to 3 digit versioning.
-Changed the update profile file name to not contain the version for easier upgrades.
+Changed the update profile "file name" to not contain the version for easier upgrades.
 
 ## v4.2 - [Kurohitsugi](https://bleach.fandom.com/wiki/Kurohitsugi) (Black Coffin)
 Moved to using Alpine as the base image to reduce CVEs.
 Removing "sh" from the final form of the container required weaning off GNU usage.
-Fixed docker contex creation to actually work.
+Fixed docker context creation to actually work.
 
 ## v4.1.3 - [Nega Scott](https://scottpilgrim.fandom.com/wiki/Nega_Scott)
 SSH config - Bastions where not used when they should have been,
@@ -100,14 +120,14 @@ Fixed Docker context and SSH config creations (they were still using pre v4.0 me
 Added ability to set the SSH command to use from the config file.
 Dockerfile: Added OS upgrade to lower CVEs.
 Moved where we copy the requirements, 
-so it doesn't invalidate the cache too soon and it's visually closer to where it is used.
+  so it doesn't invalidate the cache too soon, and it's visually closer to where it is used.
 BUG: Corrected the name of the attribute we're looking for in the "script_config".
 Added deleting the container if the version has changed (as indicated by the file name).
 Reduced linting issues from "startup" script.
 Updated README to include instructions about the new "SSH_command" directive, and for better readability.
 
 ## v4.0.1 - [Tsuriboshi](https://bleach.fandom.com/wiki/Tsuriboshi) (Suspending Star)
-Changed it so the value of the tag we're looking for, can be anywhere in the tag value we get from AWS.
+Changed it, so the value of the tag we're looking for, can be anywhere in the tag value we get from AWS.
 The tag "dynamic_profile_parent_name" was changed to "dynamic_profile_parent", in order to not collide with the "Name"
 tag.
 
