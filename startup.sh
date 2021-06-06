@@ -248,8 +248,7 @@ for f in ${HOME}/iTerm2-static-profiles/Update\ iTerm\ profiles?*.json; do
   done
 
 # Is a part of the installation missing?
-[[ -z "$( grep "Include $( eval echo $( wslpath $(wslvar USERPROFILE) ) )/.ssh/cloud-profiler" ~/.ssh/config )" \
-  && ${WSL} == "True" \
+[[ ${WSL} == "True" && -z "$( grep "Include $( eval echo $( wslpath $(wslvar USERPROFILE) ) )/.ssh/cloud-profiler" ~/.ssh/config )" \
   && ${SSH_Config_create} == "True" ]] && setup "SSH config includer"
 [[ -z "$( docker ps --filter ancestor=${SRC_Docker_Image} -q )" ]] && setup "image version changed"
 [[ ${WSL} == "False" && ! -e ${DynamicProfiles_Location} ]] && setup 'DynamicProfiles_Location'
