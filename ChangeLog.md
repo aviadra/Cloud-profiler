@@ -1,4 +1,10 @@
 # Change Log
+## v5.3.1 - [Actual](https://en.battlestarwikiclone.org/wiki/Actual) [Adama](https://en.wikipedia.org/wiki/William_Adama)
+Version name thoughts: A fresh installation brings you back to earth (adama means earth in hebrew).
+Seams we've created the directory separately from copying the static profiles... 
+I don't know this work for ppl until now, 
+  but I guess there simply wasn't a truly fresh installation until now...
+
 ## v5.3.0 - [Actual](https://en.battlestarwikiclone.org/wiki/Actual)
 Version name thoughts: While I don't use the ssh config method as much as others, 
   it is the most basic method of connecting... So if you're one of the people who insist like
