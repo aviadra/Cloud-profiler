@@ -10,18 +10,22 @@ import multiprocessing as mp
 import os
 import platform
 import shutil
+import socket
 import subprocess
 from typing import Any, Dict, Union
-import socket
+
 import boto3
 import digitalocean
+import requests
 import yaml
 from Crypto.Cipher import PKCS1_v1_5
 from Crypto.PublicKey import RSA
 from inputimeout import TimeoutOccurred, inputimeout
+from pyVim import connect
 from sshconf import empty_ssh_config_file
-import requests
-
+from pyVmomi import vim
+from pyVim import connect
+import ssl
 
 class InstanceProfile:
     script_config = {}
@@ -321,6 +325,110 @@ def get_do_instances(profile, do_instance_counter, do_script_config, do_cloud_in
         )
 
         do_cloud_instances_obj_list.append(machine)
+
+
+def get_esx_instances(profile, esx_instance_counter, esx_script_config, esx_cloud_instances_obj_list):
+    instance_source = "ESX." + profile['name']
+    groups = {}
+
+    if esx_script_config['ESX'].get('disable_ssl_cert_validation', True) or \
+            profile.get('disable_ssl_cert_validation', True):
+        disable_ssl_cert_validation = True
+    else:
+        disable_ssl_cert_validation = False
+
+    esx_instance_counter[instance_source] = 0
+    my_cluster = connect.SmartConnect(
+        host=profile['address'],
+        port=profile.get('port', False),
+        user=profile['user'],
+        pwd=profile['password'],
+        disableSslCertValidation=disable_ssl_cert_validation
+    )
+    esx_manager = digitalocean.Manager(token=profile['token'])
+    my_droplets = esx_manager.get_all_droplets()
+
+    for drop in my_droplets:
+        machine = InstanceProfile()
+        if (esx_script_config['DO'].get('Skip_stopped', True)
+            and esx_script_config['Local'].get('Skip_stopped', True)
+            and profile.get('Skip_stopped', True)) \
+                and drop.status != 'active':
+            continue
+
+        password = [False, ""]
+        iterm_tags = []
+        docker_context = setting_resolver('Docker_contexts_create', drop, {}, "DO", False, profile, esx_script_config)
+        instance_use_ip_public = setting_resolver(
+            'instance_use_ip_public', drop, {}, "DO", False, profile, esx_script_config
+        )
+        instance_use_bastion = setting_resolver('Use_bastion', drop, {}, "DO", False, profile, esx_script_config)
+        or_host_name = setting_resolver('Host_name', drop, {}, "DO", False, profile, esx_script_config)
+        bastion = setting_resolver('Bastion', drop, {}, "DO", False, profile, esx_script_config)
+        con_username = setting_resolver('Con_username', drop, {}, "DO", False, profile, esx_script_config)
+        bastion_con_username = setting_resolver('Bastion_Con_username', drop, {}, "DO", False, profile,
+                                                esx_script_config)
+        con_port = setting_resolver('Con_port', drop, {}, "DO", 22, profile, esx_script_config)
+        bastion_con_port = setting_resolver('Bastion_Con_port', drop, {}, "DO", 22, profile, esx_script_config)
+        ssh_key = setting_resolver('SSH_key', drop, {}, "DO", False, profile, esx_script_config)
+        use_shared_key = setting_resolver('use_shared_key', drop, {}, "DO", False, profile, esx_script_config)
+        login_command = setting_resolver('Login_command', drop, {}, "DO", False, profile, esx_script_config)
+        dynamic_profile_parent = setting_resolver('dynamic_profile_parent', drop, {}, "DO", False, profile,
+                                                  esx_script_config)
+        public_ip = drop.ip_address
+
+        machine.con_port = con_port
+        machine.bastion_con_username = bastion_con_username
+        if or_host_name:
+            drop_name = or_host_name
+        else:
+            drop_name = drop.name
+
+        if instance_use_ip_public:
+            ip = drop.ip_address
+        else:
+            ip = drop.private_ip_address
+
+        if drop.name in drop.tags:
+            groups[drop.name] = groups[drop.name] + 1
+        else:
+            groups[drop.name] = 1
+
+        if drop.tags:
+            for tag in drop.tags:
+                if tag:
+                    iterm_tags.append(tag)
+
+        iterm_tags += f"ip: {ip}", f"Name: {drop.name}"
+        machine.ip = ip
+        machine.name = f"{instance_source}.{drop_name}"
+        machine.group = drop_name
+        machine.index = groups[drop.name]
+        machine.dynamic_profile_parent = dynamic_profile_parent
+        machine.iterm_tags = iterm_tags
+        machine.instancetype = drop.size['slug']
+        machine.con_username = con_username
+        machine.bastion_con_port = bastion_con_port
+        machine.id = drop.id
+        machine.ssh_key = ssh_key
+        machine.use_shared_key = use_shared_key
+        machine.login_command = login_command
+        machine.instance_use_bastion = instance_use_bastion
+        machine.bastion = bastion
+        machine.instance_use_ip_public = instance_use_ip_public
+        machine.ip_public = public_ip
+        machine.password = password
+        machine.region = drop.region['name']
+        machine.docker_contexts_create = docker_context
+        machine.instance_source = instance_source
+        machine.provider_long = "DigitalOcean"
+        machine.provider_short = "DO"
+
+        print(
+            f'instance_source: {machine.instance_source}. {machine.name}\tassociated bastion: "{str(machine.bastion)}"'
+        )
+
+        esx_cloud_instances_obj_list.append(machine)
 
 
 def fetch_ec2_instance(
@@ -1074,6 +1182,12 @@ def do_worker(do_script_config, do_instance_counter, do_cloud_instances_obj_list
         get_do_instances(profile, do_instance_counter, do_script_config, do_cloud_instances_obj_list)
 
 
+def esx_worker(esx_script_config, esx_instance_counter, esx_cloud_instances_obj_list):
+    for profile in esx_script_config['ESX']['profiles']:
+        print(f"DO: Working on {profile['name']}")
+        get_esx_instances(profile, esx_instance_counter, esx_script_config, esx_cloud_instances_obj_list)
+
+
 def checkinternetrequests(url='http://www.google.com/', timeout=3):
     print("Cloud-profiler - Testing internet connectivety")
     try:
@@ -1164,37 +1278,43 @@ if __name__ == '__main__':
             p.start()
             p_list.append(p)
 
-        # AWS profiles iterator
-        if script_config['AWS'].get('profiles', False):
-            # aws_profiles_from_config_file(script_config)
-            p = mp.Process(
-                name="aws_profiles_from_config_file",
-                target=aws_profiles_from_config_file,
-                args=(
-                    script_config,
-                    instance_counter,
-                    cloud_instances_obj_list
-                )
-            )
-            p.start()
-            p_list.append(p)
+        # # AWS profiles iterator
+        # if script_config['AWS'].get('profiles', False):
+        #     # aws_profiles_from_config_file(script_config)
+        #     p = mp.Process(
+        #         name="aws_profiles_from_config_file",
+        #         target=aws_profiles_from_config_file,
+        #         args=(
+        #             script_config,
+        #             instance_counter,
+        #             cloud_instances_obj_list
+        #         )
+        #     )
+        #     p.start()
+        #     p_list.append(p)
+        #
+        # # AWS profiles iterator from config file
+        # if script_config['AWS'].get('use_awscli_profiles', False):
+        #     p = mp.Process(
+        #         target=aws_profiles_from_awscli_config,
+        #         args=(
+        #             script_config,
+        #             instance_counter,
+        #             cloud_instances_obj_list
+        #         )
+        #     )
+        #     p.start()
+        #     p_list.append(p)
+        #
+        # # DO profiles iterator
+        # if script_config['DO'].get('profiles', False):
+        #     p = mp.Process(target=do_worker, args=(script_config, instance_counter, cloud_instances_obj_list))
+        #     p.start()
+        #     p_list.append(p)
 
-        # AWS profiles iterator from config file
-        if script_config['AWS'].get('use_awscli_profiles', False):
-            p = mp.Process(
-                target=aws_profiles_from_awscli_config,
-                args=(
-                    script_config,
-                    instance_counter,
-                    cloud_instances_obj_list
-                )
-            )
-            p.start()
-            p_list.append(p)
-
-        # DO profiles iterator
-        if script_config['DO'].get('profiles', False):
-            p = mp.Process(target=do_worker, args=(script_config, instance_counter, cloud_instances_obj_list))
+        # ESX profiles iterator
+        if script_config['ESX'].get('profiles', False):
+            p = mp.Process(target=esx_worker, args=(script_config, instance_counter, cloud_instances_obj_list))
             p.start()
             p_list.append(p)
 
