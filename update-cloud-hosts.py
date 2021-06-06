@@ -1089,7 +1089,7 @@ def checkinternetrequests(url='http://www.google.com/', timeout=3):
 
 # MAIN
 if __name__ == '__main__':
-    VERSION = "v5.3.0_Actual"
+    VERSION = "v5.3.1_Actual_Adama"
     checkinternetrequests()
     with open("marker.tmp", "w") as file:
         file.write("mark")

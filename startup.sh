@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-[ -z ${CP_Version+x} ] && CP_Version='v5.3.0_Actual'
+[ -z ${CP_Version+x} ] && CP_Version='v5.3.1_Actual_Adama'
 Personal_Static_Profiles="${HOME}/iTerm2-static-profiles"
 SRC_Static_Profiles="/home/appuser/iTerm2-static-profiles"
 SRC_Docker_image_base="aviadra/cp"
@@ -154,15 +154,12 @@ setup() {
   if [[ ! -e "${DynamicProfiles_Location}" && ${WSL} == "False" ]]; then
     mkdir -p "${HOME}/${DynamicProfiles_Location}" ; exit_state "Create directory ${DynamicProfiles_Location}"
   fi
-  if [[ ! -e "${Personal_Static_Profiles}" ]]; then
-    mkdir -p "${Personal_Static_Profiles}" ; exit_state "Create directory ${Personal_Static_Profiles}"
-  fi
   if [[ ! -e "${Shard_Key_Path}" ]]; then
     mkdir -p "${Shard_Key_Path}" ; exit_state "Create directory ${Shard_Key_Path}"
   fi
-  if [[ -z "$( grep "Include $( eval echo $( wslpath $(wslvar USERPROFILE) ) )/.ssh/cloud-profiler" ~/.ssh/config )" \
-    && ${WSL} == "True" \
-    && ${SSH_Config_create} == "True" ]]; then
+  if [[ ${WSL} == "True" && -z "$( grep "Include $( eval echo $( wslpath $(wslvar USERPROFILE) ) )/.ssh/cloud-profiler" ~/.ssh/config )" \
+    && ${SSH_Config_create} == "True" ]]; 
+  then
       echo "Cloud-profiler - Setup - Prepending \"include $( wslpath "$(wslvar USERPROFILE)" )/.ssh/cloud-profiler\", to \"~/.ssh/config\""
       echo -e "Include $( wslpath "$(wslvar USERPROFILE)" )/.ssh/cloud-profiler\n$(cat ~/.ssh/config)" > ~/.ssh/config
   fi
@@ -175,6 +172,7 @@ setup() {
   fi
   docker create --name cloud-profiler-copy ${SRC_Docker_Image} bash >/dev/null ; exit_state "Create copy container"
   if [[ ! -e $(eval "echo ${Personal_Static_Profiles}" ) ]]; then
+    mkdir -p "${Personal_Static_Profiles}" ; exit_state "Create directory ${Personal_Static_Profiles}"
     docker cp cloud-profiler-copy:${SRC_Static_Profiles} ${Base_Path} ; exit_state "Copy static profiles from copy container"
     echo -e "Cloud-profiler - We've put a default static profiles directory for you in \"${Personal_Static_Profiles}\"."
   fi
@@ -248,11 +246,10 @@ for f in ${HOME}/iTerm2-static-profiles/Update\ iTerm\ profiles?*.json; do
   done
 
 # Is a part of the installation missing?
-[[ -z "$( grep "Include $( eval echo $( wslpath $(wslvar USERPROFILE) ) )/.ssh/cloud-profiler" ~/.ssh/config )" \
-  && ${WSL} == "True" \
+[[ ${WSL} == "True" && -z "$( grep "Include $( eval echo $( wslpath $(wslvar USERPROFILE) ) )/.ssh/cloud-profiler" ~/.ssh/config )" \
   && ${SSH_Config_create} == "True" ]] && setup "SSH config includer"
 [[ -z "$( docker ps --filter ancestor=${SRC_Docker_Image} -q )" ]] && setup "image version changed"
-[[ ! -e ${DynamicProfiles_Location} && ${WSL} == "False" ]] && setup 'DynamicProfiles_Location'
+[[ ${WSL} == "False" && ! -e ${DynamicProfiles_Location} ]] && setup 'DynamicProfiles_Location'
 [[ ! -e ${Shard_Key_Path} ]] && setup 'Shard_Key_Path'
 [[ ! -e ${HOME}/.ssh/config ]] && setup '${HOME}/.ssh/config'
 [[ ! -e $(eval echo "${Personal_Static_Profiles}" ) ]] && setup 'Personal_Static_Profiles'
