@@ -154,9 +154,6 @@ setup() {
   if [[ ! -e "${DynamicProfiles_Location}" && ${WSL} == "False" ]]; then
     mkdir -p "${HOME}/${DynamicProfiles_Location}" ; exit_state "Create directory ${DynamicProfiles_Location}"
   fi
-  if [[ ! -e "${Personal_Static_Profiles}" ]]; then
-    mkdir -p "${Personal_Static_Profiles}" ; exit_state "Create directory ${Personal_Static_Profiles}"
-  fi
   if [[ ! -e "${Shard_Key_Path}" ]]; then
     mkdir -p "${Shard_Key_Path}" ; exit_state "Create directory ${Shard_Key_Path}"
   fi
@@ -175,6 +172,7 @@ setup() {
   fi
   docker create --name cloud-profiler-copy ${SRC_Docker_Image} bash >/dev/null ; exit_state "Create copy container"
   if [[ ! -e $(eval "echo ${Personal_Static_Profiles}" ) ]]; then
+    mkdir -p "${Personal_Static_Profiles}" ; exit_state "Create directory ${Personal_Static_Profiles}"
     docker cp cloud-profiler-copy:${SRC_Static_Profiles} ${Base_Path} ; exit_state "Copy static profiles from copy container"
     echo -e "Cloud-profiler - We've put a default static profiles directory for you in \"${Personal_Static_Profiles}\"."
   fi
