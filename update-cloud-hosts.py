@@ -21,11 +21,10 @@ import yaml
 from Crypto.Cipher import PKCS1_v1_5
 from Crypto.PublicKey import RSA
 from inputimeout import TimeoutOccurred, inputimeout
-from pyVim import connect
+import re
 from sshconf import empty_ssh_config_file
 from pyVmomi import vim
 from pyVim import connect
-import ssl
 
 class InstanceProfile:
     script_config = {}
@@ -166,6 +165,8 @@ def setting_resolver(
         setting_value = get_tag_value(instance.get('Tags', ''), setting, False, setting_value)
     if caller_type == 'DO':
         setting_value = get_do_tag_value(instance.tags, setting, setting_value)
+    if caller_type == 'ESX':
+        setting_value = get_esx_tag_value(instance.config.annotation, setting, setting_value)
     if not setting_value:
         if caller_type == 'AWS' and instance['State']['Name'] != "terminated":
             setting_value = vpc_data(instance['VpcId'], setting, vpc_data_all)
@@ -187,6 +188,17 @@ def get_do_tag_value(tags, q_tag, q_tag_value) -> Union[int, str]:
             tag_key, tag_value = tag.split(':')
             if q_tag.casefold() in tag_key:
                 q_tag_value = tag_value.replace('-', '.').replace('_', ' ')
+                break
+    return q_tag_value
+
+
+def get_esx_tag_value(tags, q_tag, q_tag_value) -> Union[int, str]:
+    for tag in tags.split("\n"):
+        tag = tag.casefold()
+        if ':' in tag and ('iterm' in tag or 'cloud_profiler' in tag):
+            tag_key, tag_value = re.split(':|: ', tag)
+            if q_tag.casefold() in tag_key:
+                q_tag_value = tag_value.strip()
                 break
     return q_tag_value
 
@@ -340,76 +352,79 @@ def get_esx_instances(profile, esx_instance_counter, esx_script_config, esx_clou
     esx_instance_counter[instance_source] = 0
     my_cluster = connect.SmartConnect(
         host=profile['address'],
-        port=profile.get('port', False),
+        port=profile.get('port', 443),
         user=profile['user'],
         pwd=profile['password'],
         disableSslCertValidation=disable_ssl_cert_validation
     )
-    esx_manager = digitalocean.Manager(token=profile['token'])
-    my_droplets = esx_manager.get_all_droplets()
+    content = my_cluster.content
 
-    for drop in my_droplets:
+    container = content.viewManager.CreateContainerView(
+        content.rootFolder,
+        [vim.VirtualMachine],
+        True
+    )
+
+    for esx_vm in container.view:
         machine = InstanceProfile()
         if (esx_script_config['DO'].get('Skip_stopped', True)
             and esx_script_config['Local'].get('Skip_stopped', True)
             and profile.get('Skip_stopped', True)) \
-                and drop.status != 'active':
+                and esx_vm.runtime.powerState != 'poweredOn':
             continue
 
         password = [False, ""]
         iterm_tags = []
-        docker_context = setting_resolver('Docker_contexts_create', drop, {}, "DO", False, profile, esx_script_config)
+        docker_context = setting_resolver(
+            'Docker_contexts_create', esx_vm, {}, "ESX", False, profile, esx_script_config)
         instance_use_ip_public = setting_resolver(
-            'instance_use_ip_public', drop, {}, "DO", False, profile, esx_script_config
+            'instance_use_ip_public', esx_vm, {}, "ESX", False, profile, esx_script_config
         )
-        instance_use_bastion = setting_resolver('Use_bastion', drop, {}, "DO", False, profile, esx_script_config)
-        or_host_name = setting_resolver('Host_name', drop, {}, "DO", False, profile, esx_script_config)
-        bastion = setting_resolver('Bastion', drop, {}, "DO", False, profile, esx_script_config)
-        con_username = setting_resolver('Con_username', drop, {}, "DO", False, profile, esx_script_config)
-        bastion_con_username = setting_resolver('Bastion_Con_username', drop, {}, "DO", False, profile,
+        instance_use_bastion = setting_resolver('Use_bastion', esx_vm, {}, "ESX", False, profile, esx_script_config)
+        or_host_name = setting_resolver('Host_name', esx_vm, {}, "ESX", False, profile, esx_script_config)
+        bastion = setting_resolver('Bastion', esx_vm, {}, "ESX", False, profile, esx_script_config)
+        con_username = setting_resolver('Con_username', esx_vm, {}, "ESX", False, profile, esx_script_config)
+        bastion_con_username = setting_resolver('Bastion_Con_username', esx_vm, {}, "ESX", False, profile,
                                                 esx_script_config)
-        con_port = setting_resolver('Con_port', drop, {}, "DO", 22, profile, esx_script_config)
-        bastion_con_port = setting_resolver('Bastion_Con_port', drop, {}, "DO", 22, profile, esx_script_config)
-        ssh_key = setting_resolver('SSH_key', drop, {}, "DO", False, profile, esx_script_config)
-        use_shared_key = setting_resolver('use_shared_key', drop, {}, "DO", False, profile, esx_script_config)
-        login_command = setting_resolver('Login_command', drop, {}, "DO", False, profile, esx_script_config)
-        dynamic_profile_parent = setting_resolver('dynamic_profile_parent', drop, {}, "DO", False, profile,
+        con_port = setting_resolver('Con_port', esx_vm, {}, "ESX", 22, profile, esx_script_config)
+        bastion_con_port = setting_resolver('Bastion_Con_port', esx_vm, {}, "ESX", 22, profile, esx_script_config)
+        ssh_key = setting_resolver('SSH_key', esx_vm, {}, "ESX", False, profile, esx_script_config)
+        use_shared_key = setting_resolver('use_shared_key', esx_vm, {}, "ESX", False, profile, esx_script_config)
+        login_command = setting_resolver('Login_command', esx_vm, {}, "ESX", False, profile, esx_script_config)
+        dynamic_profile_parent = setting_resolver('dynamic_profile_parent', esx_vm, {}, "ESX", False, profile,
                                                   esx_script_config)
-        public_ip = drop.ip_address
+        public_ip = "Sorry... \"public IPs\" as a concept are not yet supported"
 
         machine.con_port = con_port
         machine.bastion_con_username = bastion_con_username
         if or_host_name:
-            drop_name = or_host_name
+            esx_vm_name = or_host_name
         else:
-            drop_name = drop.name
+            esx_vm_name = esx_vm.name
 
         if instance_use_ip_public:
-            ip = drop.ip_address
+            ip = esx_vm.ip_address
+        elif esx_vm.guest.ipAddress is not None:
+            ip = esx_vm.guest.ipAddress
         else:
-            ip = drop.private_ip_address
+            ip = "Sorry, we could not get the IP for the VM (may be a vmware-tools issue?)"
 
-        if drop.name in drop.tags:
-            groups[drop.name] = groups[drop.name] + 1
-        else:
-            groups[drop.name] = 1
+        for tag in esx_vm.config.annotation.split("\n"):
+            tag = tag.casefold()
+            if ':' in tag and ('iterm' in tag or 'cloud_profiler' in tag):
+                tag_key, tag_value = re.split(':|: ', tag)
+                iterm_tags.append(tag_value.strip())
 
-        if drop.tags:
-            for tag in drop.tags:
-                if tag:
-                    iterm_tags.append(tag)
-
-        iterm_tags += f"ip: {ip}", f"Name: {drop.name}"
+        iterm_tags += f"ip: {ip}", f"Name: {esx_vm.name}"
         machine.ip = ip
-        machine.name = f"{instance_source}.{drop_name}"
-        machine.group = drop_name
-        machine.index = groups[drop.name]
+        machine.name = f"{instance_source}.{esx_vm_name}"
+        machine.group = esx_vm_name
         machine.dynamic_profile_parent = dynamic_profile_parent
         machine.iterm_tags = iterm_tags
-        machine.instancetype = drop.size['slug']
+        machine.instancetype = esx_vm.summary.config.numCpu
         machine.con_username = con_username
         machine.bastion_con_port = bastion_con_port
-        machine.id = drop.id
+        machine.id = esx_vm.summary.config.instanceUuid
         machine.ssh_key = ssh_key
         machine.use_shared_key = use_shared_key
         machine.login_command = login_command
@@ -418,11 +433,11 @@ def get_esx_instances(profile, esx_instance_counter, esx_script_config, esx_clou
         machine.instance_use_ip_public = instance_use_ip_public
         machine.ip_public = public_ip
         machine.password = password
-        machine.region = drop.region['name']
+        machine.region = "Root" #TODO: understand directory structure of the ESX and map?
         machine.docker_contexts_create = docker_context
         machine.instance_source = instance_source
         machine.provider_long = "DigitalOcean"
-        machine.provider_short = "DO"
+        machine.provider_short = "ESX"
 
         print(
             f'instance_source: {machine.instance_source}. {machine.name}\tassociated bastion: "{str(machine.bastion)}"'
@@ -789,7 +804,7 @@ def update_moba(obj_list):
             res = next(
                 (
                     sub for sub in script_config['Local']['Moba']['colors']
-                    if sub['name'] == machine.dynamic_profile_parent
+                    if sub['name'].casefold() == machine.dynamic_profile_parent.casefold()
                 ),
                 None
             )
@@ -1184,7 +1199,7 @@ def do_worker(do_script_config, do_instance_counter, do_cloud_instances_obj_list
 
 def esx_worker(esx_script_config, esx_instance_counter, esx_cloud_instances_obj_list):
     for profile in esx_script_config['ESX']['profiles']:
-        print(f"DO: Working on {profile['name']}")
+        print(f"ESX: Working on {profile['name']}")
         get_esx_instances(profile, esx_instance_counter, esx_script_config, esx_cloud_instances_obj_list)
 
 

@@ -90,3 +90,7 @@ DO:
   #     name: "The one"
   #     token: "secretspecialuniquesnowflake"
   #     Use_ip_public: True
+
+ESX:
+  disableSslCertValidation: True
+  profiles:
