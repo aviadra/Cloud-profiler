@@ -28,6 +28,7 @@ from sshconf import empty_ssh_config_file
 from pyVmomi import vim
 from pyVim import connect
 
+
 class InstanceProfile:
     script_config = {}
     """This is an instance profile"""
@@ -341,9 +342,13 @@ def get_do_instances(profile, do_instance_counter, do_script_config, do_cloud_in
         do_cloud_instances_obj_list.append(machine)
 
 
-
-def get_esx_instances(views, esx_script_config, profile, instance_source, esx_cloud_instances_obj_list):
-    print("im in")
+def get_esx_instances(
+        views,
+        esx_script_config,
+        profile,
+        instance_source,
+        esx_cloud_instances_obj_list
+):
     for esx_vm in views:
         machine = InstanceProfile()
         if (esx_script_config['ESX'].get('Skip_stopped', True)
@@ -426,18 +431,14 @@ def get_esx_instances(views, esx_script_config, profile, instance_source, esx_cl
         esx_cloud_instances_obj_list.append(machine)
 
 
-def get_esx_instances_list(profile, esx_instance_counter, esx_script_config, esx_cloud_instances_obj_list):
+def get_esx_instances_list(
+        profile,
+        esx_instance_counter,
+        esx_script_config,
+        esx_cloud_instances_obj_list,
+        disable_ssl_cert_validation
+):
     instance_source = "ESX." + profile['name']
-    groups = {}
-
-    if esx_script_config['ESX'].get('disable_ssl_cert_validation', True) or \
-            profile.get('disable_ssl_cert_validation', True):
-        disable_ssl_cert_validation = True
-    else:
-        disable_ssl_cert_validation = False
-
-    profile_url = f"https://{profile['address']}:{profile.get('port', 443)}"
-    checkinternetrequests(url=profile_url, verify=(not disable_ssl_cert_validation), vanity=profile['name'])
 
     esx_instance_counter[instance_source] = 0
 
@@ -459,14 +460,12 @@ def get_esx_instances_list(profile, esx_instance_counter, esx_script_config, esx
     for view in container.view:
         esx_split.append(view)
 
-    def divide_chunks(l, n):
-
-        # looping till length l
-        for i in range(0, len(l), n):
-            yield l[i:i + n]
+    def divide_chunks(var_to_chunk, n):
+        for i in range(0, len(var_to_chunk), n):
+            yield var_to_chunk[i:i + n]
 
     p_esx_list = []
-    for view in list(divide_chunks(esx_split, 50)):
+    for view in list(divide_chunks(esx_split, 10)):
         split_p = th.Process(
             target=get_esx_instances,
             args=(
@@ -739,6 +738,12 @@ def get_ec2_instances(
         instance_source = f"{instance_source}.{ec2_role_arn}"
         role_session_name = f"{os.path.basename(__file__).rpartition('.')[0]}." \
                             f"{getpass.getuser().replace(' ', '_')}@{platform.uname()[1]}"
+        if not checkinternetrequests(
+                url="https://sts.amazonaws.com/",
+                vanity=f"AWS STS endpoint for use with \"{profile_name}.{ec2_role_arn}",
+                terminate=False
+        ):
+            return
         sts_client = boto3.client('sts')
         if profile.get("MFA_serial_number", False):
             retry = 3
@@ -780,6 +785,12 @@ def get_ec2_instances(
                               aws_secret_access_key=credentials['SecretAccessKey'],
                               aws_session_token=credentials['SessionToken'])
     else:
+        if not checkinternetrequests(
+                url="https://ec2.eu-central-1.amazonaws.com/",
+                vanity=f"AWS EC2 API for use with \"{profile_name}\"",
+                terminate=False
+        ):
+            return
         client = boto3.client('ec2')
     ec2_instance_counter[instance_source] = 0
 
@@ -1247,32 +1258,57 @@ def do_worker(do_script_config, do_instance_counter, do_cloud_instances_obj_list
 def esx_worker(esx_script_config, esx_instance_counter, esx_cloud_instances_obj_list):
     for profile in esx_script_config['ESX']['profiles']:
         print(f"Cloud-profiler - ESX: Working on {profile['name']}")
-        get_esx_instances_list(profile, esx_instance_counter, esx_script_config, esx_cloud_instances_obj_list)
+        if esx_script_config['ESX'].get('disable_ssl_cert_validation', True) or \
+                profile.get('disable_ssl_cert_validation', True):
+            disable_ssl_cert_validation = True
+        else:
+            disable_ssl_cert_validation = False
+        profile_url = f"https://{profile['address']}:{profile.get('port', 443)}"
+        if not checkinternetrequests(
+                url=profile_url,
+                verify=(not disable_ssl_cert_validation),
+                vanity=f"ESX.{profile['name']}",
+                terminate=True):
+            return False
+        get_esx_instances_list(
+            profile,
+            esx_instance_counter,
+            esx_script_config,
+            esx_cloud_instances_obj_list,
+            disable_ssl_cert_validation
+        )
 
 
-def checkinternetrequests(url='http://www.google.com/', timeout=3, verify=False, vanity="internet"):
+def checkinternetrequests(url='http://www.google.com/', timeout=3, verify=False, vanity="internet", terminate=True):
     if url == 'http://www.google.com/':
-        print(f"Cloud-profiler - Testing \"{vanity}\" connectivity (http://www.google.com/)")
+        print(f"Cloud-profiler - Connectivity - Testing \"{vanity}\" connectivity (http://www.google.com/)")
     else:
-        print(f"Cloud-profiler - Testing connectivity to \"{vanity}\" ({url})")
+        print(f"Cloud-profiler - Connectivity - Testing connectivity to \"{vanity}\" ({url})")
     try:
         if not verify:
-            requests.packages.urllib3.disable_warnings(category=urllib3.exceptions.InsecureRequestWarning)
+            requests.packages.urllib3.disable_warnings(
+                category=urllib3.exceptions.InsecureRequestWarning
+            )
         requests.head(
-            url, timeout=timeout, verify=verify)
+            url,
+            timeout=timeout,
+            verify=verify
+        )
         return True
     except socket.error as ex:
-        print(ex)
+        print(f"Cloud-profiler - Connectivity - {ex}")
         print(
-            "Cloud-profiler - This means there was no internet connectivity to do our API calls...\nGoodbye for now.")
-        exit()
-        return False
+            f"Cloud-profiler - Connectivity - This means there was no connectivity to \"{vanity}\"...\n"
+            f"Cloud-profiler - Connectivity - This thread has gone into haven ({vanity}).")
+        if terminate:
+            exit()
+        else:
+            return False
 
 
 # MAIN
 if __name__ == '__main__':
     VERSION = "v5.3.1_Actual_Adama"
-    checkinternetrequests()
     with open("marker.tmp", "w") as file:
         file.write("mark")
 
@@ -1346,43 +1382,49 @@ if __name__ == '__main__':
             p.start()
             p_list.append(p)
 
-        # # AWS profiles iterator
-        # if script_config['AWS'].get('profiles', False):
-        #     # aws_profiles_from_config_file(script_config)
-        #     p = mp.Process(
-        #         name="aws_profiles_from_config_file",
-        #         target=aws_profiles_from_config_file,
-        #         args=(
-        #             script_config,
-        #             instance_counter,
-        #             cloud_instances_obj_list
-        #         )
-        #     )
-        #     p.start()
-        #     p_list.append(p)
-        #
-        # # AWS profiles iterator from config file
-        # if script_config['AWS'].get('use_awscli_profiles', False):
-        #     p = mp.Process(
-        #         target=aws_profiles_from_awscli_config,
-        #         args=(
-        #             script_config,
-        #             instance_counter,
-        #             cloud_instances_obj_list
-        #         )
-        #     )
-        #     p.start()
-        #     p_list.append(p)
-        #
-        # # DO profiles iterator
-        # if script_config['DO'].get('profiles', False):
-        #     p = mp.Process(target=do_worker, args=(script_config, instance_counter, cloud_instances_obj_list))
-        #     p.start()
-        #     p_list.append(p)
-
         # ESX profiles iterator
         if script_config['ESX'].get('profiles', False):
             p = mp.Process(target=esx_worker, args=(script_config, instance_counter, cloud_instances_obj_list))
+            p.start()
+            p_list.append(p)
+
+        # AWS profiles iterator
+        if script_config['AWS'].get('profiles', False):
+            # aws_profiles_from_config_file(script_config)
+            p = mp.Process(
+                name="aws_profiles_from_config_file",
+                target=aws_profiles_from_config_file,
+                args=(
+                    script_config,
+                    instance_counter,
+                    cloud_instances_obj_list
+                )
+            )
+            p.start()
+            p_list.append(p)
+
+        # AWS profiles iterator from config file
+        if script_config['AWS'].get('use_awscli_profiles', False):
+            p = mp.Process(
+                target=aws_profiles_from_awscli_config,
+                args=(
+                    script_config,
+                    instance_counter,
+                    cloud_instances_obj_list
+                )
+            )
+            p.start()
+            p_list.append(p)
+
+        # DO profiles iterator
+        if script_config['DO'].get('profiles', False):
+            if not script_config["Local"].get("On_prem_only", False):
+                checkinternetrequests(
+                    url="https://api.digitalocean.com",
+                    vanity="DO",
+                    terminate=True
+                )
+            p = mp.Process(target=do_worker, args=(script_config, instance_counter, cloud_instances_obj_list))
             p.start()
             p_list.append(p)
 
