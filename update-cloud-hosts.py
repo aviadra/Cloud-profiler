@@ -1,6 +1,7 @@
 #!/usr/local/bin/python
 # coding: UTF-8
 
+import urllib3.exceptions
 import base64
 import concurrent.futures
 import configparser
@@ -339,6 +340,10 @@ def get_do_instances(profile, do_instance_counter, do_script_config, do_cloud_in
         do_cloud_instances_obj_list.append(machine)
 
 
+def vanety(args):
+    pass
+
+
 def get_esx_instances(profile, esx_instance_counter, esx_script_config, esx_cloud_instances_obj_list):
     instance_source = "ESX." + profile['name']
     groups = {}
@@ -349,7 +354,11 @@ def get_esx_instances(profile, esx_instance_counter, esx_script_config, esx_clou
     else:
         disable_ssl_cert_validation = False
 
+    profile_url = f"https://{profile['address']}:{profile.get('port', 443)}"
+    checkinternetrequests(url=profile_url, verify=(not disable_ssl_cert_validation), vanity=profile['name'])
+    
     esx_instance_counter[instance_source] = 0
+    
     my_cluster = connect.SmartConnect(
         host=profile['address'],
         port=profile.get('port', 443),
@@ -1044,7 +1053,7 @@ def update_statics(cp_output_dir, us_script_config, _version):
             for name in files:
                 if name == '.DS_Store':
                     continue
-                print(f'Working on static profile: {name}')
+                print(f'Cloud-profiler - Working on static profile: {name}')
                 static_profile_handle = open(os.path.join(root, name))
                 profiles.append(json.load(static_profile_handle))
 
@@ -1145,7 +1154,7 @@ def update_ssh_config(dict_list):
 def aws_profiles_from_config_file(script_config_f, instance_counter_f, cloud_instances_obj_list_f):
     processes = []
     for profile in script_config_f['AWS']['profiles']:
-        print(f"AWS: Working on {profile['name']}")
+        print(f"Cloud-profiler - AWS: Working on {profile['name']}")
         if isinstance(profile.get("role_arns", False), dict):
             for role_arn_s in profile["role_arns"]:
                 aws_p = mp.Process(
@@ -1184,7 +1193,7 @@ def aws_profiles_from_awscli_config(aws_script_config):
         config.read(os.path.expanduser(aws_script_config['AWS']['aws_credentials_file']))
         for i in config.sections():
             if i not in aws_script_config['AWS']['exclude_accounts']:
-                print(f'Working on AWS profile from credentials file: {i}')
+                print(f'Cloud-profiler - Working on AWS profile from credentials file: {i}')
                 get_ec2_instances(profile=i,
                                   ec2_instance_counter=instance_counter,
                                   ec2_script_config=aws_script_config
@@ -1193,25 +1202,31 @@ def aws_profiles_from_awscli_config(aws_script_config):
 
 def do_worker(do_script_config, do_instance_counter, do_cloud_instances_obj_list):
     for profile in do_script_config['DO']['profiles']:
-        print(f"DO: Working on {profile['name']}")
+        print(f"Cloud-profiler - DO: Working on {profile['name']}")
         get_do_instances(profile, do_instance_counter, do_script_config, do_cloud_instances_obj_list)
 
 
 def esx_worker(esx_script_config, esx_instance_counter, esx_cloud_instances_obj_list):
     for profile in esx_script_config['ESX']['profiles']:
-        print(f"ESX: Working on {profile['name']}")
+        print(f"Cloud-profiler - ESX: Working on {profile['name']}")
         get_esx_instances(profile, esx_instance_counter, esx_script_config, esx_cloud_instances_obj_list)
 
 
-def checkinternetrequests(url='http://www.google.com/', timeout=3):
-    print("Cloud-profiler - Testing internet connectivety")
+def checkinternetrequests(url='http://www.google.com/', timeout=3, verify=False, vanity="internet"):
+    if url == 'http://www.google.com/':
+        print(f"Cloud-profiler - Testing \"{vanity}\" connectivity (http://www.google.com/)")
+    else:
+        print(f"Cloud-profiler - Testing connectivity to \"{vanity}\" ({url})")
     try:
-        requests.head(url, timeout=timeout)
+        if not verify:
+            requests.packages.urllib3.disable_warnings(category=urllib3.exceptions.InsecureRequestWarning)
+        requests.head(
+            url, timeout=timeout, verify=verify)
         return True
     except socket.error as ex:
         print(ex)
         print(
-            "Cloud-profiler - This means there was no internet connectivety to do our API calles...\nGoodbye for now.")
+            "Cloud-profiler - This means there was no internet connectivity to do our API calls...\nGoodbye for now.")
         exit()
         return False
 
