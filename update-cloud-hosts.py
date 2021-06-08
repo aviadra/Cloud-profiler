@@ -341,43 +341,12 @@ def get_do_instances(profile, do_instance_counter, do_script_config, do_cloud_in
         do_cloud_instances_obj_list.append(machine)
 
 
-def vanety(args):
-    pass
 
-
-def get_esx_instances(profile, esx_instance_counter, esx_script_config, esx_cloud_instances_obj_list):
-    instance_source = "ESX." + profile['name']
-    groups = {}
-
-    if esx_script_config['ESX'].get('disable_ssl_cert_validation', True) or \
-            profile.get('disable_ssl_cert_validation', True):
-        disable_ssl_cert_validation = True
-    else:
-        disable_ssl_cert_validation = False
-
-    profile_url = f"https://{profile['address']}:{profile.get('port', 443)}"
-    checkinternetrequests(url=profile_url, verify=(not disable_ssl_cert_validation), vanity=profile['name'])
-    
-    esx_instance_counter[instance_source] = 0
-    
-    my_cluster = connect.SmartConnect(
-        host=profile['address'],
-        port=profile.get('port', 443),
-        user=profile['user'],
-        pwd=profile['password'],
-        disableSslCertValidation=disable_ssl_cert_validation
-    )
-    content = my_cluster.content
-
-    container = content.viewManager.CreateContainerView(
-        content.rootFolder,
-        [vim.VirtualMachine],
-        True
-    )
-
-    for esx_vm in container.view:
+def get_esx_instances(views, esx_script_config, profile, instance_source, esx_cloud_instances_obj_list):
+    print("im in")
+    for esx_vm in views:
         machine = InstanceProfile()
-        if (esx_script_config['DO'].get('Skip_stopped', True)
+        if (esx_script_config['ESX'].get('Skip_stopped', True)
             and esx_script_config['Local'].get('Skip_stopped', True)
             and profile.get('Skip_stopped', True)) \
                 and esx_vm.runtime.powerState != 'poweredOn':
@@ -443,7 +412,8 @@ def get_esx_instances(profile, esx_instance_counter, esx_script_config, esx_clou
         machine.instance_use_ip_public = instance_use_ip_public
         machine.ip_public = public_ip
         machine.password = password
-        machine.region = "Root" #TODO: understand directory structure of the ESX and map?
+        machine.region = "Root"
+        # TODO: understand directory structure of the ESX and map?
         machine.docker_contexts_create = docker_context
         machine.instance_source = instance_source
         machine.provider_long = "DigitalOcean"
@@ -454,6 +424,64 @@ def get_esx_instances(profile, esx_instance_counter, esx_script_config, esx_clou
         )
 
         esx_cloud_instances_obj_list.append(machine)
+
+
+def get_esx_instances_list(profile, esx_instance_counter, esx_script_config, esx_cloud_instances_obj_list):
+    instance_source = "ESX." + profile['name']
+    groups = {}
+
+    if esx_script_config['ESX'].get('disable_ssl_cert_validation', True) or \
+            profile.get('disable_ssl_cert_validation', True):
+        disable_ssl_cert_validation = True
+    else:
+        disable_ssl_cert_validation = False
+
+    profile_url = f"https://{profile['address']}:{profile.get('port', 443)}"
+    checkinternetrequests(url=profile_url, verify=(not disable_ssl_cert_validation), vanity=profile['name'])
+
+    esx_instance_counter[instance_source] = 0
+
+    my_cluster = connect.SmartConnect(
+        host=profile['address'],
+        port=profile.get('port', 443),
+        user=profile['user'],
+        pwd=profile['password'],
+        disableSslCertValidation=disable_ssl_cert_validation
+    )
+    content = my_cluster.content
+
+    container = content.viewManager.CreateContainerView(
+        content.rootFolder,
+        [vim.VirtualMachine],
+        True
+    )
+    esx_split = []
+    for view in container.view:
+        esx_split.append(view)
+
+    def divide_chunks(l, n):
+
+        # looping till length l
+        for i in range(0, len(l), n):
+            yield l[i:i + n]
+
+    p_esx_list = []
+    for view in list(divide_chunks(esx_split, 50)):
+        split_p = th.Process(
+            target=get_esx_instances,
+            args=(
+                view,
+                esx_script_config,
+                profile,
+                instance_source,
+                esx_cloud_instances_obj_list
+            )
+        )
+        split_p.start()
+        p_esx_list.append(split_p)
+
+    for _ in p_esx_list:
+        _.join()
 
 
 def fetch_ec2_instance(
@@ -1219,7 +1247,7 @@ def do_worker(do_script_config, do_instance_counter, do_cloud_instances_obj_list
 def esx_worker(esx_script_config, esx_instance_counter, esx_cloud_instances_obj_list):
     for profile in esx_script_config['ESX']['profiles']:
         print(f"Cloud-profiler - ESX: Working on {profile['name']}")
-        get_esx_instances(profile, esx_instance_counter, esx_script_config, esx_cloud_instances_obj_list)
+        get_esx_instances_list(profile, esx_instance_counter, esx_script_config, esx_cloud_instances_obj_list)
 
 
 def checkinternetrequests(url='http://www.google.com/', timeout=3, verify=False, vanity="internet"):
