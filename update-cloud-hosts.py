@@ -8,6 +8,7 @@ import configparser
 import getpass
 import json
 import multiprocessing as mp
+import multiprocessing.dummy as th
 import os
 import platform
 import shutil
@@ -768,16 +769,25 @@ def get_ec2_instances(
     print(f"{instance_source}: filtering out these regions: {from_config_region_filters}")
     ec2_regions_filtered = list(set(ec2_regions) - set(from_config_region_filters))
 
+    p_region_list = []
     for region in ec2_regions_filtered:
-        fetch_ec2_region(
-            region,
-            groups,
-            instance_source,
-            credentials,
-            profile,
-            ec2_script_config,
-            ec2_cloud_instances_obj_list
+        region_p = th.Process(
+            target=fetch_ec2_region,
+            args=(
+                region,
+                groups,
+                instance_source,
+                credentials,
+                profile,
+                ec2_script_config,
+                ec2_cloud_instances_obj_list
+            )
         )
+        region_p.start()
+        p_region_list.append(region_p)
+
+    for _ in p_region_list:
+        _.join()
 
 
 def update_moba(obj_list):
