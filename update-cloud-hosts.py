@@ -1430,7 +1430,7 @@ if __name__ == '__main__':
 
         """Wait for all processes (cloud providers) to finish before moving on"""
         for p in p_list:
-            p.join()
+            p.join(script_config['Local'].get('Subs_timeout', 60))
 
         if platform.system() == 'Windows' or os.environ.get('CP_Windows', False):
             update_moba(cloud_instances_obj_list)
