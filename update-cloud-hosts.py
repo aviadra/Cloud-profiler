@@ -879,7 +879,8 @@ def update_moba(obj_list):
         if "Sorry" in machine.ip:
             connection_command = "echo"
             ip_for_connection = machine.ip
-        elif machine.instance_use_ip_public or not machine.bastion:
+        elif (machine.instance_use_ip_public or not machine.bastion) \
+                and machine.instance_use_bastion:
             ip_for_connection = machine.ip_public
         else:
             ip_for_connection = machine.ip
