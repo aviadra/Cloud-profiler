@@ -379,6 +379,8 @@ def get_esx_instances(
                                                   esx_script_config)
         public_ip = "Sorry... \"public IPs\" as a concept are not yet supported"
 
+        if "MSI" in esx_vm.guest.toolsInstallType:
+            machine.platform = 'windows'
         machine.con_port = con_port
         machine.bastion_con_username = bastion_con_username
         if or_host_name:
