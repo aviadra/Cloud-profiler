@@ -1311,7 +1311,7 @@ def checkinternetrequests(url='http://www.google.com/', timeout=3, verify=False,
 
 # MAIN
 if __name__ == '__main__':
-    VERSION = "v5.3.1_Actual_Adama"
+    VERSION = "v6.0.0_Chasey_Lain"
     with open("marker.tmp", "w") as file:
         file.write("mark")
 
