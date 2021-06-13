@@ -249,7 +249,7 @@ for f in ${HOME}/iTerm2-static-profiles/Update\ iTerm\ profiles?*.json; do
 [[ ${WSL} == "True" && -z "$( grep "Include $( eval echo $( wslpath $(wslvar USERPROFILE) ) )/.ssh/cloud-profiler" ~/.ssh/config )" \
   && ${SSH_Config_create} == "True" ]] && setup "SSH config includer"
 [[ -z "$( docker ps --filter ancestor=${SRC_Docker_Image} -q )" ]] && setup "image version changed"
-[[ ${WSL} == "False" && ! -e ${DynamicProfiles_Location} ]] && setup 'DynamicProfiles_Location'
+[[ ${WSL} == "False" && ! -e ${HOME}/${DynamicProfiles_Location} ]] && setup 'DynamicProfiles_Location'
 [[ ! -e ${Shard_Key_Path} ]] && setup 'Shard_Key_Path'
 [[ ! -e ${HOME}/.ssh/config ]] && setup '${HOME}/.ssh/config'
 [[ ! -e $(eval echo "${Personal_Static_Profiles}" ) ]] && setup 'Personal_Static_Profiles'
