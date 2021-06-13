@@ -1345,7 +1345,7 @@ if __name__ == '__main__':
             CP_OutputDir = "~/Documents/Cloud_Profiler/"
         else:
             CP_OutputDir = "~/Library/Application Support/iTerm2/DynamicProfiles/"
-        print(f"CP_OutputDir to be used: {CP_OutputDir}")
+        print(f"Cloud-profiler - CP_OutputDir to be used: {CP_OutputDir}")
 
         if not os.path.isdir(os.path.expanduser(CP_OutputDir)):
             os.makedirs(os.path.expanduser(CP_OutputDir))
@@ -1366,7 +1366,7 @@ if __name__ == '__main__':
                 os.makedirs(os.path.expanduser(home_dir))
             shutil.copy2(os.path.join(script_dir, 'config.yaml'),
                          os.path.expanduser(home_dir))
-            print(f"Copy default config to home dir {os.path.expanduser(home_dir)}")
+            print(f"Cloud-profiler - Copy default config to home dir {os.path.expanduser(home_dir)}")
 
         for key in script_config_repo:
             script_config[key] = {**script_config_repo.get(key, {}), **script_config_user.get(key, {})}
@@ -1447,13 +1447,38 @@ if __name__ == '__main__':
         for p in p_list:
             p.join(script_config['Local'].get('Subs_timeout', 60))
 
+        profiles_update_list = []
         if platform.system() == 'Windows' or os.environ.get('CP_Windows', False):
-            update_moba(cloud_instances_obj_list)
+            profiles_update_p = th.Process(
+                target=update_moba,
+                args=(
+                    cloud_instances_obj_list,
+                )
+            )
+            profiles_update_p.start()
+            profiles_update_list.append(profiles_update_p)
         else:
-            update_term(cloud_instances_obj_list)
+            profiles_update_p = th.Process(
+                target=update_term,
+                args=(
+                    cloud_instances_obj_list,
+                )
+            )
+            profiles_update_p.start()
+            profiles_update_list.append(profiles_update_p)
+
             # ssh_config
             if script_config['Local'].get('Docker_contexts_create'):
-                docker_contexts_creator(list(cloud_instances_obj_list))
+                profiles_update_p = th.Process(
+                    target=docker_contexts_creator,
+                    args=(
+                        list(
+                            cloud_instances_obj_list,
+                        )
+                    )
+                )
+                profiles_update_p.start()
+                profiles_update_list.append(profiles_update_p)
 
         if script_config['Local'].get('SSH_Config_create'):
             print("Cloud-profiler - SSH_Config_create is set, so will create config.")
@@ -1468,15 +1493,25 @@ if __name__ == '__main__':
                     print("Cloud-profiler - Did not find include directive  for CP in user's ssh config file, "
                           "so adding it.")
                     line_prepender(User_SSH_Config, "Include ~/.ssh/cloud-profiler")
-            update_ssh_config(list(cloud_instances_obj_list))
+            profiles_update_p = th.Process(
+                target=update_ssh_config,
+                args=(
+                    cloud_instances_obj_list,
+                )
+            )
+            profiles_update_p.start()
+            profiles_update_list.append(profiles_update_p)
         else:
             print("Cloud-profiler - SSH_Config_create - \"SSH_Config_create\" is not set, so skipping it.")
+
+        for _ in profiles_update_list:
+            _.join()
 
         if os.path.exists('marker.tmp'):
             os.remove("marker.tmp")
         jcounter = json.dumps(instance_counter.copy(), sort_keys=True, indent=4, separators=(',', ': '))
         jcounter_tot = sum(instance_counter.values())
         print(
-            f"\nCreated profiles {jcounter}\nTotal: {jcounter_tot}"
+            f"\nCloud-profiler - Created profiles {jcounter}\nTotal: {jcounter_tot}"
         )
         print(f"\nWe wish you calm clouds and a serene path...\n")
