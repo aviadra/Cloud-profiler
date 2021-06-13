@@ -151,8 +151,8 @@ setup() {
   echo "Cloud-profiler - Setup - This may take a while...."
   docker rm -f cloud-profiler-copy &> /dev/null
   [[ -z "$( docker ps --filter ancestor=${SRC_Docker_Image} -q )" ]] && clear_service_container && update_container
-  if [[ ! -e "${DynamicProfiles_Location}" && ${WSL} == "False" ]]; then
-    mkdir -p "${HOME}/${DynamicProfiles_Location}" ; exit_state "Create directory ${DynamicProfiles_Location}"
+  if [[ ${WSL} == "False" && ! -e "${HOME}/${DynamicProfiles_Location}" ]]; then
+    mkdir -p "${HOME}/${DynamicProfiles_Location}" ; exit_state "Create directory ${HOME}/${DynamicProfiles_Location}"
   fi
   if [[ ! -e "${Shard_Key_Path}" ]]; then
     mkdir -p "${Shard_Key_Path}" ; exit_state "Create directory ${Shard_Key_Path}"
