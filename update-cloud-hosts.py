@@ -379,7 +379,8 @@ def get_esx_instances(
                                                   esx_script_config)
         public_ip = "Sorry... \"public IPs\" as a concept are not yet supported"
 
-        if "MSI" in esx_vm.guest.toolsInstallType:
+        if (esx_vm.guest.toolsInstallType is not None and "MSI" in esx_vm.guest.toolsInstallType) or \
+                'windows' in esx_vm.config.guestId:
             machine.platform = 'windows'
         machine.con_port = con_port
         machine.bastion_con_username = bastion_con_username
@@ -859,7 +860,7 @@ def update_moba(obj_list):
         profiles += f"\n[Bookmarks_{bookmark_counter}]" \
                     f"\nSubRep={machine.provider_short}\\{machine.instance_source}\\{machine.region}\nImgNum=41\n"
 
-        pcolors = "f#MobaFont%10%0%0%-1%15%236,236,236%30,30,30""%180,180,192%0%-1%0%%%xterm%-1%-1%_Std_Colors_0_"
+        pcolors = "#MobaFont%10%0%0%-1%15%236,236,236%30,30,30""%180,180,192%0%-1%0%%%xterm%-1%-1%_Std_Colors_0_"
         if machine.dynamic_profile_parent:
             res = next(
                 (
@@ -908,6 +909,8 @@ def update_moba(obj_list):
         if (isinstance(machine.bastion, str) and not machine.instance_use_ip_public) \
                 or machine.instance_use_bastion:
             bastion_for_profile = f"{bastion_prefix}{machine.bastion}"
+        elif machine.platform == 'windows':
+            machine.bastion_con_port = '-1'
 
         if machine.ssh_key and machine.use_shared_key:
             shard_key_path = os.path.join(connection_command, os.path.expanduser(
@@ -929,9 +932,9 @@ def update_moba(obj_list):
             profile = (
                 f"\n{short_name} = {connection_type}{ip_for_connection}%{machine.con_port}%"
                 f"{con_username}%0%-1%-1%{login_command}{bastion_for_profile}%{machine.bastion_con_port}"
-                f"%{bastion_user}%0%"
-                f"0%{shard_key_path}"
-                f"%-1%%-1%-1%0%-1%0%-1"
+                f"%{bastion_user}%"
+                f"%{shard_key_path}"
+                f"1%0%%-1%%-1%0%0%-1%0%-1"
                 f"{pcolors}"
                 f"%80%24%0%1%-1%"
                 f"<none>%%0%1%-1#0#"
@@ -1311,7 +1314,7 @@ def checkinternetrequests(url='http://www.google.com/', timeout=3, verify=False,
 
 # MAIN
 if __name__ == '__main__':
-    VERSION = "v6.0.1_Chasey_Lain"
+    VERSION = "v6.0.2_Chasey_Penney"
     with open("marker.tmp", "w") as file:
         file.write("mark")
 
