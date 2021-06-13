@@ -1262,8 +1262,9 @@ def do_worker(do_script_config, do_instance_counter, do_cloud_instances_obj_list
 
 
 def esx_worker(esx_script_config, esx_instance_counter, esx_cloud_instances_obj_list):
+    p_esx_list = []
     for profile in esx_script_config['ESX']['profiles']:
-        print(f"Cloud-profiler - ESX: Working on {profile['name']}")
+        print(f"Cloud-profiler - ESX: Working on \"{profile['name']}\"")
         if esx_script_config['ESX'].get('disable_ssl_cert_validation', True) or \
                 profile.get('disable_ssl_cert_validation', True):
             disable_ssl_cert_validation = True
@@ -1276,13 +1277,21 @@ def esx_worker(esx_script_config, esx_instance_counter, esx_cloud_instances_obj_
                 vanity=f"ESX.{profile['name']}",
                 terminate=True):
             return False
-        get_esx_instances_list(
-            profile,
-            esx_instance_counter,
-            esx_script_config,
-            esx_cloud_instances_obj_list,
-            disable_ssl_cert_validation
+        esx_p = th.Process(
+            target=get_esx_instances_list,
+            args=(
+                profile,
+                esx_instance_counter,
+                esx_script_config,
+                esx_cloud_instances_obj_list,
+                disable_ssl_cert_validation
+            )
         )
+        esx_p.start()
+        p_esx_list.append(esx_p)
+
+    for _ in p_esx_list:
+        _.join()
 
 
 def checkinternetrequests(url='http://www.google.com/', timeout=3, verify=False, vanity="internet", terminate=True):
