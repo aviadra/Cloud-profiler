@@ -1,5 +1,16 @@
 # Change Log
-## v6.0 - [Chasey Lain](https://www.youtube.com/watch?v=If9fC9aJd-U)
+## v6.0.2 - [Chasey Penny](https://en.wikipedia.org/wiki/Penny_(The_Big_Bang_Theory))
+Version name thoughts: Chasey Lain... Lain... Penny Lain... jcpenney -> google -> Window & Home Decor... 
+Yes that is what I've done in this version...
+
+ESX: Added a better check for guest being "Windows".
+Corrected, RDP profile building.
+
+Corrected "pcolors" to not include "f" (ha?).
+
+Dockerfile optimizations to make the build (especially from scratch) faster.
+
+## v6.0.0/1 - [Chasey Lain](https://www.youtube.com/watch?v=If9fC9aJd-U)
 Version name thoughts: Even though it's aging, ESX is still the best on-prem hypervisor... 
 Just like "Chasey Lain" in her profession? ¯\_(ツ)_/¯.
 No but seriously, 
