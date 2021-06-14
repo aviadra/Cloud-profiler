@@ -1406,7 +1406,7 @@ if __name__ == '__main__':
         # AWS profiles iterator
         if script_config['AWS'].get('profiles', False):
             # aws_profiles_from_config_file(script_config)
-            p = mp.Process(
+            p = th.Process(
                 name="aws_profiles_from_config_file",
                 target=aws_profiles_from_config_file,
                 args=(
