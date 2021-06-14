@@ -839,7 +839,7 @@ def update_moba(obj_list):
     profiles += f"\n[Bookmarks_1]" \
                 f"\nCP Update profiles {VERSION} =" \
                 f"  ;  logout#151#14%Default%%Interactive shell%__PTVIRG__bash " \
-                f"<(curl -s https://raw.githubusercontent.com/aviadra/Cloud-profiler/main/startup.sh)%%0" \
+                f"<(curl -s https://raw.githubusercontent.com/aviadra/Cloud-profiler/${CP_Branch}/startup.sh)%%0" \
                 f"#MobaFont%10%0%0%-1%15%236,236,236%30,30,30%180,180,192%0%-1%0%%" \
                 f"xterm%-1%-1%_Std_Colors_0_%80%24%0%1%-1%<none>%12:2:0:curl -s " \
                 f"https__DBLDOT__//raw.githubusercontent.com/aviadra/Cloud-profiler/main/startup.sh __PIIPE__ " \
