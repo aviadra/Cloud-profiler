@@ -1,4 +1,9 @@
 # Change Log
+## v6.0.3 - [Chasey NEXT](???)
+Version name thoughts: Reading this scroll and therefore speaking his name near an arcane circle of binding,
+  will surly some him there
+
+
 ## v6.0.2 - [Chasey Penny](https://en.wikipedia.org/wiki/Penny_(The_Big_Bang_Theory))
 Version name thoughts: Chasey Lain... Lain... Penny Lain... jcpenney -> google -> Window & Home Decor... 
 Yes that is what I've done in this version...
