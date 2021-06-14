@@ -1399,7 +1399,7 @@ if __name__ == '__main__':
 
         # ESX profiles iterator
         if script_config['ESX'].get('profiles', False):
-            p = mp.Process(target=esx_worker, args=(script_config, instance_counter, cloud_instances_obj_list))
+            p = th.Process(target=esx_worker, args=(script_config, instance_counter, cloud_instances_obj_list))
             p.start()
             p_list.append(p)
 
@@ -1439,7 +1439,7 @@ if __name__ == '__main__':
                     vanity="DO",
                     terminate=True
                 )
-            p = mp.Process(target=do_worker, args=(script_config, instance_counter, cloud_instances_obj_list))
+            p = th.Process(target=do_worker, args=(script_config, instance_counter, cloud_instances_obj_list))
             p.start()
             p_list.append(p)
 
