@@ -1,25 +1,32 @@
 #!/usr/local/bin/python
 # coding: UTF-8
 
+import urllib3.exceptions
 import base64
 import concurrent.futures
 import configparser
 import getpass
 import json
 import multiprocessing as mp
+import multiprocessing.dummy as th
 import os
 import platform
 import shutil
+import socket
 import subprocess
 from typing import Any, Dict, Union
 
 import boto3
 import digitalocean
+import requests
 import yaml
 from Crypto.Cipher import PKCS1_v1_5
 from Crypto.PublicKey import RSA
 from inputimeout import TimeoutOccurred, inputimeout
+import re
 from sshconf import empty_ssh_config_file
+from pyVmomi import vim
+from pyVim import connect
 
 
 class InstanceProfile:
@@ -161,16 +168,18 @@ def setting_resolver(
         setting_value = get_tag_value(instance.get('Tags', ''), setting, False, setting_value)
     if caller_type == 'DO':
         setting_value = get_do_tag_value(instance.tags, setting, setting_value)
+    if caller_type == 'ESX':
+        setting_value = get_esx_tag_value(instance.config.annotation, setting, setting_value)
     if not setting_value:
         if caller_type == 'AWS' and instance['State']['Name'] != "terminated":
             setting_value = vpc_data(instance['VpcId'], setting, vpc_data_all)
         if caller_type == 'DO':
             pass
-        if not setting_value:
+        if not setting_value and not setting_value == "":
             setting_value = profile.get(setting, False)
-            if not setting_value:
+            if not setting_value and not setting_value == "":
                 setting_value = resolver_script_config[caller_type].get(setting, False)
-                if not setting_value:
+                if not setting_value and not setting_value == "":
                     setting_value = resolver_script_config["Local"].get(setting, False)
     return setting_value
 
@@ -178,10 +187,21 @@ def setting_resolver(
 def get_do_tag_value(tags, q_tag, q_tag_value) -> Union[int, str]:
     for tag in tags:
         tag = tag.casefold()
-        if ':' in tag and ('iterm' in tag or 'cloud_profiler' in tags):
+        if ':' in tag and ('iterm' in tag or 'cloud_profiler' in tag):
             tag_key, tag_value = tag.split(':')
-            if tag_key == q_tag.casefold():
+            if q_tag.casefold() in tag_key:
                 q_tag_value = tag_value.replace('-', '.').replace('_', ' ')
+                break
+    return q_tag_value
+
+
+def get_esx_tag_value(tags, q_tag, q_tag_value) -> Union[int, str]:
+    for tag in tags.split("\n"):
+        tag = tag.casefold()
+        if ':' in tag and ('iterm' in tag or 'cloud_profiler' in tag):
+            tag_key, tag_value = re.split(':|: ', tag)
+            if q_tag.casefold() in tag_key:
+                q_tag_value = tag_value.strip()
                 break
     return q_tag_value
 
@@ -251,7 +271,7 @@ def get_do_instances(profile, do_instance_counter, do_script_config, do_cloud_in
         iterm_tags = []
         docker_context = setting_resolver('Docker_contexts_create', drop, {}, "DO", False, profile, do_script_config)
         instance_use_ip_public = setting_resolver(
-            'instance_use_ip_public', drop, {}, "DO", True, profile, do_script_config
+            'instance_use_ip_public', drop, {}, "DO", False, profile, do_script_config
         )
         instance_use_bastion = setting_resolver('Use_bastion', drop, {}, "DO", False, profile, do_script_config)
         or_host_name = setting_resolver('Host_name', drop, {}, "DO", False, profile, do_script_config)
@@ -320,6 +340,150 @@ def get_do_instances(profile, do_instance_counter, do_script_config, do_cloud_in
         )
 
         do_cloud_instances_obj_list.append(machine)
+
+
+def get_esx_instances(
+        views,
+        esx_script_config,
+        profile,
+        instance_source,
+        esx_cloud_instances_obj_list
+):
+    for esx_vm in views:
+        machine = InstanceProfile()
+        if (esx_script_config['ESX'].get('Skip_stopped', True)
+            and esx_script_config['Local'].get('Skip_stopped', True)
+            and profile.get('Skip_stopped', True)) \
+                and esx_vm.runtime.powerState != 'poweredOn':
+            continue
+
+        password = [False, ""]
+        iterm_tags = []
+        docker_context = setting_resolver(
+            'Docker_contexts_create', esx_vm, {}, "ESX", False, profile, esx_script_config)
+        instance_use_ip_public = setting_resolver(
+            'instance_use_ip_public', esx_vm, {}, "ESX", False, profile, esx_script_config
+        )
+        instance_use_bastion = setting_resolver('Use_bastion', esx_vm, {}, "ESX", False, profile, esx_script_config)
+        or_host_name = setting_resolver('Host_name', esx_vm, {}, "ESX", False, profile, esx_script_config)
+        bastion = setting_resolver('Bastion', esx_vm, {}, "ESX", False, profile, esx_script_config)
+        con_username = setting_resolver('Con_username', esx_vm, {}, "ESX", False, profile, esx_script_config)
+        bastion_con_username = setting_resolver('Bastion_Con_username', esx_vm, {}, "ESX", False, profile,
+                                                esx_script_config)
+        con_port = setting_resolver('Con_port', esx_vm, {}, "ESX", 22, profile, esx_script_config)
+        bastion_con_port = setting_resolver('Bastion_Con_port', esx_vm, {}, "ESX", 22, profile, esx_script_config)
+        ssh_key = setting_resolver('SSH_key', esx_vm, {}, "ESX", False, profile, esx_script_config)
+        use_shared_key = setting_resolver('use_shared_key', esx_vm, {}, "ESX", False, profile, esx_script_config)
+        login_command = setting_resolver('Login_command', esx_vm, {}, "ESX", False, profile, esx_script_config)
+        dynamic_profile_parent = setting_resolver('dynamic_profile_parent', esx_vm, {}, "ESX", False, profile,
+                                                  esx_script_config)
+        public_ip = "Sorry... \"public IPs\" as a concept are not yet supported"
+
+        if (esx_vm.guest.toolsInstallType is not None and "MSI" in esx_vm.guest.toolsInstallType) or \
+                'windows' in esx_vm.config.guestId:
+            machine.platform = 'windows'
+        machine.con_port = con_port
+        machine.bastion_con_username = bastion_con_username
+        if or_host_name:
+            esx_vm_name = or_host_name
+        else:
+            esx_vm_name = esx_vm.name
+
+        if instance_use_ip_public:
+            ip = esx_vm.ip_address
+        elif esx_vm.guest.ipAddress is not None:
+            ip = esx_vm.guest.ipAddress
+        else:
+            ip = "Sorry, we could not get the IP for the VM (may be a vmware-tools issue?)"
+
+        for tag in esx_vm.config.annotation.split("\n"):
+            tag = tag.casefold()
+            if ':' in tag and ('iterm' in tag or 'cloud_profiler' in tag):
+                tag_key, tag_value = re.split(':|: ', tag)
+                iterm_tags.append(tag_value.strip())
+
+        iterm_tags += f"ip: {ip}", f"Name: {esx_vm.name}"
+        machine.ip = ip
+        machine.name = f"{instance_source}.{esx_vm_name}"
+        machine.group = esx_vm_name
+        machine.dynamic_profile_parent = dynamic_profile_parent
+        machine.iterm_tags = iterm_tags
+        machine.instancetype = esx_vm.summary.config.numCpu
+        machine.con_username = con_username
+        machine.bastion_con_port = bastion_con_port
+        machine.id = esx_vm.summary.config.instanceUuid
+        machine.ssh_key = ssh_key
+        machine.use_shared_key = use_shared_key
+        machine.login_command = login_command
+        machine.instance_use_bastion = instance_use_bastion
+        machine.bastion = bastion
+        machine.instance_use_ip_public = instance_use_ip_public
+        machine.ip_public = public_ip
+        machine.password = password
+        machine.region = "Root"
+        # TODO: understand directory structure of the ESX and map?
+        machine.docker_contexts_create = docker_context
+        machine.instance_source = instance_source
+        machine.provider_long = "DigitalOcean"
+        machine.provider_short = "ESX"
+
+        print(
+            f'instance_source: {machine.instance_source}. {machine.name}\tassociated bastion: "{str(machine.bastion)}"'
+        )
+
+        esx_cloud_instances_obj_list.append(machine)
+
+
+def get_esx_instances_list(
+        profile,
+        esx_instance_counter,
+        esx_script_config,
+        esx_cloud_instances_obj_list,
+        disable_ssl_cert_validation
+):
+    instance_source = "ESX." + profile['name']
+
+    esx_instance_counter[instance_source] = 0
+
+    my_cluster = connect.SmartConnect(
+        host=profile['address'],
+        port=profile.get('port', 443),
+        user=profile['user'],
+        pwd=profile['password'],
+        disableSslCertValidation=disable_ssl_cert_validation
+    )
+    content = my_cluster.content
+
+    container = content.viewManager.CreateContainerView(
+        content.rootFolder,
+        [vim.VirtualMachine],
+        True
+    )
+    esx_split = []
+    for view in container.view:
+        esx_split.append(view)
+
+    def divide_chunks(var_to_chunk, n):
+        for i in range(0, len(var_to_chunk), n):
+            yield var_to_chunk[i:i + n]
+
+    p_esx_list = []
+    for view in list(divide_chunks(esx_split, 10)):
+        split_p = th.Process(
+            target=get_esx_instances,
+            args=(
+                view,
+                esx_script_config,
+                profile,
+                instance_source,
+                esx_cloud_instances_obj_list
+            )
+        )
+        split_p.start()
+        p_esx_list.append(split_p)
+
+    for _ in p_esx_list:
+        _.join()
 
 
 def fetch_ec2_instance(
@@ -464,10 +628,6 @@ def fetch_ec2_region(
         fetch_script_config=None,
         ec2_cloud_instances_obj_list=None
 ) -> None:
-    if region in fetch_script_config['AWS']['exclude_regions']:
-        print(f'{instance_source}: region "{region}", is in excluded list')
-        return
-
     if credentials:
         client = boto3.client('ec2',
                               aws_access_key_id=credentials['AccessKeyId'],
@@ -581,6 +741,12 @@ def get_ec2_instances(
         instance_source = f"{instance_source}.{ec2_role_arn}"
         role_session_name = f"{os.path.basename(__file__).rpartition('.')[0]}." \
                             f"{getpass.getuser().replace(' ', '_')}@{platform.uname()[1]}"
+        if not checkinternetrequests(
+                url="https://sts.amazonaws.com/",
+                vanity=f"AWS STS endpoint for use with \"{profile_name}.{ec2_role_arn}",
+                terminate=False
+        ):
+            return
         sts_client = boto3.client('sts')
         if profile.get("MFA_serial_number", False):
             retry = 3
@@ -622,6 +788,12 @@ def get_ec2_instances(
                               aws_secret_access_key=credentials['SecretAccessKey'],
                               aws_session_token=credentials['SessionToken'])
     else:
+        if not checkinternetrequests(
+                url="https://ec2.eu-central-1.amazonaws.com/",
+                vanity=f"AWS EC2 API for use with \"{profile_name}\"",
+                terminate=False
+        ):
+            return
         client = boto3.client('ec2')
     ec2_instance_counter[instance_source] = 0
 
@@ -632,28 +804,78 @@ def get_ec2_instances(
         print(f"The exception was:\n{e}")
         return
 
-    for region in ec2_regions:
-        fetch_ec2_region(
-            region,
-            groups,
-            instance_source,
-            credentials,
-            profile,
-            ec2_script_config,
-            ec2_cloud_instances_obj_list
+    from_config_region_filters = [
+        *ec2_script_config['AWS'].get('exclude_regions', []),
+        *profile.get('exclude_regions', [])
+    ]
+    print(f"{instance_source}: filtering out these regions: {from_config_region_filters}")
+    ec2_regions_filtered = list(set(ec2_regions) - set(from_config_region_filters))
+
+    p_region_list = []
+    for region in ec2_regions_filtered:
+        region_p = th.Process(
+            target=fetch_ec2_region,
+            args=(
+                region,
+                groups,
+                instance_source,
+                credentials,
+                profile,
+                ec2_script_config,
+                ec2_cloud_instances_obj_list
+            )
         )
+        region_p.start()
+        p_region_list.append(region_p)
+
+    for _ in p_region_list:
+        _.join()
 
 
 def update_moba(obj_list):
-    bookmark_counter = 1
-
     profiles = "[Bookmarks]\nSubRep=\nImgNum=42"
-    for machine in obj_list:
 
+    # update profile
+    profiles += f"\n[Bookmarks_1]" \
+                f"\nCP Update profiles {VERSION} =" \
+                f";  logout#151#14%Default%%Interactive " \
+                f"shell%__PTVIRG__[ -z ${{CP_Version+x}} ] " \
+                f"&& CP_Version__EQUAL__'v6.0.3_Chasey_Amy'__PTVIRG__[ -z ${{CP_Branch+x}} ] " \
+                f"&& CP_Branch__EQUAL__'main'__PTVIRG__" \
+                f"[ __DBLQUO__${{CP_Branch}}__DBLQUO__ __EQUAL____EQUAL__ __DBLQUO__develop__DBLQUO__ ] " \
+                f"&& CP_Version__EQUAL__'edge'__PTVIRG__" \
+                f"bash <(curl -s https://raw.githubusercontent.com/aviadra/Cloud-profiler/$CP_Branch/startup.sh)__" \
+                f"PTVIRG__%%0#MobaFont%10%0%0%-1%15%248,248,242%40,42,54%153,153,153%0%-1%0%%xterm%-1%-1%_" \
+                f"Std_Colors_0_%80%24%0%1%-1%<none>%12:2:0:" \
+                f"curl -s https__DBLDOT__//raw.githubusercontent.com/aviadra/Cloud-profiler/main/startup.sh " \
+                f"__PIIPE__ bash__PIPE__%0%0%-1#0# #-1"
+
+    # update profile
+    bookmark_counter = 2
+    s = sorted(
+        obj_list,
+        key=lambda i: (
+            i.region.lower(),
+            i.name.lower(),
+            i.name.split(f"{i.instance_source}.")[1].lower()
+        )
+    )
+    for machine in s:
         instance_counter[machine.instance_source] += 1
 
-        profiles += f"""\n[Bookmarks_{bookmark_counter}]
-                    SubRep={machine.provider_short}\\{machine.instance_source}\\{machine.region}\nImgNum=41\n"""
+        profiles += f"\n[Bookmarks_{bookmark_counter}]" \
+                    f"\nSubRep={machine.provider_short}\\{machine.instance_source}\\{machine.region}\nImgNum=41\n"
+
+        pcolors = "#MobaFont%10%0%0%-1%15%236,236,236%30,30,30""%180,180,192%0%-1%0%%%xterm%-1%-1%_Std_Colors_0_"
+        if machine.dynamic_profile_parent:
+            res = next(
+                (
+                    sub for sub in script_config['Local']['Moba']['colors']
+                    if sub['name'].casefold() == machine.dynamic_profile_parent.casefold()
+                ),
+                None
+            )
+            pcolors = res.get('RGBs', pcolors).replace(" ", "")
 
         short_name = machine.name.rpartition('.')[2]
 
@@ -666,7 +888,8 @@ def update_moba(obj_list):
         if "Sorry" in machine.ip:
             connection_command = "echo"
             ip_for_connection = machine.ip
-        elif machine.instance_use_ip_public or not machine.bastion:
+        elif (machine.instance_use_ip_public or not machine.bastion) \
+                and machine.instance_use_bastion:
             ip_for_connection = machine.ip_public
         else:
             ip_for_connection = machine.ip
@@ -679,16 +902,21 @@ def update_moba(obj_list):
         if machine.platform == 'windows':
             if not machine.con_username:
                 con_username = "Administrator"
+            if machine.con_port == 22:
+                machine.con_port = 3389
             connection_type = "#91#4%"
+            bastion_for_profile = '%0%0'
+            bastion_prefix = '%0%0%-1%%'
         else:
             connection_type = "#109#0%"
+            bastion_for_profile = ''
+            bastion_prefix = ''
 
         if (isinstance(machine.bastion, str) and not machine.instance_use_ip_public) \
                 or machine.instance_use_bastion:
-
-            bastion_for_profile = machine.bastion
-        else:
-            bastion_for_profile = ''
+            bastion_for_profile = f"{bastion_prefix}{machine.bastion}"
+        elif machine.platform == 'windows':
+            machine.bastion_con_port = '-1'
 
         if machine.ssh_key and machine.use_shared_key:
             shard_key_path = os.path.join(connection_command, os.path.expanduser(
@@ -696,30 +924,50 @@ def update_moba(obj_list):
         else:
             shard_key_path = ''
         tags = ','.join(tags)
-        if machine.bastion_con_port != 22:
-            bastion_port = machine.bastion_con_port
-        else:
-            bastion_port = ''
         if machine.bastion_con_username:
             bastion_user = machine.con_username
         else:
             bastion_user = ''
-        if machine.login_command:
+        if machine.login_command and not machine.platform == 'windows':
             login_command = machine.login_command.replace('"', "").replace("|", "__PIPE__").replace("#", "__DIEZE__")
+        elif machine.platform == 'windows':
+            login_command = '-1%-1'
         else:
             login_command = ''
-        profile = (
-            f"\n{short_name}= {connection_type}{ip_for_connection}%{machine.con_port}%"
-            f"{con_username}%%-1%-1%{login_command}%{bastion_for_profile}%{bastion_port}%{bastion_user}%0%"
-            f"0%0%{shard_key_path}%%"
-            f"-1%0%0%0%%1080%%0%0%1#MobaFont%10%0%0%0%15%236,"
-            f"236,236%30,30,30%180,180,192%0%-1%0%%xterm%-1%"
-            f"-1%_Std_Colors_0_%80%24%0%1%-1%<none>%%0#0# {tags}\n"
-        )
+        if connection_type == "#91#4%":
+            profile = (
+                f"\n{short_name} = {connection_type}{ip_for_connection}%{machine.con_port}%"
+                f"{con_username}%0%-1%-1%{login_command}{bastion_for_profile}%{machine.bastion_con_port}"
+                f"%{bastion_user}%"
+                f"%{shard_key_path}"
+                f"1%0%%-1%%-1%0%0%-1%0%-1"
+                f"{pcolors}"
+                f"%80%24%0%1%-1%"
+                f"<none>%%0%1%-1#0#"
+                f" {tags} #-1\n"
+            )
+        else:
+            profile = (
+                f"\n{short_name} [{machine.id}] = {connection_type}{ip_for_connection}%{machine.con_port}%"
+                f"{con_username}%%0%-1%{login_command}%{bastion_for_profile}%{machine.bastion_con_port}"
+                f"%{bastion_user}%0%"
+                f"0%0%{shard_key_path}%%"
+                f"-1%0%0%0%0%1%1080%0%0%1"
+                f"{pcolors}"
+                f"%80%24%0%1%-1%"
+                f"<none>%%0%1%-1#0# {tags}      #-1\n"
+            )
         profiles += profile
         bookmark_counter += 1
-
-    with open(os.path.expanduser(os.path.join(CP_OutputDir, 'Cloud-profiler-Moba.mxtsessions')), 'wt') as handle:
+    with open(
+            os.path.expanduser(
+                os.path.join(
+                    CP_OutputDir,
+                    "CP-Moba.mxtsessions"
+                )
+            ),
+            'wt'
+    ) as handle:
         handle.write(profiles)
 
 
@@ -866,7 +1114,7 @@ def update_statics(cp_output_dir, us_script_config, _version):
             for name in files:
                 if name == '.DS_Store':
                     continue
-                print(f'Working on static profile: {name}')
+                print(f'Cloud-profiler - Working on static profile: {name}')
                 static_profile_handle = open(os.path.join(root, name))
                 profiles.append(json.load(static_profile_handle))
 
@@ -937,27 +1185,38 @@ def update_ssh_config(dict_list):
     ssh_conf_file = empty_ssh_config_file()
     for machine in dict_list:
         name = f"{machine.name}-{machine.ip}-{machine.id}"
+        if machine.platform == 'windows':
+            print(f"Cloud-profiler - SSH_Config_create - Skipping this {name}, as it is a Windows machine.")
+            continue
+        if machine.instance_use_ip_public or not machine.bastion:
+            ip_for_connection = machine.ip_public
+        else:
+            ip_for_connection = machine.ip
         ssh_conf_file.add(
             name,
-            Hostname=machine.ip,
+            Hostname=ip_for_connection,
             Port=machine.con_port,
-            User=machine.con_username,
-            ProxyJump=machine.bastion
         )
-        if not machine.con_username:
-            ssh_conf_file.unset(name, "user")
-        if not ((isinstance(machine.bastion, str) and not machine.instance_use_ip_public)
-                or machine.instance_use_bastion):
-            ssh_conf_file.unset(name, "proxyjump")
-        print(f"Added {name} to SSH config list.")
+        if machine.con_username:
+            ssh_conf_file.set(name, User=machine.con_username)
+        if (isinstance(machine.bastion, str) and not machine.instance_use_ip_public) \
+                or machine.instance_use_bastion:
+            ssh_conf_file.set(name, ProxyJump=machine.bastion)
+        if machine.ssh_key and machine.use_shared_key:
+            shard_key_path = os.path.join(
+                os.path.expanduser(script_config["Local"].get('ssh_keys_path', '.')),
+                machine.ssh_key
+            )
+            ssh_conf_file.set(name, IdentityFile=shard_key_path)
+        print(f"Cloud-profiler - SSH_Config_create - Added {name} to SSH config list.")
     ssh_conf_file.write(CP_SSH_Config)
 
 
 def aws_profiles_from_config_file(script_config_f, instance_counter_f, cloud_instances_obj_list_f):
+    processes = []
     for profile in script_config_f['AWS']['profiles']:
-        print(f"Working on {profile['name']}")
+        print(f"Cloud-profiler - AWS: Working on {profile['name']}")
         if isinstance(profile.get("role_arns", False), dict):
-            processes = []
             for role_arn_s in profile["role_arns"]:
                 aws_p = mp.Process(
                     target=get_ec2_instances,
@@ -971,17 +1230,23 @@ def aws_profiles_from_config_file(script_config_f, instance_counter_f, cloud_ins
                 )
                 aws_p.start()
                 processes.append(aws_p)
-
-            for process in processes:
-                process.join()
-
         else:
-            get_ec2_instances(
-                profile,
-                instance_counter_f,
-                script_config_f,
-                cloud_instances_obj_list_f
+            role_arn_s = False
+            aws_p = mp.Process(
+                target=get_ec2_instances,
+                args=(
+                    profile,
+                    role_arn_s,
+                    instance_counter_f,
+                    script_config_f,
+                    cloud_instances_obj_list_f
+                )
             )
+            aws_p.start()
+            processes.append(aws_p)
+
+    for process in processes:
+        process.join()
 
 
 def aws_profiles_from_awscli_config(aws_script_config):
@@ -989,7 +1254,7 @@ def aws_profiles_from_awscli_config(aws_script_config):
         config.read(os.path.expanduser(aws_script_config['AWS']['aws_credentials_file']))
         for i in config.sections():
             if i not in aws_script_config['AWS']['exclude_accounts']:
-                print(f'Working on AWS profile from credentials file: {i}')
+                print(f'Cloud-profiler - Working on AWS profile from credentials file: {i}')
                 get_ec2_instances(profile=i,
                                   ec2_instance_counter=instance_counter,
                                   ec2_script_config=aws_script_config
@@ -998,13 +1263,73 @@ def aws_profiles_from_awscli_config(aws_script_config):
 
 def do_worker(do_script_config, do_instance_counter, do_cloud_instances_obj_list):
     for profile in do_script_config['DO']['profiles']:
-        print(f"Working on {profile['name']}")
+        print(f"Cloud-profiler - DO: Working on {profile['name']}")
         get_do_instances(profile, do_instance_counter, do_script_config, do_cloud_instances_obj_list)
+
+
+def esx_worker(esx_script_config, esx_instance_counter, esx_cloud_instances_obj_list):
+    p_esx_list = []
+    for profile in esx_script_config['ESX']['profiles']:
+        print(f"Cloud-profiler - ESX: Working on \"{profile['name']}\"")
+        if esx_script_config['ESX'].get('disable_ssl_cert_validation', True) or \
+                profile.get('disable_ssl_cert_validation', True):
+            disable_ssl_cert_validation = True
+        else:
+            disable_ssl_cert_validation = False
+        profile_url = f"https://{profile['address']}:{profile.get('port', 443)}"
+        if not checkinternetrequests(
+                url=profile_url,
+                verify=(not disable_ssl_cert_validation),
+                vanity=f"ESX.{profile['name']}",
+                terminate=True):
+            return False
+        esx_p = th.Process(
+            target=get_esx_instances_list,
+            args=(
+                profile,
+                esx_instance_counter,
+                esx_script_config,
+                esx_cloud_instances_obj_list,
+                disable_ssl_cert_validation
+            )
+        )
+        esx_p.start()
+        p_esx_list.append(esx_p)
+
+    for _ in p_esx_list:
+        _.join()
+
+
+def checkinternetrequests(url='http://www.google.com/', timeout=3, verify=False, vanity="internet", terminate=True):
+    if url == 'http://www.google.com/':
+        print(f"Cloud-profiler - Connectivity - Testing \"{vanity}\" connectivity (http://www.google.com/)")
+    else:
+        print(f"Cloud-profiler - Connectivity - Testing connectivity to \"{vanity}\" ({url})")
+    try:
+        if not verify:
+            requests.packages.urllib3.disable_warnings(
+                category=urllib3.exceptions.InsecureRequestWarning
+            )
+        requests.head(
+            url,
+            timeout=timeout,
+            verify=verify
+        )
+        return True
+    except socket.error as ex:
+        print(f"Cloud-profiler - Connectivity - {ex}")
+        print(
+            f"Cloud-profiler - Connectivity - This means there was no connectivity to \"{vanity}\"...\n"
+            f"Cloud-profiler - Connectivity - This thread has gone into haven ({vanity}).")
+        if terminate:
+            exit()
+        else:
+            return False
 
 
 # MAIN
 if __name__ == '__main__':
-    VERSION = "v4.4.1"
+    VERSION = "v6.0.3_Chasey_Amy"
     with open("marker.tmp", "w") as file:
         file.write("mark")
 
@@ -1023,10 +1348,10 @@ if __name__ == '__main__':
         if os.environ.get('CP_OutputDir', False):
             CP_OutputDir = os.environ['CP_OutputDir']
         elif platform.system() == 'Windows' or os.environ.get('CP_Windows', False):
-            CP_OutputDir = "~/Cloud_Profiler/"
+            CP_OutputDir = "~/Documents/Cloud_Profiler/"
         else:
             CP_OutputDir = "~/Library/Application Support/iTerm2/DynamicProfiles/"
-        print(f"CP_OutputDir to be used: {CP_OutputDir}")
+        print(f"Cloud-profiler - CP_OutputDir to be used: {CP_OutputDir}")
 
         if not os.path.isdir(os.path.expanduser(CP_OutputDir)):
             os.makedirs(os.path.expanduser(CP_OutputDir))
@@ -1034,16 +1359,20 @@ if __name__ == '__main__':
         # From user home directory
         script_config = {}
         script_config_user = {}
-        if os.path.isfile(os.path.expanduser("~/.iTerm-cloud-profile-generator/config.yaml")):
+        if not platform.system() == 'Windows' and not os.environ.get('CP_Windows', False):
+            home_dir = "~/.iTerm-cloud-profile-generator/"
+        else:
+            home_dir = "~/Documents/Cloud_Profiler/"
+        if os.path.isfile(os.path.expanduser((os.path.join(home_dir, "config.yaml")))):
             print("Cloud-profiler - Found conf file in place")
-            with open(os.path.expanduser("~/.iTerm-cloud-profile-generator/config.yaml")) as conf_file:
+            with open(os.path.expanduser((os.path.join(home_dir, "config.yaml")))) as conf_file:
                 script_config_user = yaml.full_load(conf_file)
         else:
-            if not os.path.isdir(os.path.expanduser("~/.iTerm-cloud-profile-generator/")):
-                os.makedirs(os.path.expanduser("~/.iTerm-cloud-profile-generator/"))
+            if not os.path.isdir(os.path.expanduser(home_dir)):
+                os.makedirs(os.path.expanduser(home_dir))
             shutil.copy2(os.path.join(script_dir, 'config.yaml'),
-                         os.path.expanduser("~/.iTerm-cloud-profile-generator/"))
-            print(f"Copy default config to home dir {os.path.expanduser('~/.iTerm-cloud-profile-generator/')}")
+                         os.path.expanduser(home_dir))
+            print(f"Cloud-profiler - Copy default config to home dir {os.path.expanduser(home_dir)}")
 
         for key in script_config_repo:
             script_config[key] = {**script_config_repo.get(key, {}), **script_config_user.get(key, {})}
@@ -1057,24 +1386,33 @@ if __name__ == '__main__':
         if script_config["Local"].get("CNC", True):
             for entry in os.scandir(os.path.expanduser(CP_OutputDir)):
                 if not entry.is_dir(follow_symlinks=False):
-                    if "CP" not in entry.name or \
-                            VERSION not in entry.name:
-                        os.remove(entry.path)
+                    if "config.yaml" not in entry.name:
+                        if "CP" not in entry.name or \
+                                (not platform.system() == 'Windows' and not os.environ.get('CP_Windows', False)
+                                 and VERSION not in entry.name):
+                            os.remove(entry.path)
 
         p_list = []
         # Static profiles iterator
-        p = mp.Process(
-            name="update_statics",
-            target=update_statics,
-            args=(CP_OutputDir, script_config, VERSION,)
-        )
-        p.start()
-        p_list.append(p)
+        if not platform.system() == 'Windows' and not os.environ.get('CP_Windows', False):
+            p = mp.Process(
+                name="update_statics",
+                target=update_statics,
+                args=(CP_OutputDir, script_config, VERSION,)
+            )
+            p.start()
+            p_list.append(p)
+
+        # ESX profiles iterator
+        if script_config['ESX'].get('profiles', False):
+            p = th.Process(target=esx_worker, args=(script_config, instance_counter, cloud_instances_obj_list))
+            p.start()
+            p_list.append(p)
 
         # AWS profiles iterator
         if script_config['AWS'].get('profiles', False):
             # aws_profiles_from_config_file(script_config)
-            p = mp.Process(
+            p = th.Process(
                 name="aws_profiles_from_config_file",
                 target=aws_profiles_from_config_file,
                 args=(
@@ -1101,41 +1439,85 @@ if __name__ == '__main__':
 
         # DO profiles iterator
         if script_config['DO'].get('profiles', False):
-            p = mp.Process(target=do_worker, args=(script_config, instance_counter, cloud_instances_obj_list))
+            if not script_config["Local"].get("On_prem_only", False):
+                checkinternetrequests(
+                    url="https://api.digitalocean.com",
+                    vanity="DO",
+                    terminate=True
+                )
+            p = th.Process(target=do_worker, args=(script_config, instance_counter, cloud_instances_obj_list))
             p.start()
             p_list.append(p)
 
         """Wait for all processes (cloud providers) to finish before moving on"""
         for p in p_list:
-            p.join()
+            p.join(script_config['Local'].get('Subs_timeout', 60))
 
+        profiles_update_list = []
         if platform.system() == 'Windows' or os.environ.get('CP_Windows', False):
-            update_moba(cloud_instances_obj_list)
+            profiles_update_p = th.Process(
+                target=update_moba,
+                args=(
+                    cloud_instances_obj_list,
+                )
+            )
+            profiles_update_p.start()
+            profiles_update_list.append(profiles_update_p)
         else:
-            update_term(cloud_instances_obj_list)
+            profiles_update_p = th.Process(
+                target=update_term,
+                args=(
+                    cloud_instances_obj_list,
+                )
+            )
+            profiles_update_p.start()
+            profiles_update_list.append(profiles_update_p)
+
             # ssh_config
-            if script_config['Local'].get('SSH_Config_create'):
-                print("Cloud-profiler - SSH_Config_create is set, so will create config.")
-                User_SSH_Config = os.path.expanduser("~/.ssh/config")
-                CP_SSH_Config = os.path.expanduser("~/.ssh/cloud-profiler")
-                with open(User_SSH_Config) as f:
-                    if f"Include ~/.ssh/cloud-profiler" in f.read():
-                        print(
-                            "Cloud-profiler - Found ssh_config include directive for CP in user's ssh config file, "
-                            "so leaving it as is.")
-                    else:
-                        print("Cloud-profiler - Did not find include directive  for CP in user's ssh config file, "
-                              "so adding it.")
-                        line_prepender(User_SSH_Config, "Include ~/.ssh/cloud-profiler")
-                update_ssh_config(list(cloud_instances_obj_list))
             if script_config['Local'].get('Docker_contexts_create'):
-                docker_contexts_creator(list(cloud_instances_obj_list))
+                profiles_update_p = th.Process(
+                    target=docker_contexts_creator,
+                    args=(
+                        list(
+                            cloud_instances_obj_list,
+                        )
+                    )
+                )
+                profiles_update_p.start()
+                profiles_update_list.append(profiles_update_p)
+
+        if script_config['Local'].get('SSH_Config_create'):
+            print("Cloud-profiler - SSH_Config_create is set, so will create config.")
+            User_SSH_Config = os.path.expanduser("~/.ssh/config")
+            CP_SSH_Config = os.path.expanduser("~/.ssh/cloud-profiler")
+            with open(User_SSH_Config) as f:
+                if f"Include ~/.ssh/cloud-profiler" in f.read():
+                    print(
+                        "Cloud-profiler - Found ssh_config include directive for CP in user's ssh config file, "
+                        "so leaving it as is.")
+                else:
+                    print("Cloud-profiler - Did not find include directive  for CP in user's ssh config file, "
+                          "so adding it.")
+                    line_prepender(User_SSH_Config, "Include ~/.ssh/cloud-profiler")
+            profiles_update_p = th.Process(
+                target=update_ssh_config,
+                args=(
+                    cloud_instances_obj_list,
+                )
+            )
+            profiles_update_p.start()
+            profiles_update_list.append(profiles_update_p)
+        else:
+            print("Cloud-profiler - SSH_Config_create - \"SSH_Config_create\" is not set, so skipping it.")
+
+        for _ in profiles_update_list:
+            _.join()
 
         if os.path.exists('marker.tmp'):
             os.remove("marker.tmp")
         jcounter = json.dumps(instance_counter.copy(), sort_keys=True, indent=4, separators=(',', ': '))
         jcounter_tot = sum(instance_counter.values())
         print(
-            f"\nCreated profiles {jcounter}\nTotal: {jcounter_tot}"
+            f"\nCloud-profiler - Created profiles {jcounter}\nTotal: {jcounter_tot}"
         )
         print(f"\nWe wish you calm clouds and a serene path...\n")

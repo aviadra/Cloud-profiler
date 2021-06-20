@@ -3,88 +3,77 @@
 # TL; DR
 For most use cases, the installation is simply:
 
-`curl -s https://raw.githubusercontent.com/aviadra/Cloud-profiler/main/startup.sh | bash`
+`bash <(curl -s https://raw.githubusercontent.com/aviadra/Cloud-profiler/main/startup.sh)`
 
 # Intro
 The purpose of this script is to connect to cloud providers and generate profiles for quick SSHing.
 
 # Mini change-log
-As of v1.3, both **iTerm** for MacOS and **MobaXterm** for Windows, are supported.
+As of v1.3 ([Bankai](https://bleachfanfiction.fandom.com/wiki/Bankai)), both **iTerm** for MacOS and **MobaXterm** for Windows, are supported.
 Currently, the supported cloud providers are AWS and Digital Ocean.
-This project is a fork of [gmartinerro](https://gist.github.com/gmartinerro/40831c8874ebb32bc17711af95e1416b), 
-which gave me a good starting point.
 
-As of v2.0 it can also create **SSH config file** entries
+As of v2.0 ([Kaze no Kizu](https://inuyasha.fandom.com/wiki/Kaze_no_Kizu)) it can also create **SSH config file** entries
 and **[Docker contexts](https://docs.docker.com/engine/context/working-with-contexts/)** that tunnel over SSH.
 
-As of v3.0.2, it is with a heavy heart, that I have switched from using VScode to using
+As of v3.0.2 ([How the mighty have fallen](https://en.wiktionary.org/wiki/how_the_mighty_have_fallen)),
+  it is with a heavy heart, that I have switched from using VScode to using
 [IDAE](https://www.jetbrains.com/?from=https://github.com/aviadra/Cloud-profiler).
 After I asked, they have kindly provided me with a free "all pack" license,
-and I have found it to be a better tool for Python multiprocessor/multithreaded development.
- As well as very helpful with adhering to styling guides (like PEP8, but much more). 
+  and I have found it to be a better tool for Python multiprocessor/multithreaded development.
+  As well as very helpful with adhering to styling guides (like PEP8, but much more). 
 
-As of v4.3.0, the docker installer supports all mainstream CPU architectures in addition to the regular x86/x64.
-So it now works out of the box with "Apple M1" and other ARM based compute systems (like the rasberry pi),
-among other architectures.
+As of v4.3.0 ([Tenteikūra](https://bleach.fandom.com/wiki/Tenteik%C5%ABra)),
+  the docker installer supports all mainstream CPU architectures in addition to the regular x86/x64.
+So it now works out of the box with "Apple M1" and other ARM based compute systems (like the raspberry pi),
+  among other architectures.
 
-This project has some assumptions:
+As of v5.0 ([Hakuteiken](https://bleach.fandom.com/wiki/Sh%C5%ABkei:_Hakuteiken)), 
+  Windows WSLv2 support introduced
+  in order to make Windows more of a first class citizen then it was until now. 
+This Hakuteiken [dove](https://en.wikipedia.org/wiki/Doves_as_symbols),
+  is an [olive branch](https://en.wikipedia.org/wiki/Olive_branch) to all Windows users (myself mainly apparently... :)
+WSL2 is also the recommended supported method of working with Windows, as it gets the most testing.
+Note: Right now on Windows, the user uid for the container is always root, due to integration with the host issues.
+
+As of v6.0 (Chasey Lain)[https://www.youtube.com/watch?v=If9fC9aJd-U] rudemnty ESXi support has been added.
+
+## This project has some assumptions
 - Your system has Docker, or python3 installed (if using the "system install" method).
 - When using a Mac, You have [iTerm](https://iterm2.com/) installed.
-- When using Windows, you have MobaXterm install.
+- When using Windows, you have [MobaXterm](https://mobaxterm.mobatek.net/) installed.
 
-## How to use
+## Getting started
 
 ### Docker way (recommended)
-As of v1.5, it is possible to run the script using a docker container.
+As of v1.5, it is possible and recommended, to run Cloud_profiler using a docker container.
 You can choose to build it yourself or pull from docker hub. The instructions will focus on the latter.
 
-#### Run as a service
-This is the recommended way of running the script.
-Running it with the below parameters will have docker ensure that it is always in the background
-(unless specifically stopped), and the default refresh rate is 5 minutes.
- The below also maps the configuration directory and iTerm profile directory into the container.
+Assuming you have Docker installed (on Windows preferably with [WSL2](https://docs.docker.com/docker-for-windows/wsl/)),
+  issuing the below command will download the required container. 
+It will also run Cloud_profiler as a service that refreshes the profiles every 5 minutes. 
 
-##### Service on MacOS
-There is now a startup script that should get you going with setting up the static profiles directory
-and the config file.
+If this is your very first run, the startup script will set you up with the basic static profiles, 
+It will also copy the example configuration file to your home directory, 
+  where you can edit it with your personal settings (like keys and features you'd like to toggle).
 Simply run the below one liner and follow the on screen instructions:
 
-curl -s https://raw.githubusercontent.com/aviadra/Cloud-profiler/main/startup.sh | bash`
+`bash <(curl -s https://raw.githubusercontent.com/aviadra/Cloud-profiler/main/startup.sh)`
 
-##### Service on Windows
-I'm sorry... you're not a first class citizen... there is no script for you...
-You're going to have to create the config directory and file on your own (help here is welcomed).
-Once they are in place, run:
+##### Trigger an update
 
-`docker run --init --restart=always -d -e CP_Windows=True -e CP_Service=True -v "%HOMEDRIVE%%HOMEPATH%"\Cloud_Profiler/:/home/appuserCloud_Profiler/ -v "%HOMEDRIVE%%HOMEPATH%"\.iTerm-cloud-profile-generator/config.yaml:/home/appuser.iTerm-cloud-profile-generator/config.yaml -v "%HOMEDRIVE%%HOMEPATH%"\iTerm2-static-profiles/:/opt/CloudProfile/iTerm2-static-profiles/ aviadra/cp`
+If for what ever reason you don't want to wait the 5 minutes until the service updates the profiles,
+  you can trigger it manually.
+You can simply issue the "install command" from the TL;DR.
 
-#### Run ad-hoc
-It is absolutely possible to run the script on a per-needed basis (a.k.a. "ad-hoc").
-To do so, when using the "system install" method (less favorable),
-simply issue the same command, only omitting the "-d", "-e CP_Service=True" and "--restart=always" parameters.
-
-##### Ad-hoc on MacOS
-
-As of v1.6.3 the "Update" profile was added to the "static" profiles distributed with the repository.
-In order to use it, simply call it like any other profile (CMD + O)
-Note: As of v1.6.5, if you set the variable CP_Version (in your zshrc file for example),
-the update profile will use it to determine which version to use to pull (if you want a development version for example).
-
-`docker run --init --rm -v ~/Library/Application\ Support/iTerm2/DynamicProfiles/:/home/appuserLibrary/Application\ Support/iTerm2/DynamicProfiles/ -v ~/.iTerm-cloud-profile-generator/config.yaml:/home/appuser.iTerm-cloud-profile-generator/config.yaml -v ~/iTerm2-static-profiles/:/opt/CloudProfile/iTerm2-static-profiles/ aviadra/cp`
-
-##### Ad-hoc on windows
-
-`docker run -it --init --rm -e CP_Windows=True -v "%HOMEDRIVE%%HOMEPATH%"\Cloud_Profiler/:/home/appuserCloud_Profiler/ -v "%HOMEDRIVE%%HOMEPATH%"\.iTerm-cloud-profile-generator\config.yaml:/home/appuser.iTerm-cloud-profile-generator/config.yaml -v ~/iTerm2-static-profiles/:/opt/CloudProfile/iTerm2-static-profiles/ aviadra/cp`
-
-Note: While not required, I've added to the above the 
-"[--rm](https://docs.docker.com/engine/reference/run/#clean-up---rm)" option just for tightness.
-
-You should be all set, just go to the Configuration section.
+Or alternatively, you can use the "Update profile" that now exists for both iTerm and Mobaxterm.
+You invoke this profile just like any other.
 
 ## Configuration files
 There is a YAML configuration file within the repo that gives the default values for the script behavior.
 On the first run of the script, if a personal configuration is missing,
 it will be created in `~/.iTerm-cloud-profile-generator/config.yaml`.
+As of v5.0 [Hakuteiken](https://bleach.fandom.com/wiki/Sh%C5%ABkei:_Hakuteiken), for Windows this will be Cloud_Profiler under the Documents foler of your user's home directory.
+For example: C:\Users\aviad\Documents\Cloud_Profiler.
 So, you don't have to fork the repo in order to have your own settings.
 Settings in the personal file will take precedence over the default ones from the repo file.
 See below for possible options of the configuration file.
@@ -99,9 +88,12 @@ For some cases it is easier to copy from here, so here you go:
 Local:
   Static_profiles: "./iTerm2-static-profiles"
   SSH_base_string: "-oStrictHostKeyChecking=no -oUpdateHostKeys=yes -oServerAliveInterval=30 -oAddKeysToAgent=no"
+  # Con_username: "ec2-user"
+  # Bastion_Con_username: "aviadcye"
   Bastion: False
   SSH_keys_path: "~/Downloads"
   Use_shared_key: False
+  Login_command: "sudo -i"
   Parallel_exec: True
   Skip_stopped: True
   Badge_info_to_display:
@@ -113,12 +105,11 @@ Local:
     Bastion_Con_username: False
     Con_port: False
     Con_username: False
-    dynamic_profile_parent: False
+    Dynamic_profile_parent: False
     Group: False
-    Id: False
+    Id: True
     Instance_use_Bastion: False
-    Instance_use_Ip_public: False
-    Ip_public: True
+    Instance_use_ip_public: False
     Iterm_tags_prefixs: ["ENV"]
     # Iterm_tags_prefixs: []
     Password: False
@@ -126,47 +117,58 @@ Local:
     Region: True
     SSH_key: False
     Use_shared_key: False
-    VPC: True
+    VPC: False
+    Ip_public: True
+  Docker_contexts_create: False
   SSH_Config_create: True
-  Docker_contexts_create: True
-  CNC: True
 
 AWS:
-  exclude_regions: ["ap-southeast-1", "ap-southeast-2","sa-east-1","ap-northeast-1","ap-northeast-2","ap-south-1"]
+  exclude_regions: ["ap-southeast-1", "ap-southeast-2","sa-east-1","ap-northeast-2","ap-south-1"]
   aws_credentials_file: "~/.aws/credentials"
   Con_username: False
   Bastion_Con_port: 22
-  use_Ip_public: False
+  instance_use_ip_public: False
   Skip_stopped: True
   exclude_accounts: []
   use_awscli_profiles: False
+  update_hosts: False
   profiles:
     -
-      name: "Company_TGT"
-      aws_access_key_id: "AKIAW*********"
-      aws_secret_access_key: "D5am******************"
+      name: "Work_account"
+      aws_access_key_id: "EWRSGDY$#^FDERH"
+      aws_secret_access_key: "#@$%@#GSRDFGBE%^$##%$DF"
       role_arns: {
-        sts_oper: "arn:aws:iam::438**********:role/iTerm_RO_from_TGT",
-        sts_devops: "arn:aws:iam::168**********:role/iTerm_RO_from_TGT",
-        sts_client1: "arn:aws:iam::701**********:role/iTerm_RO_from_TGT",
+        dev: "arn:aws:iam::946*********:role/iTerm_RO_from_TGT",
+        oper: "arn:aws:iam::438*********:role/iTerm_RO_from_TGT",
+        devops: "arn:aws:iam::168*********:role/iTerm_RO_from_TGT",
+        haim: "arn:aws:iam::701*********:role/iTerm_RO_from_TGT",
       }
+    -
+      instance_use_ip_public: True
+      name: "My_account"
+      aws_access_key_id: "ASDAS%#@SDFGSDFDFSG"
+      aws_secret_access_key: "FDGDFG#$%#SDFVSDGFSFDGW@#$%"
 
 DO:
+  instance_use_ip_public: True
   profiles:
-#    -
-#      name: "The one"
-#      token: "secretspecialuniquesnowflake"
-#      use_Ip_public: True
+    -
+      name: "Work_account"
+      token: "snow"
+    -
+      name: "My_account"
+      token: "flake"
+      Con_username: root
 ```
 
 ## Local options
-These are settings that are local to your machine or you want to set globally for all clouds.
+These are settings that are local to your machine, or you want to set globally for all clouds.
 You can set here most of the same directives as in the "tags" section,
 except the below ones (they don't make sense anywhere else):
 
 `CNC` - Added in version 4.0, and short for
 [command and conquer](https://www.ea.com/games/command-and-conquer) (no affiliation),
-Toggels the "dominate the dynamic profiles directory".
+Toggles the "dominate the dynamic profiles directory".
 When this is turned on, files in the iTerm dynamic profiles directory that don't comply with CP's format are deleted.
 The default behaviour is "on",
 as I have yet to have met anyone who both uses my script and populates this directory with their own stuff.   
@@ -176,7 +178,7 @@ The default value is simply "ssh".
 
 `SSH_Config_create` - Toggles the "create ssh config file" behavior. The default is false.
 
-`Docker_contexts_create` - Toggles the "create Docker context behavior - The default is false. 
+`Docker_contexts_create` - Toggles the "create Docker context" behavior - The default is false. 
 Disclaimer: Turning this on will cause the container to be run with a root user internally and with a mount to the
 local docker socket. This may have security implications, so turn this on at your own risk.
 
@@ -187,8 +189,7 @@ so if you change the location, you'll need to adjust your volume mounts
 (sorry, but I currently have no plan on helping with this).
 
 `SSH_keys_path` - Set the location to get the "shared keys" from.
-The default is "~/.ssh". Note that when running in a container, that this is not mapped with the above script...
-This is because I feel that this use case is not as common and would only confuse newcomers.
+The default is "~/.ssh". Note that when running in a container.
 Again, I recommend you use a personal key always for everything… This feature is here for “I have no choice” situations.
 
 As of version 1.6.2, it is possible to set what information will be shown for an instance in the 
@@ -226,7 +227,7 @@ in order to get a line braked list of the name information.
 `Instance_use_Ip_public` - Is the flag of using the public IP set?
 
 `Iterm_tags_prefixs` - Iterm_tags, are what iTerm uses for indexing and show as information in the instance.
-It is possible to set this toggle to false to not show them at all.
+It is possible to set this toggle to false so not show them at all.
 Setting this toggle to an empty array([]), will simply show all the iTerm tags given to the instance.
 Given an array with values,
 the shown values will be filtered to only show tags that start with the prefix of the strings in the array and
@@ -275,8 +276,6 @@ as skipping them shortens the amount of time the script runs and reduces the amo
 a hyphen to separate the hashes in the array.
 Each hash has the following keys: "name", "aws_access_key_id and "aws_secret_access_key".
 See the example in the "repo settings file".
-Note: The example is deliberately commented out,
-so that if you don't configure it the script will not encounter errors).
 
 #### STS support
 It is possible to define a profile that uses the
@@ -306,17 +305,19 @@ Note: The example is deliberately commented out, so that if you don't configure 
 
 ## Configuration directives from tags and/or configuration files
 The script can change the end result of the connections/profiles it creates,
-due to tags discovered on the cloud or directives from the conf files.
+  due to tags discovered on the cloud platform or directives from the conf files.
 These range from whether to use the public IP for the connection,
-to should a Bastion be used or what the address of it should be.
+  to should a Bastion be used or what the address of it should be.
 
 ## Precedence
-The script tries to "resolve" the directives from several data sources. The further away from the instance the setting originates from, the less precedence it has.
+The script tries to "resolve" the directives from several data sources.
+The further away from the instance the setting originates from,
+  the less precedence it has.
 With that said, the further away from the machine a setting is set,
-it’s scope will be more far reaching.
+  it’s scope will be more far-reaching.
 For example, setting the "Con_username" setting at the "Local" level in the configuration file,
-while it has the lowest precedence and will be overwritten by any other config level or tag,
-it will essentially be set for all machines for all providers, unless noted otherwise at a higher precedence level.
+  while it has the lowest precedence and will be overwritten by any other config level or tag,
+  it will essentially be set for all machines for all providers, unless noted otherwise at a higher precedence level.
 
 The precedence of directives, is:
 1. On the instance itself as Tags.
@@ -334,7 +335,7 @@ On AWS, the default configuration is to push you towards securing your connectio
 [Bastion](https://docs.aws.amazon.com/quickstart/latest/linux-bastion/architecture.html#bastion-hosts) for everything.
 This can be changed in the configuration files or using TAGs that you can add to instances and/or VPCs.
 In general, it is recommended to "tattoo" the "Cloud_profiler_Bastion" at the VPC level.
-On AWS you set a tag by adding it to the desired resource, setting the "key" field to the name of the tag and in the
+On AWS, you set a tag by adding it to the desired resource, setting the "key" field to the name of the tag and in the
 "value" field the desired setting.
 Note the credentials used for AWS,
 must have the following permissions: "ec2:DescribeVpcs", "ec2:GetPasswordData", "ec2:DescribeRegions"
@@ -374,8 +375,11 @@ the key name on the instance is used.
 Digital Ocean's implementation of VPC is such that there isn't a way to set tags on it (that I have seen).
 On DO, you set a tag by adding it to the instance. The format to be used is: "tag_name:value".
 Note that there are no spaces between the key and the value.
-Also note, that underscores(_) in the value part of the tag are replaced with spaces,
-and dashes(-) are replaced with dots(.).
+Also note that the value part of the tag is processed with following rules:
+1. Underscores(_) in the value part of the tag are replaced with spaces.
+2. Dashes(-) are replaced with dots(.). This is done, 
+     so you can write IPs within the tags despite the tag rules to not allow this.
+   For example the IP of "1.1.1.1" would be represented as "1-1-1-1".
 DO does have one special tag "iTerm_host_name", which changes the node's hostname to the value in the tag.
 Other than that, the tags are the same as for AWS.
 
@@ -388,27 +392,27 @@ For example:
 `Bastion:1-1-1-1`
 
 ## MobaXterm setup
-The way to get the profiles into Moba is not as automatic as it is for iTerm.
-With that said, the script will generate a "sessions" file,
-that you can import manually into Moba, or you can use the 
-[shared sessions feature](https://mobaxterm.mobatek.net/documentation.html#3_1_6).
-The default location of the generated configuration file is "~/Cloud_Profiler/Cloud-profiler-Moba.mxtsessions".
+You need to use the [shared sessions feature](https://mobaxterm.mobatek.net/documentation.html#3_1_6).
+The default location of the generated configuration file is "%userprofile%\Documents\Cloud_Profiler\CP-Moba.mxtsessions".
 
 ## iTerm setup
 Again, in general you don't need to change anything in your iTerm configuration.
 With that said, it is recommended that you create in your iTerm,
 the profiles you're going to reference when using the "iTerm_dynamic_profile_parent" tag.
-If you don't, nothing major will happen, iTerm will simply use the default profile.
-However as of v3.3.8 of iTerm, it will throw errors to an error log and will give popups to note it has done so...
+If you don't, nothing major will happen.
+However, as of v3.3.8 of iTerm, it will throw errors with popups.
 
 ### RDP support for MacOS (optional)
 The RDP support is based on your MAC's ability to open rdp URIs. That is iTerm will issue something like
 "open rdp://address-of-instance". Compatible programs are Microsoft Remote Desktop 8/10 available on the app store,
 along others.
+NOTE: Actually this stopped working (last tested on Big Sur).
+I was going to fix it with a workaround of creating a file for the connection,
+  and then having the RDP program open it, but then lost interest...
 
 ### Static profiles
-The "Static profiles" feature of this script,
-allows you to centrally distribute profiles so that you can reference them with the "iTerm_dynamic_profile_parent"
+The "Static profiles" feature of Cloud_profiler (currently only for MAC),
+  allows you to centrally distribute profiles so that you can reference them with the "iTerm_dynamic_profile_parent"
 tag. For example, the two profiles in the repo,
 give the "Red Alert" and "Dracula" color schemes with my beloved keyboard shortcuts.
 They are installed for you in the dynamic profiles automatically,
@@ -422,6 +426,14 @@ The way to add/remove profiles, is to do so in the "iTerm2-static-profiles" dire
 You get the profiles, by creating them the regular iTerm way (as explained below) and then using the "export to json"
 options at the bottom of the "profiles" tab in preferences.
 You can also set this location in the configuration files, in the path "from the repo" if you need to.
+
+### Moba profile colors
+As of v5.1.0, it is possible to set the color scheme the "static profiles" provide from the config files.
+The "Red Alert" color palette is already set as an example in the repo's configuration file.
+Use this example (noted below for convenience), as a reference when building a new one.
+Unfortunately, there is no easy way to get the color values.
+The way that I have found to get the values, is to create a profile with the desired settings,
+  and reverse engineer it to extract the colors between "#MobaFont" and "%80%24%". 
 
 ### Profile creation within iTerm
 As of v4.4.0, the inclusion of the [iTerm2-Color-Schemes repository](https://github.com/mbadolato/iTerm2-Color-Schemes),
@@ -451,7 +463,7 @@ using the -e parameter (it can be specified multiple times if needed). Possible 
 - CP_LoopInterval - This changes the amount of time the script waits between refreshes. The default is 300 (5 minutes).
 
 - CP_Service - Toggles “service” behavior (infinite loop),
-so one can choose to run the script in “ad-hoc” or as a service (as shown in the above instructions.
+  so one can choose to run the script in “ad-hoc” or as a service (as shown in the above instructions.
 
 - CP_OutputDir - This changes the location, where the resulting profile files are created.
 
@@ -464,7 +476,6 @@ so one can choose to run the script in “ad-hoc” or as a service (as shown in
 - Install requirements using pip
 
 `pip3 install requirements.txt --user`
-
 
 `python3 ./iTerm-cloud-profile-generator/update-cloud-hosts.py`
 - You need to set up your access keys per the instructions below and then run again.
