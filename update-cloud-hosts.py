@@ -838,12 +838,18 @@ def update_moba(obj_list):
     # update profile
     profiles += f"\n[Bookmarks_1]" \
                 f"\nCP Update profiles {VERSION} =" \
-                f"  ;  logout#151#14%Default%%Interactive shell%__PTVIRG__bash " \
-                f"<(curl -s https://raw.githubusercontent.com/aviadra/Cloud-profiler/main/startup.sh)%%0" \
-                f"#MobaFont%10%0%0%-1%15%236,236,236%30,30,30%180,180,192%0%-1%0%%" \
-                f"xterm%-1%-1%_Std_Colors_0_%80%24%0%1%-1%<none>%12:2:0:curl -s " \
-                f"https__DBLDOT__//raw.githubusercontent.com/aviadra/Cloud-profiler/main/startup.sh __PIIPE__ " \
-                f"bash__PIPE__%0%0%-1#0# #-1"
+                f";  logout#151#14%Default%%Interactive " \
+                f"shell%__PTVIRG__[ -z ${{CP_Version+x}} ] " \
+                f"&& CP_Version__EQUAL__'v6.0.3_Chasey_Amy'__PTVIRG__[ -z ${{CP_Branch+x}} ] " \
+                f"&& CP_Branch__EQUAL__'main'__PTVIRG__" \
+                f"[ __DBLQUO__${{CP_Branch}}__DBLQUO__ __EQUAL____EQUAL__ __DBLQUO__develop__DBLQUO__ ] " \
+                f"&& CP_Version__EQUAL__'edge'__PTVIRG__" \
+                f"bash <(curl -s https://raw.githubusercontent.com/aviadra/Cloud-profiler/$CP_Branch/startup.sh)__" \
+                f"PTVIRG__%%0#MobaFont%10%0%0%-1%15%248,248,242%40,42,54%153,153,153%0%-1%0%%xterm%-1%-1%_" \
+                f"Std_Colors_0_%80%24%0%1%-1%<none>%12:2:0:" \
+                f"curl -s https__DBLDOT__//raw.githubusercontent.com/aviadra/Cloud-profiler/main/startup.sh " \
+                f"__PIIPE__ bash__PIPE__%0%0%-1#0# #-1"
+
     # update profile
     bookmark_counter = 2
     s = sorted(
@@ -1262,8 +1268,9 @@ def do_worker(do_script_config, do_instance_counter, do_cloud_instances_obj_list
 
 
 def esx_worker(esx_script_config, esx_instance_counter, esx_cloud_instances_obj_list):
+    p_esx_list = []
     for profile in esx_script_config['ESX']['profiles']:
-        print(f"Cloud-profiler - ESX: Working on {profile['name']}")
+        print(f"Cloud-profiler - ESX: Working on \"{profile['name']}\"")
         if esx_script_config['ESX'].get('disable_ssl_cert_validation', True) or \
                 profile.get('disable_ssl_cert_validation', True):
             disable_ssl_cert_validation = True
@@ -1276,13 +1283,21 @@ def esx_worker(esx_script_config, esx_instance_counter, esx_cloud_instances_obj_
                 vanity=f"ESX.{profile['name']}",
                 terminate=True):
             return False
-        get_esx_instances_list(
-            profile,
-            esx_instance_counter,
-            esx_script_config,
-            esx_cloud_instances_obj_list,
-            disable_ssl_cert_validation
+        esx_p = th.Process(
+            target=get_esx_instances_list,
+            args=(
+                profile,
+                esx_instance_counter,
+                esx_script_config,
+                esx_cloud_instances_obj_list,
+                disable_ssl_cert_validation
+            )
         )
+        esx_p.start()
+        p_esx_list.append(esx_p)
+
+    for _ in p_esx_list:
+        _.join()
 
 
 def checkinternetrequests(url='http://www.google.com/', timeout=3, verify=False, vanity="internet", terminate=True):
@@ -1314,7 +1329,7 @@ def checkinternetrequests(url='http://www.google.com/', timeout=3, verify=False,
 
 # MAIN
 if __name__ == '__main__':
-    VERSION = "v6.0.2_Chasey_Penney"
+    VERSION = "v6.0.3_Chasey_Amy"
     with open("marker.tmp", "w") as file:
         file.write("mark")
 
@@ -1336,7 +1351,7 @@ if __name__ == '__main__':
             CP_OutputDir = "~/Documents/Cloud_Profiler/"
         else:
             CP_OutputDir = "~/Library/Application Support/iTerm2/DynamicProfiles/"
-        print(f"CP_OutputDir to be used: {CP_OutputDir}")
+        print(f"Cloud-profiler - CP_OutputDir to be used: {CP_OutputDir}")
 
         if not os.path.isdir(os.path.expanduser(CP_OutputDir)):
             os.makedirs(os.path.expanduser(CP_OutputDir))
@@ -1357,7 +1372,7 @@ if __name__ == '__main__':
                 os.makedirs(os.path.expanduser(home_dir))
             shutil.copy2(os.path.join(script_dir, 'config.yaml'),
                          os.path.expanduser(home_dir))
-            print(f"Copy default config to home dir {os.path.expanduser(home_dir)}")
+            print(f"Cloud-profiler - Copy default config to home dir {os.path.expanduser(home_dir)}")
 
         for key in script_config_repo:
             script_config[key] = {**script_config_repo.get(key, {}), **script_config_user.get(key, {})}
@@ -1390,14 +1405,14 @@ if __name__ == '__main__':
 
         # ESX profiles iterator
         if script_config['ESX'].get('profiles', False):
-            p = mp.Process(target=esx_worker, args=(script_config, instance_counter, cloud_instances_obj_list))
+            p = th.Process(target=esx_worker, args=(script_config, instance_counter, cloud_instances_obj_list))
             p.start()
             p_list.append(p)
 
         # AWS profiles iterator
         if script_config['AWS'].get('profiles', False):
             # aws_profiles_from_config_file(script_config)
-            p = mp.Process(
+            p = th.Process(
                 name="aws_profiles_from_config_file",
                 target=aws_profiles_from_config_file,
                 args=(
@@ -1430,7 +1445,7 @@ if __name__ == '__main__':
                     vanity="DO",
                     terminate=True
                 )
-            p = mp.Process(target=do_worker, args=(script_config, instance_counter, cloud_instances_obj_list))
+            p = th.Process(target=do_worker, args=(script_config, instance_counter, cloud_instances_obj_list))
             p.start()
             p_list.append(p)
 
@@ -1438,13 +1453,38 @@ if __name__ == '__main__':
         for p in p_list:
             p.join(script_config['Local'].get('Subs_timeout', 60))
 
+        profiles_update_list = []
         if platform.system() == 'Windows' or os.environ.get('CP_Windows', False):
-            update_moba(cloud_instances_obj_list)
+            profiles_update_p = th.Process(
+                target=update_moba,
+                args=(
+                    cloud_instances_obj_list,
+                )
+            )
+            profiles_update_p.start()
+            profiles_update_list.append(profiles_update_p)
         else:
-            update_term(cloud_instances_obj_list)
+            profiles_update_p = th.Process(
+                target=update_term,
+                args=(
+                    cloud_instances_obj_list,
+                )
+            )
+            profiles_update_p.start()
+            profiles_update_list.append(profiles_update_p)
+
             # ssh_config
             if script_config['Local'].get('Docker_contexts_create'):
-                docker_contexts_creator(list(cloud_instances_obj_list))
+                profiles_update_p = th.Process(
+                    target=docker_contexts_creator,
+                    args=(
+                        list(
+                            cloud_instances_obj_list,
+                        )
+                    )
+                )
+                profiles_update_p.start()
+                profiles_update_list.append(profiles_update_p)
 
         if script_config['Local'].get('SSH_Config_create'):
             print("Cloud-profiler - SSH_Config_create is set, so will create config.")
@@ -1459,15 +1499,25 @@ if __name__ == '__main__':
                     print("Cloud-profiler - Did not find include directive  for CP in user's ssh config file, "
                           "so adding it.")
                     line_prepender(User_SSH_Config, "Include ~/.ssh/cloud-profiler")
-            update_ssh_config(list(cloud_instances_obj_list))
+            profiles_update_p = th.Process(
+                target=update_ssh_config,
+                args=(
+                    cloud_instances_obj_list,
+                )
+            )
+            profiles_update_p.start()
+            profiles_update_list.append(profiles_update_p)
         else:
             print("Cloud-profiler - SSH_Config_create - \"SSH_Config_create\" is not set, so skipping it.")
+
+        for _ in profiles_update_list:
+            _.join()
 
         if os.path.exists('marker.tmp'):
             os.remove("marker.tmp")
         jcounter = json.dumps(instance_counter.copy(), sort_keys=True, indent=4, separators=(',', ': '))
         jcounter_tot = sum(instance_counter.values())
         print(
-            f"\nCreated profiles {jcounter}\nTotal: {jcounter_tot}"
+            f"\nCloud-profiler - Created profiles {jcounter}\nTotal: {jcounter_tot}"
         )
         print(f"\nWe wish you calm clouds and a serene path...\n")

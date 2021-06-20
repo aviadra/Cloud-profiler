@@ -1,4 +1,15 @@
 # Change Log
+## v6.0.3 - [Chasey Amy](https://en.wikipedia.org/wiki/Chasing_Amy)
+Version name thoughts: Chasey... -> Chasing.... -> Chasing Amy -> [Intergalactic civil war?](https://www.youtube.com/watch?v=v3XTHVC1Nf0)
+
+There was a bug where only the first ESX entry would be processed.
+All ESXs are now taken into account and are threaded.
+
+Threading and processes have gotten a face lift to make the entire run even faster and take less resources.
+
+Development abilities added to Windows version of the update profile.
+
+
 ## v6.0.2 - [Chasey Penny](https://en.wikipedia.org/wiki/Penny_(The_Big_Bang_Theory))
 Version name thoughts: Chasey Lain... Lain... Penny Lain... jcpenney -> google -> Window & Home Decor... 
 Yes that is what I've done in this version...
