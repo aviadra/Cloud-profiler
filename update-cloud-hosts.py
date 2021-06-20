@@ -838,12 +838,18 @@ def update_moba(obj_list):
     # update profile
     profiles += f"\n[Bookmarks_1]" \
                 f"\nCP Update profiles {VERSION} =" \
-                f"  ;  logout#151#14%Default%%Interactive shell%__PTVIRG__bash " \
-                f"<(curl -s https://raw.githubusercontent.com/aviadra/Cloud-profiler/$CP_Branch/startup.sh)%%0" \
-                f"#MobaFont%10%0%0%-1%15%236,236,236%30,30,30%180,180,192%0%-1%0%%" \
-                f"xterm%-1%-1%_Std_Colors_0_%80%24%0%1%-1%<none>%12:2:0:curl -s " \
-                f"https__DBLDOT__//raw.githubusercontent.com/aviadra/Cloud-profiler/main/startup.sh __PIIPE__ " \
-                f"bash__PIPE__%0%0%-1#0# #-1"
+                f";  logout#151#14%Default%%Interactive " \
+                f"shell%__PTVIRG__[ -z ${{CP_Version+x}} ] " \
+                f"&& CP_Version__EQUAL__'v6.0.3_Chasey_Next'__PTVIRG__[ -z ${{CP_Branch+x}} ] " \
+                f"&& CP_Branch__EQUAL__'main'__PTVIRG__" \
+                f"[ __DBLQUO__${{CP_Branch}}__DBLQUO__ __EQUAL____EQUAL__ __DBLQUO__develop__DBLQUO__ ] " \
+                f"&& CP_Version__EQUAL__'edge'__PTVIRG__" \
+                f"bash <(curl -s https://raw.githubusercontent.com/aviadra/Cloud-profiler/$CP_Branch/startup.sh)__" \
+                f"PTVIRG__%%0#MobaFont%10%0%0%-1%15%248,248,242%40,42,54%153,153,153%0%-1%0%%xterm%-1%-1%_" \
+                f"Std_Colors_0_%80%24%0%1%-1%<none>%12:2:0:" \
+                f"curl -s https__DBLDOT__//raw.githubusercontent.com/aviadra/Cloud-profiler/main/startup.sh " \
+                f"__PIIPE__ bash__PIPE__%0%0%-1#0# #-1"
+
     # update profile
     bookmark_counter = 2
     s = sorted(
