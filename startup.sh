@@ -39,8 +39,8 @@ else
 fi
 
 
-echo "Personal_Config_File: ${Personal_Config_File}"
 echo -e "Cloud-profiler - Welcome to the startup/setup script."
+echo "Personal_Config_File: ${Personal_Config_File}"
 
 user_waiter() {
   echo -e "Cloud-profiler - If this is not what you wish to do, CTRL+C to abort."
