@@ -10,7 +10,7 @@ urllib3==1.26.5
 certifi==2020.6.20
 chardet==3.0.4
 idna==2.10
-jsonpickle==1.4.1
+jsonpickle==2.0.0
 python-digitalocean==1.15.0
 requests==2.25.1
 inputimeout==1.0.4
