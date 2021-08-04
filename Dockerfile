@@ -35,6 +35,5 @@ CMD ["python3", "-m", "ptvsd", "--host", "0.0.0.0", "--port", "5678", "--wait", 
 ###Prod
 FROM main AS prod
 RUN apk -U upgrade && rm -f /var/cache/apk/*
-RUN echo "" > /bin/sh
 USER appuser
 ENTRYPOINT ["python3", "./service.py"]

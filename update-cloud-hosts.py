@@ -744,6 +744,7 @@ def get_ec2_instances(
         if not checkinternetrequests(
                 url="https://sts.amazonaws.com/",
                 vanity=f"AWS STS endpoint for use with \"{profile_name}.{ec2_role_arn}",
+                verify=True,
                 terminate=False
         ):
             return

@@ -412,7 +412,7 @@ I was going to fix it with a workaround of creating a file for the connection,
 
 ### Static profiles
 The "Static profiles" feature of Cloud_profiler (currently only for MAC),
-  allows you to centrally distribute profiles so that you can reference them with the "iTerm_dynamic_profile_parent"
+  allows you to centrally distribute profiles so that you can reference them with the "Cloud_profiler_dynamic_profile_parent"
 tag. For example, the two profiles in the repo,
 give the "Red Alert" and "Dracula" color schemes with my beloved keyboard shortcuts.
 They are installed for you in the dynamic profiles automatically,
