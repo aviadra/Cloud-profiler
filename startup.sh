@@ -303,18 +303,16 @@ if [[ "$( grep "^  Docker_contexts_create" "${Personal_Config_File}" | awk '{pri
 fi
 
 # 
-if [[ -n "$( docker exec cloud-profiler python3 -c $'import os.path\nif os.path.isfile(\"marker.tmp\"):\n\tprint(\"File exist\")' \
-      2> /dev/null )" ]]; then
-  echo "Cloud-profiler - There is already a profiles refresh in progress..."
-  echo -e "Cloud-profiler - Tailing logs for freshly started container:\n"
-  docker logs --since 1.5s -f cloud-profiler 2>&1 | tee >(sed -n "/clouds/ q") | awk '1;/clouds/{exit}'
+if [[ -n "$( docker exec cloud-profiler python3 -c $'import os.path\nif os.path.isfile(\"marker.tmp\"):\n\tprint(\"File exist\")' 2> /dev/null )" ]]; then
+  echo -e "Cloud-profiler - There is already a profiles refresh in progress, tailing:"
+  docker logs --since 0.1s -f cloud-profiler 2>&1 | tee >(sed -n "/clouds/ q") | awk '1;/clouds/{exit}'
 else
   echo -e "Cloud-profiler - Issuing ad-hoc run."
   docker exec \
     cloud-profiler \
       python3 -c $'import os\nos.mknod("cut.tmp")'
   echo -e "Cloud-profiler - Tailing logs for already running container:\n"
-  docker logs --since 1.5s -f cloud-profiler 2>&1 | tee >(sed -n "/clouds/ q")| awk '/Start of loop/,/clouds/'
+  docker logs --since 0.1s -f cloud-profiler 2>&1 | tee >(sed -n "/clouds/ q")| awk '/Start of loop/,/clouds/'
   echo -e "Cloud-profiler - Tailing logs DONE.\n"
 fi
 
