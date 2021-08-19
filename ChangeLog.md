@@ -1,9 +1,9 @@
 # Change Log
-## v6.0.4/5 - [Chasey Bit](https://freqtrade.io/)
+## v6.0.4/5/6 - [Chasey Bit](https://freqtrade.io/)
 Version name thoughts: This pas couple of months I've been chasing the Bitcoin with a trading bot so havn't invested in Cloud-profiler...
 Also, this is only a little "bit" of change :)
 
-Updated the python/alpine base (seems github doesn't like all python images...)
+Updated the python/alpine base (seems github doesn't like all python images, and python doesn't support s390x anymore for some reson).
 
 Snyk: updated jsonpickle
 
