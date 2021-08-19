@@ -744,6 +744,7 @@ def get_ec2_instances(
         if not checkinternetrequests(
                 url="https://sts.amazonaws.com/",
                 vanity=f"AWS STS endpoint for use with \"{profile_name}.{ec2_role_arn}",
+                verify=True,
                 terminate=False
         ):
             return
@@ -840,7 +841,7 @@ def update_moba(obj_list):
                 f"\nCP Update profiles {VERSION} =" \
                 f";  logout#151#14%Default%%Interactive " \
                 f"shell%__PTVIRG__[ -z ${{CP_Version+x}} ] " \
-                f"&& CP_Version__EQUAL__'v6.0.3_Chasey_Amy'__PTVIRG__[ -z ${{CP_Branch+x}} ] " \
+                f"&& CP_Version__EQUAL__'v6.0.4_Chasey_Bit'__PTVIRG__[ -z ${{CP_Branch+x}} ] " \
                 f"&& CP_Branch__EQUAL__'main'__PTVIRG__" \
                 f"[ __DBLQUO__${{CP_Branch}}__DBLQUO__ __EQUAL____EQUAL__ __DBLQUO__develop__DBLQUO__ ] " \
                 f"&& CP_Version__EQUAL__'edge'__PTVIRG__" \
@@ -1329,7 +1330,7 @@ def checkinternetrequests(url='http://www.google.com/', timeout=3, verify=False,
 
 # MAIN
 if __name__ == '__main__':
-    VERSION = "v6.0.3_Chasey_Amy"
+    VERSION = "v6.0.4_Chasey_Bit"
     with open("marker.tmp", "w") as file:
         file.write("mark")
 

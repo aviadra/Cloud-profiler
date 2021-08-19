@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-[ -z ${CP_Version+x} ] && CP_Version='v6.0.3_Chasey_Amy'
+[ -z ${CP_Version+x} ] && CP_Version='v6.0.4_Chasey_Bit'
 [ "${CP_Branch}" == "develop" ] && CP_Version='edge'
 Personal_Static_Profiles="${HOME}/iTerm2-static-profiles"
 SRC_Static_Profiles="/home/appuser/iTerm2-static-profiles"
@@ -39,8 +39,8 @@ else
 fi
 
 
-echo "Personal_Config_File: ${Personal_Config_File}"
 echo -e "Cloud-profiler - Welcome to the startup/setup script."
+echo "Personal_Config_File: ${Personal_Config_File}"
 
 user_waiter() {
   echo -e "Cloud-profiler - If this is not what you wish to do, CTRL+C to abort."

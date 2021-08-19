@@ -35,7 +35,7 @@ This Hakuteiken [dove](https://en.wikipedia.org/wiki/Doves_as_symbols),
 WSL2 is also the recommended supported method of working with Windows, as it gets the most testing.
 Note: Right now on Windows, the user uid for the container is always root, due to integration with the host issues.
 
-As of v6.0 (Chasey Lain)[https://www.youtube.com/watch?v=If9fC9aJd-U] rudemnty ESXi support has been added.
+As of v6.0 ([Chasey Lain](https://www.youtube.com/watch?v=If9fC9aJd-U)) rudimentary ESXi support has been added.
 
 ## This project has some assumptions
 - Your system has Docker, or python3 installed (if using the "system install" method).
@@ -412,7 +412,7 @@ I was going to fix it with a workaround of creating a file for the connection,
 
 ### Static profiles
 The "Static profiles" feature of Cloud_profiler (currently only for MAC),
-  allows you to centrally distribute profiles so that you can reference them with the "iTerm_dynamic_profile_parent"
+  allows you to centrally distribute profiles so that you can reference them with the "Cloud_profiler_dynamic_profile_parent"
 tag. For example, the two profiles in the repo,
 give the "Red Alert" and "Dracula" color schemes with my beloved keyboard shortcuts.
 They are installed for you in the dynamic profiles automatically,

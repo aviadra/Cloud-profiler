@@ -1,4 +1,19 @@
 # Change Log
+## v6.0.4 - [Chasey Bit](https://freqtrade.io/)
+Version name thoughts: This pas couple of months I've been chasing the Bitcoin with a trading bot so havn't invested in Cloud-profiler...
+Also, this is only a little "bit" of change :)
+
+Updated the python/alpine base
+
+Snyk: updated jsonpickle
+
+Restored "sh" on container (you already have python... who am I kiding?)
+
+Connectivity checker to default to verifying SSL.
+
+Improved the way tailing logs works
+
+
 ## v6.0.3 - [Chasey Amy](https://en.wikipedia.org/wiki/Chasing_Amy)
 Version name thoughts: Chasey... -> Chasing.... -> Chasing Amy -> [Intergalactic civil war?](https://www.youtube.com/watch?v=v3XTHVC1Nf0)
 
