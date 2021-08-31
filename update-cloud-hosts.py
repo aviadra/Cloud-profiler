@@ -929,7 +929,7 @@ def update_moba(obj_list):
             bastion_user = machine.con_username
         else:
             bastion_user = ''
-        if machine.login_command and not machine.platform == 'windows':
+        if machine.login_command and not machine.platform == 'windows' and not machine.login_command == "null":
             login_command = machine.login_command.replace('"', "").replace("|", "__PIPE__").replace("#", "__DIEZE__")
         elif machine.platform == 'windows':
             login_command = '-1%-1'
@@ -1069,7 +1069,7 @@ def update_term(obj_list):
                     connection_command = f"{connection_command} -i {script_config['Local'].get('SSH_keys_path', '.')}" \
                                          f"/{machine.ssh_key}"
 
-                if machine.login_command:
+                if machine.login_command and not machine.login_command == "null":
                     connection_command = f"{connection_command} -t {machine.login_command}"
 
             if machine.dynamic_profile_parent:
