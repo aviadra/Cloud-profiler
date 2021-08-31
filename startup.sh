@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-[ -z ${CP_Version+x} ] && CP_Version='v6.0.9_Chasey_Butō'
+[ -z ${CP_Version+x} ] && CP_Version='v6.0.9_Chasey_Buto'
 [ "${CP_Branch}" == "develop" ] && CP_Version='edge'
 Personal_Static_Profiles="${HOME}/iTerm2-static-profiles"
 SRC_Static_Profiles="/home/appuser/iTerm2-static-profiles"
