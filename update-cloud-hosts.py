@@ -935,6 +935,23 @@ def update_moba(obj_list):
             login_command = '-1%-1'
         else:
             login_command = ''
+        if script_config['Local'].get('Moba', False).get('echo_ssh_command', False).get('toggle', False) and \
+           script_config['Local'].get('Moba', False).get('echo_ssh_command', False).get('assumed_shell', False):
+                cosmetic_login_cmd = f"Cloud-profiler - The equivalent ssh command is:\\nssh {ip_for_connection}"
+                if shard_key_path:
+                    cosmetic_login_cmd = f"{cosmetic_login_cmd} -i {shard_key_path}"
+                if con_username and not con_username == "<default>":
+                    cosmetic_login_cmd = f"{cosmetic_login_cmd} -l {con_username.replace('<','').replace('>','')}"
+                if machine.con_port:
+                    cosmetic_login_cmd = f"{cosmetic_login_cmd} -p {machine.con_port}"
+                if bastion_for_profile:
+                    if bastion_user:
+                        cosmetic_login_cmd = f"{cosmetic_login_cmd} -J {bastion_user}@{bastion_for_profile}:{machine.bastion_con_port}"
+                    else:
+                        cosmetic_login_cmd = f"{cosmetic_login_cmd} -J {bastion_for_profile}:{machine.bastion_con_port}"
+                if login_command:
+                    cosmetic_login_cmd = f"{cosmetic_login_cmd} -t {login_command}"
+                login_command =  f"echo -e \"{cosmetic_login_cmd}\\n\"; {script_config['Local']['Moba']['echo_ssh_command']['assumed_shell']}"
         if connection_type == "#91#4%":
             profile = (
                 f"\n{short_name} = {connection_type}{ip_for_connection}%{machine.con_port}%"
