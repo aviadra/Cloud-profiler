@@ -991,7 +991,8 @@ def update_term(obj_list):
             for tag in machine.iterm_tags:
                 machine.tags.append(tag)
 
-            if "Sorry" in machine.ip:
+            if machine.ip is None or "Sorry" in machine.ip:
+                # If the IP is missing or unknown, do not connect
                 connection_command = "echo"
                 ip_for_connection = machine.ip
             elif machine.instance_use_ip_public or not machine.bastion:
@@ -1215,10 +1216,25 @@ def update_ssh_config(dict_list):
 
 def aws_profiles_from_config_file(script_config_f, instance_counter_f, cloud_instances_obj_list_f):
     processes = []
-    for profile in script_config_f['AWS']['profiles']:
-        print(f"Cloud-profiler - AWS: Working on {profile['name']}")
-        if isinstance(profile.get("role_arns", False), dict):
-            for role_arn_s in profile["role_arns"]:
+    if not script_config_f['AWS'].get('profiles', None)[0] is None:
+        for profile in script_config_f['AWS']['profiles']:
+            print(f"Cloud-profiler - AWS: Working on {profile['name']}")
+            if isinstance(profile.get("role_arns", False), dict):
+                for role_arn_s in profile["role_arns"]:
+                    aws_p = mp.Process(
+                        target=get_ec2_instances,
+                        args=(
+                            profile,
+                            role_arn_s,
+                            instance_counter_f,
+                            script_config_f,
+                            cloud_instances_obj_list_f
+                        )
+                    )
+                    aws_p.start()
+                    processes.append(aws_p)
+            else:
+                role_arn_s = False
                 aws_p = mp.Process(
                     target=get_ec2_instances,
                     args=(
@@ -1231,23 +1247,9 @@ def aws_profiles_from_config_file(script_config_f, instance_counter_f, cloud_ins
                 )
                 aws_p.start()
                 processes.append(aws_p)
-        else:
-            role_arn_s = False
-            aws_p = mp.Process(
-                target=get_ec2_instances,
-                args=(
-                    profile,
-                    role_arn_s,
-                    instance_counter_f,
-                    script_config_f,
-                    cloud_instances_obj_list_f
-                )
-            )
-            aws_p.start()
-            processes.append(aws_p)
 
-    for process in processes:
-        process.join()
+        for process in processes:
+            process.join()
 
 
 def aws_profiles_from_awscli_config(aws_script_config):
