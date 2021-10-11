@@ -937,7 +937,9 @@ def update_moba(obj_list):
             login_command = ''
         if script_config['Local'].get('Moba', False).get('echo_ssh_command', False).get('toggle', False) and \
            script_config['Local'].get('Moba', False).get('echo_ssh_command', False).get('assumed_shell', False):
-                cosmetic_login_cmd = f"Cloud-profiler - The equivalent ssh command is:\\nssh {ip_for_connection}"
+                tags_formated = tags.replace(",","\\n")
+                cosmetic_login_cmd = f"Cloud-profiler - What we know of this machine is:\\n{tags_formated}\\n\\n"
+                cosmetic_login_cmd = f"{cosmetic_login_cmd}Cloud-profiler - The equivalent ssh command is:\\nssh {ip_for_connection}"
                 if shard_key_path:
                     cosmetic_login_cmd = f"{cosmetic_login_cmd} -i {shard_key_path}"
                 if con_username and not con_username == "<default>":
