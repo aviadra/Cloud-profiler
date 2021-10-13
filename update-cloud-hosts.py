@@ -935,10 +935,31 @@ def update_moba(obj_list):
             login_command = '-1%-1'
         else:
             login_command = ''
+        if script_config['Local'].get('Moba', False).get('echo_ssh_command', False).get('toggle', False) and \
+           script_config['Local'].get('Moba', False).get('echo_ssh_command', False).get('assumed_shell', False):
+                tags_formated = tags.replace(",","\\n")
+                cosmetic_login_cmd = f"Cloud-profiler - What we know of this machine is:\\nProvider: {machine.provider_long}\\nIP: {machine.ip}\\n{tags_formated}\\n\\n"
+                cosmetic_login_cmd = f"{cosmetic_login_cmd}Cloud-profiler - The equivalent ssh command is:\\nssh {ip_for_connection}"
+                if shard_key_path:
+                    cosmetic_login_cmd = f"{cosmetic_login_cmd} -i {shard_key_path}"
+                if con_username and not con_username == "<default>":
+                    cosmetic_login_cmd = f"{cosmetic_login_cmd} -l {con_username.replace('<','').replace('>','')}"
+                if machine.con_port:
+                    cosmetic_login_cmd = f"{cosmetic_login_cmd} -p {machine.con_port}"
+                if bastion_for_profile:
+                    if bastion_user:
+                        cosmetic_login_cmd = f"{cosmetic_login_cmd} -J {bastion_user}@{bastion_for_profile}:{machine.bastion_con_port}"
+                    else:
+                        cosmetic_login_cmd = f"{cosmetic_login_cmd} -J {bastion_for_profile}:{machine.bastion_con_port}"
+                cosmetic_login_cmd = f"echo -e \"{cosmetic_login_cmd}\\n\""
+                if login_command:
+                    login_command_fin = f"{cosmetic_login_cmd}; {login_command}"
+                else:
+                    login_command_fin =  f"{cosmetic_login_cmd}; {script_config['Local']['Moba']['echo_ssh_command']['assumed_shell']}"
         if connection_type == "#91#4%":
             profile = (
                 f"\n{short_name} = {connection_type}{ip_for_connection}%{machine.con_port}%"
-                f"{con_username}%0%-1%-1%{login_command}{bastion_for_profile}%{machine.bastion_con_port}"
+                f"{con_username}%0%-1%-1%{login_command_fin}{bastion_for_profile}%{machine.bastion_con_port}"
                 f"%{bastion_user}%"
                 f"%{shard_key_path}"
                 f"1%0%%-1%%-1%0%0%-1%0%-1"
@@ -950,7 +971,7 @@ def update_moba(obj_list):
         else:
             profile = (
                 f"\n{short_name} [{machine.id}] = {connection_type}{ip_for_connection}%{machine.con_port}%"
-                f"{con_username}%%0%-1%{login_command}%{bastion_for_profile}%{machine.bastion_con_port}"
+                f"{con_username}%%0%-1%{login_command_fin}%{bastion_for_profile}%{machine.bastion_con_port}"
                 f"%{bastion_user}%0%"
                 f"0%0%{shard_key_path}%%"
                 f"-1%0%0%0%0%1%1080%0%0%1"
@@ -991,7 +1012,8 @@ def update_term(obj_list):
             for tag in machine.iterm_tags:
                 machine.tags.append(tag)
 
-            if "Sorry" in machine.ip:
+            if machine.ip is None or "Sorry" in machine.ip:
+                # If the IP is missing or unknown, do not connect
                 connection_command = "echo"
                 ip_for_connection = machine.ip
             elif machine.instance_use_ip_public or not machine.bastion:
@@ -1215,10 +1237,25 @@ def update_ssh_config(dict_list):
 
 def aws_profiles_from_config_file(script_config_f, instance_counter_f, cloud_instances_obj_list_f):
     processes = []
-    for profile in script_config_f['AWS']['profiles']:
-        print(f"Cloud-profiler - AWS: Working on {profile['name']}")
-        if isinstance(profile.get("role_arns", False), dict):
-            for role_arn_s in profile["role_arns"]:
+    if not script_config_f['AWS'].get('profiles', None)[0] is None:
+        for profile in script_config_f['AWS']['profiles']:
+            print(f"Cloud-profiler - AWS: Working on {profile['name']}")
+            if isinstance(profile.get("role_arns", False), dict):
+                for role_arn_s in profile["role_arns"]:
+                    aws_p = mp.Process(
+                        target=get_ec2_instances,
+                        args=(
+                            profile,
+                            role_arn_s,
+                            instance_counter_f,
+                            script_config_f,
+                            cloud_instances_obj_list_f
+                        )
+                    )
+                    aws_p.start()
+                    processes.append(aws_p)
+            else:
+                role_arn_s = False
                 aws_p = mp.Process(
                     target=get_ec2_instances,
                     args=(
@@ -1231,23 +1268,9 @@ def aws_profiles_from_config_file(script_config_f, instance_counter_f, cloud_ins
                 )
                 aws_p.start()
                 processes.append(aws_p)
-        else:
-            role_arn_s = False
-            aws_p = mp.Process(
-                target=get_ec2_instances,
-                args=(
-                    profile,
-                    role_arn_s,
-                    instance_counter_f,
-                    script_config_f,
-                    cloud_instances_obj_list_f
-                )
-            )
-            aws_p.start()
-            processes.append(aws_p)
 
-    for process in processes:
-        process.join()
+        for process in processes:
+            process.join()
 
 
 def aws_profiles_from_awscli_config(aws_script_config):
