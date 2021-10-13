@@ -938,7 +938,7 @@ def update_moba(obj_list):
         if script_config['Local'].get('Moba', False).get('echo_ssh_command', False).get('toggle', False) and \
            script_config['Local'].get('Moba', False).get('echo_ssh_command', False).get('assumed_shell', False):
                 tags_formated = tags.replace(",","\\n")
-                cosmetic_login_cmd = f"Cloud-profiler - What we know of this machine is:\\n{tags_formated}\\n\\n"
+                cosmetic_login_cmd = f"Cloud-profiler - What we know of this machine is:\\nProvider: {machine.provider_long}\\nIP: {machine.ip}\\n{tags_formated}\\n\\n"
                 cosmetic_login_cmd = f"{cosmetic_login_cmd}Cloud-profiler - The equivalent ssh command is:\\nssh {ip_for_connection}"
                 if shard_key_path:
                     cosmetic_login_cmd = f"{cosmetic_login_cmd} -i {shard_key_path}"
@@ -951,13 +951,15 @@ def update_moba(obj_list):
                         cosmetic_login_cmd = f"{cosmetic_login_cmd} -J {bastion_user}@{bastion_for_profile}:{machine.bastion_con_port}"
                     else:
                         cosmetic_login_cmd = f"{cosmetic_login_cmd} -J {bastion_for_profile}:{machine.bastion_con_port}"
+                cosmetic_login_cmd = f"echo -e \"{cosmetic_login_cmd}\\n\""
                 if login_command:
-                    cosmetic_login_cmd = f"{cosmetic_login_cmd} -t {login_command}"
-                login_command =  f"echo -e \"{cosmetic_login_cmd}\\n\"; {script_config['Local']['Moba']['echo_ssh_command']['assumed_shell']}"
+                    login_command_fin = f"{cosmetic_login_cmd}; {login_command}"
+                else:
+                    login_command_fin =  f"{cosmetic_login_cmd}; {script_config['Local']['Moba']['echo_ssh_command']['assumed_shell']}"
         if connection_type == "#91#4%":
             profile = (
                 f"\n{short_name} = {connection_type}{ip_for_connection}%{machine.con_port}%"
-                f"{con_username}%0%-1%-1%{login_command}{bastion_for_profile}%{machine.bastion_con_port}"
+                f"{con_username}%0%-1%-1%{login_command_fin}{bastion_for_profile}%{machine.bastion_con_port}"
                 f"%{bastion_user}%"
                 f"%{shard_key_path}"
                 f"1%0%%-1%%-1%0%0%-1%0%-1"
@@ -969,7 +971,7 @@ def update_moba(obj_list):
         else:
             profile = (
                 f"\n{short_name} [{machine.id}] = {connection_type}{ip_for_connection}%{machine.con_port}%"
-                f"{con_username}%%0%-1%{login_command}%{bastion_for_profile}%{machine.bastion_con_port}"
+                f"{con_username}%%0%-1%{login_command_fin}%{bastion_for_profile}%{machine.bastion_con_port}"
                 f"%{bastion_user}%0%"
                 f"0%0%{shard_key_path}%%"
                 f"-1%0%0%0%0%1%1080%0%0%1"
