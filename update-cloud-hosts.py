@@ -841,7 +841,7 @@ def update_moba(obj_list):
                 f"\nCP Update profiles {VERSION} =" \
                 f";  logout#151#14%Default%%Interactive " \
                 f"shell%__PTVIRG__[ -z ${{CP_Version+x}} ] " \
-                f"&& CP_Version__EQUAL__'v6.0.4_Chasey_Bit'__PTVIRG__[ -z ${{CP_Branch+x}} ] " \
+                f"&& CP_Version__EQUAL__'v6.0.9_Chasey_Buto'__PTVIRG__[ -z ${{CP_Branch+x}} ] " \
                 f"&& CP_Branch__EQUAL__'main'__PTVIRG__" \
                 f"[ __DBLQUO__${{CP_Branch}}__DBLQUO__ __EQUAL____EQUAL__ __DBLQUO__develop__DBLQUO__ ] " \
                 f"&& CP_Version__EQUAL__'edge'__PTVIRG__" \
@@ -929,7 +929,7 @@ def update_moba(obj_list):
             bastion_user = machine.con_username
         else:
             bastion_user = ''
-        if machine.login_command and not machine.platform == 'windows':
+        if machine.login_command and not machine.platform == 'windows' and not machine.login_command == "null":
             login_command = machine.login_command.replace('"', "").replace("|", "__PIPE__").replace("#", "__DIEZE__")
         elif machine.platform == 'windows':
             login_command = '-1%-1'
@@ -1091,7 +1091,7 @@ def update_term(obj_list):
                     connection_command = f"{connection_command} -i {script_config['Local'].get('SSH_keys_path', '.')}" \
                                          f"/{machine.ssh_key}"
 
-                if machine.login_command:
+                if machine.login_command and not machine.login_command == "null":
                     connection_command = f"{connection_command} -t {machine.login_command}"
 
             if machine.dynamic_profile_parent:
@@ -1353,7 +1353,7 @@ def checkinternetrequests(url='http://www.google.com/', timeout=3, verify=False,
 
 # MAIN
 if __name__ == '__main__':
-    VERSION = "v6.0.4_Chasey_Bit"
+    VERSION = "v6.0.9_Chasey_Buto"
     with open("marker.tmp", "w") as file:
         file.write("mark")
 

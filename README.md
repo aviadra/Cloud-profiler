@@ -93,7 +93,7 @@ Local:
   Bastion: False
   SSH_keys_path: "~/Downloads"
   Use_shared_key: False
-  Login_command: "sudo -i"
+  Login_command: "sudo -E su"
   Parallel_exec: True
   Skip_stopped: True
   Badge_info_to_display:
@@ -370,6 +370,9 @@ The default is to not use the shared key with the value of "False".
 
 `Cloud_profiler_SSH_key` - The name of the key to use. If this is not defined, and the "Use_shared_key" is set,
 the key name on the instance is used.
+
+`cloud_profiler_Login_command` - The command to execute when connecting (using -t). I used to use "sudo -i" to gain root,
+however I've found that "sudo -E su" achieves the same result, but keeps forwarding my SSH key... so up to you...
 
 ### Digital Ocean
 Digital Ocean's implementation of VPC is such that there isn't a way to set tags on it (that I have seen).

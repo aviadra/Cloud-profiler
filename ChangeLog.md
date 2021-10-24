@@ -1,13 +1,20 @@
 # Change Log
-## v6.0.4 - [Chasey Bit](https://freqtrade.io/)
-Version name thoughts: This pas couple of months I've been chasing the Bitcoin with a trading bot so havn't invested in Cloud-profiler...
+## v6.0.9 - [Chasey Butō](https://bleach.fandom.com/wiki/But%C5%8D)
+Version name thoughts: Null -> null step (Butō) -> TTS Butō (sounds like butt) -> Chasey butt?? how can I resist?
+
+Added the ability to put the value of the "Login_command" tag to "null", as a way to disable it.
+This was needed, because when tagging on DO, it was not possible to use the regular empty string 
+(as I have been doing on AWS), as DO simply doesn't allow it.
+
+## v6.0.4-8 - [Chasey Bit](https://freqtrade.io/)
+Version name thoughts: This past couple of months I've been chasing the Bitcoin with a trading bot so havn't invested in Cloud-profiler...
 Also, this is only a little "bit" of change :)
 
-Updated the python/alpine base
+Updated the python/alpine base (seems Github doesn't like all python images, and python doesn't support s390x anymore for some reason).
 
 Snyk: updated jsonpickle
 
-Restored "sh" on container (you already have python... who am I kiding?)
+Restored "sh" on container (you already have python... who am I kidding?)
 
 Connectivity checker to default to verifying SSL.
 
@@ -289,7 +296,7 @@ Updated superlinter version used.
 ## v1.8.4
 Added the tags "PrivateDnsName" and "ImageId" for AWS instances to be part of the information gathered.
 
-Internal, Added repo linting as github action.
+Internal, Added repo linting as Github action.
 
 ## v1.8.3
 Update profiles now simply resets the "rest counter" instead of causing an out of turn execution.
