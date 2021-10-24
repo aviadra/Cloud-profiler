@@ -935,8 +935,8 @@ def update_moba(obj_list):
             login_command = '-1%-1'
         else:
             login_command = ''
-        if script_config['Local'].get('Moba', False).get('echo_ssh_command', False).get('toggle', False) and \
-           script_config['Local'].get('Moba', False).get('echo_ssh_command', False).get('assumed_shell', False):
+        if script_config['Local'].get('Moba', {}).get('echo_ssh_command', {}).get('toggle', False) and \
+           script_config['Local'].get('Moba', {}).get('echo_ssh_command', {}).get('assumed_shell', False):
                 tags_formated = tags.replace(",","\\n")
                 cosmetic_login_cmd = f"Cloud-profiler - What we know of this machine is:\\nProvider: {machine.provider_long}\\nIP: {machine.ip}\\n{tags_formated}\\n\\n"
                 cosmetic_login_cmd = f"{cosmetic_login_cmd}Cloud-profiler - The equivalent ssh command is:\\nssh {ip_for_connection}"
@@ -956,6 +956,8 @@ def update_moba(obj_list):
                     login_command_fin = f"{cosmetic_login_cmd}; {login_command}"
                 else:
                     login_command_fin =  f"{cosmetic_login_cmd}; {script_config['Local']['Moba']['echo_ssh_command']['assumed_shell']}"
+        else:
+            login_command_fin = login_command
         if connection_type == "#91#4%":
             profile = (
                 f"\n{short_name} = {connection_type}{ip_for_connection}%{machine.con_port}%"
