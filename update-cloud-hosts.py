@@ -27,7 +27,7 @@ import re
 from sshconf import empty_ssh_config_file
 from pyVmomi import vim
 from pyVim import connect
-
+import ctypes.wintypes
 
 class InstanceProfile:
     script_config = {}
@@ -1374,7 +1374,13 @@ if __name__ == '__main__':
         if os.environ.get('CP_OutputDir', False):
             CP_OutputDir = os.environ['CP_OutputDir']
         elif platform.system() == 'Windows' or os.environ.get('CP_Windows', False):
-            CP_OutputDir = "~/Documents/Cloud_Profiler/"
+            CSIDL_PERSONAL = 5       # My Documents
+            SHGFP_TYPE_CURRENT = 0   # Get current, not default value
+
+            buf = ctypes.create_unicode_buffer(ctypes.wintypes.MAX_PATH)
+            ctypes.windll.shell32.SHGetFolderPathW(None, CSIDL_PERSONAL, None, SHGFP_TYPE_CURRENT, buf)
+
+            CP_OutputDir = os.path.join(buf.value, "Cloud_Profiler")
         else:
             CP_OutputDir = "~/Library/Application Support/iTerm2/DynamicProfiles/"
         print(f"Cloud-profiler - CP_OutputDir to be used: {CP_OutputDir}")
@@ -1388,7 +1394,7 @@ if __name__ == '__main__':
         if not platform.system() == 'Windows' and not os.environ.get('CP_Windows', False):
             home_dir = "~/.iTerm-cloud-profile-generator/"
         else:
-            home_dir = "~/Documents/Cloud_Profiler/"
+            home_dir = CP_OutputDir
         if os.path.isfile(os.path.expanduser((os.path.join(home_dir, "config.yaml")))):
             print("Cloud-profiler - Found conf file in place")
             with open(os.path.expanduser((os.path.join(home_dir, "config.yaml")))) as conf_file:
