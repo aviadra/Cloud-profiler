@@ -29,6 +29,7 @@ from pyVmomi import vim
 from pyVim import connect
 import ctypes.wintypes
 
+
 class InstanceProfile:
     script_config = {}
     """This is an instance profile"""
@@ -208,7 +209,7 @@ def get_esx_tag_value(tags, q_tag, q_tag_value) -> Union[int, str]:
 
 def get_tag_value(tags, q_tag, sg=None, q_tag_value=False) -> Union[bool, int, str]:
     for tag in tags:
-        tag['Key'] = tag.get('Key', '').casefold()
+        tag['Key'] = tag.get('Key', '').casefold().replace('\t', '').replace('\n', '')
         if 'iterm_' in tag.get('Key', ''):
             tag['Key'] = tag['Key'].rpartition('iterm_')[2]
         if 'cloud_profiler_' in tag.get('Key', ''):
@@ -853,15 +854,8 @@ def update_moba(obj_list):
 
     # update profile
     bookmark_counter = 2
-    s = sorted(
-        obj_list,
-        key=lambda i: (
-            i.region.lower(),
-            i.name.lower(),
-            i.name.split(f"{i.instance_source}.")[1].lower()
-        )
-    )
-    for machine in s:
+
+    for machine in obj_list:
         instance_counter[machine.instance_source] += 1
 
         profiles += f"\n[Bookmarks_{bookmark_counter}]" \
@@ -936,26 +930,30 @@ def update_moba(obj_list):
         else:
             login_command = ''
         if script_config['Local'].get('Moba', {}).get('echo_ssh_command', {}).get('toggle', False) and \
-           script_config['Local'].get('Moba', {}).get('echo_ssh_command', {}).get('assumed_shell', False):
-                tags_formated = tags.replace(",","\\n")
-                cosmetic_login_cmd = f"Cloud-profiler - What we know of this machine is:\\nProvider: {machine.provider_long}\\nIP: {machine.ip}\\n{tags_formated}\\n\\n"
-                cosmetic_login_cmd = f"{cosmetic_login_cmd}Cloud-profiler - The equivalent ssh command is:\\nssh {ip_for_connection}"
-                if shard_key_path:
-                    cosmetic_login_cmd = f"{cosmetic_login_cmd} -i {shard_key_path}"
-                if con_username and not con_username == "<default>":
-                    cosmetic_login_cmd = f"{cosmetic_login_cmd} -l {con_username.replace('<','').replace('>','')}"
-                if machine.con_port:
-                    cosmetic_login_cmd = f"{cosmetic_login_cmd} -p {machine.con_port}"
-                if bastion_for_profile:
-                    if bastion_user:
-                        cosmetic_login_cmd = f"{cosmetic_login_cmd} -J {bastion_user}@{bastion_for_profile}:{machine.bastion_con_port}"
-                    else:
-                        cosmetic_login_cmd = f"{cosmetic_login_cmd} -J {bastion_for_profile}:{machine.bastion_con_port}"
-                cosmetic_login_cmd = f"echo -e \"{cosmetic_login_cmd}\\n\""
-                if login_command:
-                    login_command_fin = f"{cosmetic_login_cmd}; {login_command}"
+                script_config['Local'].get('Moba', {}).get('echo_ssh_command', {}).get('assumed_shell', False):
+            tags_formated = tags.replace(",", "\\n")
+            cosmetic_login_cmd = f"Cloud-profiler - What we know of this machine is:" \
+                                 f"\\nProvider: {machine.provider_long}\\nIP: {machine.ip}\\n{tags_formated}\\n\\n"
+            cosmetic_login_cmd = f"{cosmetic_login_cmd}Cloud-profiler - The equivalent ssh command is:" \
+                                 f"\\nssh {ip_for_connection}"
+            if shard_key_path:
+                cosmetic_login_cmd = f"{cosmetic_login_cmd} -i {shard_key_path}"
+            if con_username and not con_username == "<default>":
+                cosmetic_login_cmd = f"{cosmetic_login_cmd} -l {con_username.replace('<', '').replace('>', '')}"
+            if machine.con_port:
+                cosmetic_login_cmd = f"{cosmetic_login_cmd} -p {machine.con_port}"
+            if bastion_for_profile:
+                if bastion_user:
+                    cosmetic_login_cmd = f"{cosmetic_login_cmd} -J " \
+                                         f"{bastion_user}@{bastion_for_profile}:{machine.bastion_con_port}"
                 else:
-                    login_command_fin =  f"{cosmetic_login_cmd}; {script_config['Local']['Moba']['echo_ssh_command']['assumed_shell']}"
+                    cosmetic_login_cmd = f"{cosmetic_login_cmd} -J {bastion_for_profile}:{machine.bastion_con_port}"
+            cosmetic_login_cmd = f"echo -e \"{cosmetic_login_cmd}\\n\""
+            if login_command:
+                login_command_fin = f"{cosmetic_login_cmd}; {login_command}"
+            else:
+                login_command_fin = f"{cosmetic_login_cmd}; " \
+                                    f"{script_config['Local']['Moba']['echo_ssh_command']['assumed_shell']}"
         else:
             login_command_fin = login_command
         if connection_type == "#91#4%":
@@ -1213,7 +1211,7 @@ def update_ssh_config(dict_list):
         if machine.platform == 'windows':
             print(f"Cloud-profiler - SSH_Config_create - Skipping this {name}, as it is a Windows machine.")
             continue
-        if machine.instance_use_ip_public or not machine.bastion:
+        if (machine.instance_use_ip_public or not machine.bastion) and not machine.ip_public == '':
             ip_for_connection = machine.ip_public
         else:
             ip_for_connection = machine.ip
@@ -1374,8 +1372,8 @@ if __name__ == '__main__':
         if os.environ.get('CP_OutputDir', False):
             CP_OutputDir = os.environ['CP_OutputDir']
         elif platform.system() == 'Windows' or os.environ.get('CP_Windows', False):
-            CSIDL_PERSONAL = 5       # My Documents
-            SHGFP_TYPE_CURRENT = 0   # Get current, not default value
+            CSIDL_PERSONAL = 5  # My Documents
+            SHGFP_TYPE_CURRENT = 0  # Get current, not default value
 
             buf = ctypes.create_unicode_buffer(ctypes.wintypes.MAX_PATH)
             ctypes.windll.shell32.SHGetFolderPathW(None, CSIDL_PERSONAL, None, SHGFP_TYPE_CURRENT, buf)
@@ -1520,8 +1518,10 @@ if __name__ == '__main__':
 
         if script_config['Local'].get('SSH_Config_create'):
             print("Cloud-profiler - SSH_Config_create is set, so will create config.")
-            User_SSH_Config = os.path.expanduser("~/.ssh/config")
-            CP_SSH_Config = os.path.expanduser("~/.ssh/cloud-profiler")
+            User_SSH_Config = os.path.join(os.path.join(os.path.expanduser("~"), ".ssh"), "config")
+            CP_SSH_Config = os.path.join(os.path.join(os.path.expanduser("~"), ".ssh"), "cloud-profiler")
+            with open(User_SSH_Config, "w") as file:
+                file.write("")
             with open(User_SSH_Config) as f:
                 if f"Include ~/.ssh/cloud-profiler" in f.read():
                     print(
