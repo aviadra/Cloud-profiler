@@ -10,7 +10,7 @@ FROM base AS wheeler
 RUN apk -U add --no-cache \
     gcc \
     libc-dev
-RUN pip3 wheel PyCryptodome==3.10.1
+RUN pip3 wheel PyCryptodome pyVmomi
 
 FROM base AS main
 RUN mkdir -p /home/appuser/
@@ -26,11 +26,6 @@ COPY . /home/appuser/
 RUN addgroup -S appuser && adduser -S appuser -G appuser && \
     chown -R appuser:appuser /home/appuser/
 RUN chmod -R o+wr /home/appuser/
-
-#### Debug
-FROM main AS debug
-RUN pip3 install ptvsd==4.3.2 --no-cache-dir 
-CMD ["python3", "-m", "ptvsd", "--host", "0.0.0.0", "--port", "5678", "--wait", "--multiprocess", "./update-cloud-hosts.py"]
 
 ###Prod
 FROM main AS prod
