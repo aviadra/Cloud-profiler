@@ -109,7 +109,7 @@ Local:
     Group: False
     Id: True
     Instance_use_Bastion: False
-    Instance_use_ip_public: False
+    instance_use_ip_public: False
     Iterm_tags_prefixs: ["ENV"]
     # Iterm_tags_prefixs: []
     Password: False
@@ -224,7 +224,7 @@ in order to get a line braked list of the name information.
 
 `Instance_use_Bastion` - Is the flag of using the Bastion set?
 
-`Instance_use_Ip_public` - Is the flag of using the public IP set?
+`instance_use_ip_public` - Is the flag of using the public IP set?
 
 `Iterm_tags_prefixs` - Iterm_tags, are what iTerm uses for indexing and show as information in the instance.
 It is possible to set this toggle to false so not show them at all.
