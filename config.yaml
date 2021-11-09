@@ -39,6 +39,7 @@ Local:
     echo_ssh_command: 
       toggle: True
       assumed_shell: "bash"
+      what_is_my_ip: False
 
     colors:
       - name: "Red Alert"
