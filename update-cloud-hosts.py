@@ -28,7 +28,7 @@ from sshconf import empty_ssh_config_file
 from pyVmomi import vim
 from pyVim import connect
 import ctypes.wintypes
-
+import random
 
 class InstanceProfile:
     script_config = {}
@@ -842,7 +842,7 @@ def update_moba(obj_list):
                 f"\nCP Update profiles {VERSION} =" \
                 f";  logout#151#14%Default%%Interactive " \
                 f"shell%__PTVIRG__[ -z ${{CP_Version+x}} ] " \
-                f"&& CP_Version__EQUAL__'v6.1.0_Chasey_Pencive'__PTVIRG__[ -z ${{CP_Branch+x}} ] " \
+                f"&& CP_Version__EQUAL__'v6.1.1_Chasey_Pencive_Flitterby'__PTVIRG__[ -z ${{CP_Branch+x}} ] " \
                 f"&& CP_Branch__EQUAL__'main'__PTVIRG__" \
                 f"[ __DBLQUO__${{CP_Branch}}__DBLQUO__ __EQUAL____EQUAL__ __DBLQUO__develop__DBLQUO__ ] " \
                 f"&& CP_Version__EQUAL__'edge'__PTVIRG__" \
@@ -931,10 +931,20 @@ def update_moba(obj_list):
             login_command = ''
         if script_config['Local'].get('Moba', {}).get('echo_ssh_command', {}).get('toggle', False) and \
                 script_config['Local'].get('Moba', {}).get('echo_ssh_command', {}).get('assumed_shell', False):
-            tags_formated = tags.replace(",", "\\n")
+            tags_formatted = tags.replace(",", "\\n")
             cosmetic_login_cmd = f"Cloud-profiler - What we know of this machine is:" \
-                                 f"\\nProvider: {machine.provider_long}\\nIP: {machine.ip}\\n{tags_formated}\\n\\n"
-            cosmetic_login_cmd = f"{cosmetic_login_cmd}Cloud-profiler - The equivalent ssh command is:" \
+                                 f"\\nProvider: {machine.provider_long}" \
+                                 f"\\nIP: {machine.ip}" \
+                                 f"\\n{tags_formatted}\\n"
+            ip_providers = script_config['Local'].get('Moba', {}).get('echo_ssh_command', {}).get('what_is_my_ip', [])
+            if script_config['Local'].get('Moba', {}).get('echo_ssh_command', {}).get('toggle', False) and ip_providers:
+                cosmetic_login_cmd = f"{cosmetic_login_cmd}" \
+                                     f"The external IP detected is: " \
+                                     f"$( a=$( curl -s --connect-timeout 2 {random.choice(ip_providers)} )" \
+                                     f";if [[ $? == 0 ]];then echo \"$a\";" \
+                                     f"else echo \"Sorry, failed to resolve the external ip address " \
+                                     f"via \'{random.choice(ip_providers)}\'.\" ; fi )"
+            cosmetic_login_cmd = f"{cosmetic_login_cmd}\\n\\nCloud-profiler - The equivalent ssh command is:" \
                                  f"\\nssh {ip_for_connection}"
             if shard_key_path:
                 cosmetic_login_cmd = f"{cosmetic_login_cmd} -i {shard_key_path}"
@@ -1353,7 +1363,7 @@ def checkinternetrequests(url='http://www.google.com/', timeout=3, verify=False,
 
 # MAIN
 if __name__ == '__main__':
-    VERSION = "v6.1.0_Chasey_Pencive"
+    VERSION = "v6.1.1_Chasey_Pencive_Flitterby"
     with open("marker.tmp", "w") as file:
         file.write("mark")
 
@@ -1520,25 +1530,28 @@ if __name__ == '__main__':
             print("Cloud-profiler - SSH_Config_create is set, so will create config.")
             User_SSH_Config = os.path.join(os.path.join(os.path.expanduser("~"), ".ssh"), "config")
             CP_SSH_Config = os.path.join(os.path.join(os.path.expanduser("~"), ".ssh"), "cloud-profiler")
-            with open(User_SSH_Config, "w") as file:
-                file.write("")
-            with open(User_SSH_Config) as f:
-                if f"Include ~/.ssh/cloud-profiler" in f.read():
-                    print(
-                        "Cloud-profiler - Found ssh_config include directive for CP in user's ssh config file, "
-                        "so leaving it as is.")
-                else:
-                    print("Cloud-profiler - Did not find include directive  for CP in user's ssh config file, "
-                          "so adding it.")
-                    line_prepender(User_SSH_Config, "Include ~/.ssh/cloud-profiler")
-            profiles_update_p = th.Process(
-                target=update_ssh_config,
-                args=(
-                    cloud_instances_obj_list,
+            if not platform.system() == 'Windows' and not os.path.exists(User_SSH_Config):
+                with open(User_SSH_Config, "w") as file:
+                    file.write("")
+                with open(User_SSH_Config) as f:
+                    if f"Include ~/.ssh/cloud-profiler" in f.read():
+                        print(
+                            "Cloud-profiler - Found ssh_config include directive for CP in user's ssh config file, "
+                            "so leaving it as is.")
+                    else:
+                        print("Cloud-profiler - Did not find include directive  for CP in user's ssh config file, "
+                              "so adding it.")
+                        line_prepender(User_SSH_Config, "Include ~/.ssh/cloud-profiler")
+                profiles_update_p = th.Process(
+                    target=update_ssh_config,
+                    args=(
+                        cloud_instances_obj_list,
+                    )
                 )
-            )
-            profiles_update_p.start()
-            profiles_update_list.append(profiles_update_p)
+                profiles_update_p.start()
+                profiles_update_list.append(profiles_update_p)
+            else:
+                print("Cloud-profiler - SSH_Config_create - This is a Windows native run, so skipping it.")
         else:
             print("Cloud-profiler - SSH_Config_create - \"SSH_Config_create\" is not set, so skipping it.")
 

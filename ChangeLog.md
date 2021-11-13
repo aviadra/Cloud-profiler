@@ -1,4 +1,17 @@
 # Change Log
+## v6.1.1 - [Chasey Pencive Flitterby](https://harrypotter.fandom.com/wiki/Flitterby)
+Version name thoughts: Right after release, Shira has brought to my attention that I have introduced a bug, and [Pencive](https://harrypotterwizardsunite.fandom.com/wiki/Pensieve)
+is such a good name it's a shame to let it go so soon, so I didn't.
+
+I was trying to make it so the 
+SSH config file will be created for the user automatically. 
+However, I forgot to add the "only if it doesn't exist" part...
+
+Even the wings of a tiny Flitterby can change the world with one innocent flap.
+
+
+CP in Moba mode, is now able to ask a provided list of external ip providers for the "real" external IP of the machine.
+
 ## v6.1.0 - [Chasey Pencive](https://harrypotterwizardsunite.fandom.com/wiki/Pensieve)
 Version name thoughts: Girls give me a name for something that shows you information you already know -> 
 [Pencive](https://harrypotterwizardsunite.fandom.com/wiki/Pensieve).
