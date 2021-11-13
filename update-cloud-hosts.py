@@ -28,7 +28,7 @@ from sshconf import empty_ssh_config_file
 from pyVmomi import vim
 from pyVim import connect
 import ctypes.wintypes
-
+import random
 
 class InstanceProfile:
     script_config = {}
@@ -936,11 +936,15 @@ def update_moba(obj_list):
                                  f"\\nProvider: {machine.provider_long}" \
                                  f"\\nIP: {machine.ip}" \
                                  f"\\n{tags_formatted}\\n"
-            if script_config['Local'].get('Moba', {}).get('echo_ssh_command', {}).get('toggle', False) and \
-                    script_config['Local'].get('Moba', {}).get('echo_ssh_command', {}).get('what_is_my_ip', False):
-                cosmetic_login_cmd = f"{cosmetic_login_cmd}The external IP detected is: " \
-                                     f"$( curl -s --connect-timeout 2 ifconfig.me )\\n\\n"
-            cosmetic_login_cmd = f"{cosmetic_login_cmd}Cloud-profiler - The equivalent ssh command is:" \
+            ip_providers = script_config['Local'].get('Moba', {}).get('echo_ssh_command', {}).get('what_is_my_ip', [])
+            if script_config['Local'].get('Moba', {}).get('echo_ssh_command', {}).get('toggle', False) and ip_providers:
+                cosmetic_login_cmd = f"{cosmetic_login_cmd}" \
+                                     f"The external IP detected is: " \
+                                     f"$( a=$( curl -s --connect-timeout 2 {random.choice(ip_providers)} )" \
+                                     f";if [[ $? == 0 ]];then echo \"$a\";" \
+                                     f"else echo \"Sorry, failed to resolve the external ip address " \
+                                     f"via \'{random.choice(ip_providers)}\'.\" ; fi )"
+            cosmetic_login_cmd = f"{cosmetic_login_cmd}\\n\\nCloud-profiler - The equivalent ssh command is:" \
                                  f"\\nssh {ip_for_connection}"
             if shard_key_path:
                 cosmetic_login_cmd = f"{cosmetic_login_cmd} -i {shard_key_path}"
@@ -1526,7 +1530,7 @@ if __name__ == '__main__':
             print("Cloud-profiler - SSH_Config_create is set, so will create config.")
             User_SSH_Config = os.path.join(os.path.join(os.path.expanduser("~"), ".ssh"), "config")
             CP_SSH_Config = os.path.join(os.path.join(os.path.expanduser("~"), ".ssh"), "cloud-profiler")
-            if not platform.system() == 'Windows':
+            if not platform.system() == 'Windows' and not os.path.exists(User_SSH_Config):
                 with open(User_SSH_Config, "w") as file:
                     file.write("")
                 with open(User_SSH_Config) as f:

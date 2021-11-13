@@ -39,8 +39,13 @@ Local:
     echo_ssh_command: 
       toggle: True
       assumed_shell: "bash"
-      what_is_my_ip: False
-
+      what_is_my_ip: [
+          'ifconfig.me',
+          'icanhazip.com',
+          'ipecho.net/plain',
+          'bot.whatismyipaddress.com',
+          'api.ipify.org'
+      ] # To disable change the list to be empty([]).
     colors:
       - name: "Red Alert"
         RGBs: >-
