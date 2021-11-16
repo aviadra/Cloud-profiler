@@ -938,12 +938,13 @@ def update_moba(obj_list):
                                  f"\\n{tags_formatted}\\n"
             ip_providers = script_config['Local'].get('Moba', {}).get('echo_ssh_command', {}).get('what_is_my_ip', [])
             if script_config['Local'].get('Moba', {}).get('echo_ssh_command', {}).get('toggle', False) and ip_providers:
+                machine_ex_ip_prov = random.choice(ip_providers)
                 cosmetic_login_cmd = f"{cosmetic_login_cmd}" \
                                      f"The external IP detected is: " \
-                                     f"$( a=$( curl -s --connect-timeout 2 {random.choice(ip_providers)} )" \
+                                     f"$( a=$( curl -s --connect-timeout 2 {machine_ex_ip_prov} )" \
                                      f";if [[ $? == 0 ]];then echo \"$a\";" \
                                      f"else echo \"Sorry, failed to resolve the external ip address " \
-                                     f"via \'{random.choice(ip_providers)}\'.\" ; fi )"
+                                     f"via \'{machine_ex_ip_prov}\'.\" ; fi )"
             cosmetic_login_cmd = f"{cosmetic_login_cmd}\\n\\nCloud-profiler - The equivalent ssh command is:" \
                                  f"\\nssh {ip_for_connection}"
             if shard_key_path:
