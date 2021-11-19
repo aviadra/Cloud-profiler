@@ -36,6 +36,16 @@ Local:
   SSH_Config_create: False
   Docker_contexts_create: False
   Moba:
+    echo_ssh_command: 
+      toggle: True
+      assumed_shell: "bash"
+      what_is_my_ip: [
+          'ifconfig.me',
+          'icanhazip.com',
+          'ipecho.net/plain',
+          'bot.whatismyipaddress.com',
+          'api.ipify.org'
+      ] # To disable change the list to be empty([]).
     colors:
       - name: "Red Alert"
         RGBs: >-
@@ -62,8 +72,8 @@ Local:
           %84,204,239
           %142,221,244
           %204,204,204
-
   Subs_timeout: 60
+
 
 AWS:
   exclude_regions: ["ap-southeast-1", "ap-southeast-2","sa-east-1","ap-northeast-1","ap-northeast-2","ap-south-1"]
@@ -91,7 +101,7 @@ DO:
   #   -
   #     name: "The one"
   #     token: "secretspecialuniquesnowflake"
-  #     Use_ip_public: True
+  #     instance_use_ip_public: True
 
 ESX:
   disableSslCertValidation: True

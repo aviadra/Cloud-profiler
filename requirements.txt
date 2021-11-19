@@ -1,21 +1,21 @@
 boto3
 botocore
-docutils==0.16
-jmespath==0.10.0
-python-dateutil==2.8.1
-PyYAML==5.4
+docutils
+jmespath
+python-dateutil
+PyYAML
 s3transfer
 six
-urllib3==1.26.5
-certifi==2020.6.20
-chardet==3.0.4
-idna==2.10
-jsonpickle==1.4.1
-python-digitalocean==1.15.0
-requests==2.25.1
-inputimeout==1.0.4
-progressbar2==3.53.1
-sshconf==0.2.2
+urllib3
+certifi
+chardet
+idna
+jsonpickle
+python-digitalocean
+requests
+inputimeout
+progressbar2
+sshconf
 ntplib
-pyVmomi==7.0.2
-PyCryptodome==3.10.1; sys_platform!="linux"
+pyVmomi ; sys_platform!="linux"
+PyCryptodome ; sys_platform!="linux"

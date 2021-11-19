@@ -27,7 +27,8 @@ import re
 from sshconf import empty_ssh_config_file
 from pyVmomi import vim
 from pyVim import connect
-
+import ctypes.wintypes
+import random
 
 class InstanceProfile:
     script_config = {}
@@ -208,7 +209,7 @@ def get_esx_tag_value(tags, q_tag, q_tag_value) -> Union[int, str]:
 
 def get_tag_value(tags, q_tag, sg=None, q_tag_value=False) -> Union[bool, int, str]:
     for tag in tags:
-        tag['Key'] = tag.get('Key', '').casefold()
+        tag['Key'] = tag.get('Key', '').casefold().replace('\t', '').replace('\n', '')
         if 'iterm_' in tag.get('Key', ''):
             tag['Key'] = tag['Key'].rpartition('iterm_')[2]
         if 'cloud_profiler_' in tag.get('Key', ''):
@@ -744,6 +745,7 @@ def get_ec2_instances(
         if not checkinternetrequests(
                 url="https://sts.amazonaws.com/",
                 vanity=f"AWS STS endpoint for use with \"{profile_name}.{ec2_role_arn}",
+                verify=True,
                 terminate=False
         ):
             return
@@ -840,7 +842,7 @@ def update_moba(obj_list):
                 f"\nCP Update profiles {VERSION} =" \
                 f";  logout#151#14%Default%%Interactive " \
                 f"shell%__PTVIRG__[ -z ${{CP_Version+x}} ] " \
-                f"&& CP_Version__EQUAL__'v6.0.3_Chasey_Amy'__PTVIRG__[ -z ${{CP_Branch+x}} ] " \
+                f"&& CP_Version__EQUAL__'v6.1.2_Chasey_Pencive_Gil'__PTVIRG__[ -z ${{CP_Branch+x}} ] " \
                 f"&& CP_Branch__EQUAL__'main'__PTVIRG__" \
                 f"[ __DBLQUO__${{CP_Branch}}__DBLQUO__ __EQUAL____EQUAL__ __DBLQUO__develop__DBLQUO__ ] " \
                 f"&& CP_Version__EQUAL__'edge'__PTVIRG__" \
@@ -852,15 +854,8 @@ def update_moba(obj_list):
 
     # update profile
     bookmark_counter = 2
-    s = sorted(
-        obj_list,
-        key=lambda i: (
-            i.region.lower(),
-            i.name.lower(),
-            i.name.split(f"{i.instance_source}.")[1].lower()
-        )
-    )
-    for machine in s:
+
+    for machine in obj_list:
         instance_counter[machine.instance_source] += 1
 
         profiles += f"\n[Bookmarks_{bookmark_counter}]" \
@@ -928,16 +923,54 @@ def update_moba(obj_list):
             bastion_user = machine.con_username
         else:
             bastion_user = ''
-        if machine.login_command and not machine.platform == 'windows':
+        if machine.login_command and not machine.platform == 'windows' and not machine.login_command == "null":
             login_command = machine.login_command.replace('"', "").replace("|", "__PIPE__").replace("#", "__DIEZE__")
         elif machine.platform == 'windows':
             login_command = '-1%-1'
         else:
             login_command = ''
+        if script_config['Local'].get('Moba', {}).get('echo_ssh_command', {}).get('toggle', False) and \
+                script_config['Local'].get('Moba', {}).get('echo_ssh_command', {}).get('assumed_shell', False):
+            tags_formatted = tags.replace(",", "\\n")
+            cosmetic_login_cmd = f"Cloud-profiler - What we know of this machine is:" \
+                                 f"\\nProvider: {machine.provider_long}" \
+                                 f"\\nIP: {machine.ip}" \
+                                 f"\\n{tags_formatted}\\n"
+            ip_providers = script_config['Local'].get('Moba', {}).get('echo_ssh_command', {}).get('what_is_my_ip', [])
+            if script_config['Local'].get('Moba', {}).get('echo_ssh_command', {}).get('toggle', False) and ip_providers:
+                machine_ex_ip_prov = random.choice(ip_providers)
+                cosmetic_login_cmd = f"{cosmetic_login_cmd}" \
+                                     f"The external IP detected is: " \
+                                     f"$( a=$( curl -s --connect-timeout 2 {machine_ex_ip_prov} )" \
+                                     f";if [[ $? == 0 ]];then echo \"$a\";" \
+                                     f"else echo \"Sorry, failed to resolve the external ip address " \
+                                     f"via \'{machine_ex_ip_prov}\'.\" ; fi )"
+            cosmetic_login_cmd = f"{cosmetic_login_cmd}\\n\\nCloud-profiler - The equivalent ssh command is:" \
+                                 f"\\nssh {ip_for_connection}"
+            if shard_key_path:
+                cosmetic_login_cmd = f"{cosmetic_login_cmd} -i {shard_key_path}"
+            if con_username and not con_username == "<default>":
+                cosmetic_login_cmd = f"{cosmetic_login_cmd} -l {con_username.replace('<', '').replace('>', '')}"
+            if machine.con_port:
+                cosmetic_login_cmd = f"{cosmetic_login_cmd} -p {machine.con_port}"
+            if bastion_for_profile:
+                if bastion_user:
+                    cosmetic_login_cmd = f"{cosmetic_login_cmd} -J " \
+                                         f"{bastion_user}@{bastion_for_profile}:{machine.bastion_con_port}"
+                else:
+                    cosmetic_login_cmd = f"{cosmetic_login_cmd} -J {bastion_for_profile}:{machine.bastion_con_port}"
+            cosmetic_login_cmd = f"echo -e \"{cosmetic_login_cmd}\\n\""
+            if login_command:
+                login_command_fin = f"{cosmetic_login_cmd}; {login_command}"
+            else:
+                login_command_fin = f"{cosmetic_login_cmd}; " \
+                                    f"{script_config['Local']['Moba']['echo_ssh_command']['assumed_shell']}"
+        else:
+            login_command_fin = login_command
         if connection_type == "#91#4%":
             profile = (
                 f"\n{short_name} = {connection_type}{ip_for_connection}%{machine.con_port}%"
-                f"{con_username}%0%-1%-1%{login_command}{bastion_for_profile}%{machine.bastion_con_port}"
+                f"{con_username}%0%-1%-1%{login_command_fin}{bastion_for_profile}%{machine.bastion_con_port}"
                 f"%{bastion_user}%"
                 f"%{shard_key_path}"
                 f"1%0%%-1%%-1%0%0%-1%0%-1"
@@ -949,7 +982,7 @@ def update_moba(obj_list):
         else:
             profile = (
                 f"\n{short_name} [{machine.id}] = {connection_type}{ip_for_connection}%{machine.con_port}%"
-                f"{con_username}%%0%-1%{login_command}%{bastion_for_profile}%{machine.bastion_con_port}"
+                f"{con_username}%%0%-1%{login_command_fin}%{bastion_for_profile}%{machine.bastion_con_port}"
                 f"%{bastion_user}%0%"
                 f"0%0%{shard_key_path}%%"
                 f"-1%0%0%0%0%1%1080%0%0%1"
@@ -990,7 +1023,8 @@ def update_term(obj_list):
             for tag in machine.iterm_tags:
                 machine.tags.append(tag)
 
-            if "Sorry" in machine.ip:
+            if machine.ip is None or "Sorry" in machine.ip:
+                # If the IP is missing or unknown, do not connect
                 connection_command = "echo"
                 ip_for_connection = machine.ip
             elif machine.instance_use_ip_public or not machine.bastion:
@@ -1068,7 +1102,7 @@ def update_term(obj_list):
                     connection_command = f"{connection_command} -i {script_config['Local'].get('SSH_keys_path', '.')}" \
                                          f"/{machine.ssh_key}"
 
-                if machine.login_command:
+                if machine.login_command and not machine.login_command == "null":
                     connection_command = f"{connection_command} -t {machine.login_command}"
 
             if machine.dynamic_profile_parent:
@@ -1188,7 +1222,7 @@ def update_ssh_config(dict_list):
         if machine.platform == 'windows':
             print(f"Cloud-profiler - SSH_Config_create - Skipping this {name}, as it is a Windows machine.")
             continue
-        if machine.instance_use_ip_public or not machine.bastion:
+        if (machine.instance_use_ip_public or not machine.bastion) and not machine.ip_public == '':
             ip_for_connection = machine.ip_public
         else:
             ip_for_connection = machine.ip
@@ -1214,10 +1248,25 @@ def update_ssh_config(dict_list):
 
 def aws_profiles_from_config_file(script_config_f, instance_counter_f, cloud_instances_obj_list_f):
     processes = []
-    for profile in script_config_f['AWS']['profiles']:
-        print(f"Cloud-profiler - AWS: Working on {profile['name']}")
-        if isinstance(profile.get("role_arns", False), dict):
-            for role_arn_s in profile["role_arns"]:
+    if not script_config_f['AWS'].get('profiles', None)[0] is None:
+        for profile in script_config_f['AWS']['profiles']:
+            print(f"Cloud-profiler - AWS: Working on {profile['name']}")
+            if isinstance(profile.get("role_arns", False), dict):
+                for role_arn_s in profile["role_arns"]:
+                    aws_p = mp.Process(
+                        target=get_ec2_instances,
+                        args=(
+                            profile,
+                            role_arn_s,
+                            instance_counter_f,
+                            script_config_f,
+                            cloud_instances_obj_list_f
+                        )
+                    )
+                    aws_p.start()
+                    processes.append(aws_p)
+            else:
+                role_arn_s = False
                 aws_p = mp.Process(
                     target=get_ec2_instances,
                     args=(
@@ -1230,23 +1279,9 @@ def aws_profiles_from_config_file(script_config_f, instance_counter_f, cloud_ins
                 )
                 aws_p.start()
                 processes.append(aws_p)
-        else:
-            role_arn_s = False
-            aws_p = mp.Process(
-                target=get_ec2_instances,
-                args=(
-                    profile,
-                    role_arn_s,
-                    instance_counter_f,
-                    script_config_f,
-                    cloud_instances_obj_list_f
-                )
-            )
-            aws_p.start()
-            processes.append(aws_p)
 
-    for process in processes:
-        process.join()
+        for process in processes:
+            process.join()
 
 
 def aws_profiles_from_awscli_config(aws_script_config):
@@ -1329,7 +1364,7 @@ def checkinternetrequests(url='http://www.google.com/', timeout=3, verify=False,
 
 # MAIN
 if __name__ == '__main__':
-    VERSION = "v6.0.3_Chasey_Amy"
+    VERSION = "v6.1.2_Chasey_Pencive_Gil"
     with open("marker.tmp", "w") as file:
         file.write("mark")
 
@@ -1348,7 +1383,13 @@ if __name__ == '__main__':
         if os.environ.get('CP_OutputDir', False):
             CP_OutputDir = os.environ['CP_OutputDir']
         elif platform.system() == 'Windows' or os.environ.get('CP_Windows', False):
-            CP_OutputDir = "~/Documents/Cloud_Profiler/"
+            CSIDL_PERSONAL = 5  # My Documents
+            SHGFP_TYPE_CURRENT = 0  # Get current, not default value
+
+            buf = ctypes.create_unicode_buffer(ctypes.wintypes.MAX_PATH)
+            ctypes.windll.shell32.SHGetFolderPathW(None, CSIDL_PERSONAL, None, SHGFP_TYPE_CURRENT, buf)
+
+            CP_OutputDir = os.path.join(buf.value, "Cloud_Profiler")
         else:
             CP_OutputDir = "~/Library/Application Support/iTerm2/DynamicProfiles/"
         print(f"Cloud-profiler - CP_OutputDir to be used: {CP_OutputDir}")
@@ -1362,7 +1403,7 @@ if __name__ == '__main__':
         if not platform.system() == 'Windows' and not os.environ.get('CP_Windows', False):
             home_dir = "~/.iTerm-cloud-profile-generator/"
         else:
-            home_dir = "~/Documents/Cloud_Profiler/"
+            home_dir = CP_OutputDir
         if os.path.isfile(os.path.expanduser((os.path.join(home_dir, "config.yaml")))):
             print("Cloud-profiler - Found conf file in place")
             with open(os.path.expanduser((os.path.join(home_dir, "config.yaml")))) as conf_file:
@@ -1405,14 +1446,14 @@ if __name__ == '__main__':
 
         # ESX profiles iterator
         if script_config['ESX'].get('profiles', False):
-            p = th.Process(target=esx_worker, args=(script_config, instance_counter, cloud_instances_obj_list))
+            p = mp.Process(target=esx_worker, args=(script_config, instance_counter, cloud_instances_obj_list))
             p.start()
             p_list.append(p)
 
         # AWS profiles iterator
         if script_config['AWS'].get('profiles', False):
             # aws_profiles_from_config_file(script_config)
-            p = th.Process(
+            p = mp.Process(
                 name="aws_profiles_from_config_file",
                 target=aws_profiles_from_config_file,
                 args=(
@@ -1445,14 +1486,13 @@ if __name__ == '__main__':
                     vanity="DO",
                     terminate=True
                 )
-            p = th.Process(target=do_worker, args=(script_config, instance_counter, cloud_instances_obj_list))
+            p = mp.Process(target=do_worker, args=(script_config, instance_counter, cloud_instances_obj_list))
             p.start()
             p_list.append(p)
 
         """Wait for all processes (cloud providers) to finish before moving on"""
-        for p in p_list:
-            p.join(script_config['Local'].get('Subs_timeout', 60))
-
+        for _ in p_list:
+            _.join(script_config['Local'].get('Subs_timeout', 60))
         profiles_update_list = []
         if platform.system() == 'Windows' or os.environ.get('CP_Windows', False):
             profiles_update_p = th.Process(
@@ -1488,25 +1528,30 @@ if __name__ == '__main__':
 
         if script_config['Local'].get('SSH_Config_create'):
             print("Cloud-profiler - SSH_Config_create is set, so will create config.")
-            User_SSH_Config = os.path.expanduser("~/.ssh/config")
-            CP_SSH_Config = os.path.expanduser("~/.ssh/cloud-profiler")
-            with open(User_SSH_Config) as f:
-                if f"Include ~/.ssh/cloud-profiler" in f.read():
-                    print(
-                        "Cloud-profiler - Found ssh_config include directive for CP in user's ssh config file, "
-                        "so leaving it as is.")
-                else:
-                    print("Cloud-profiler - Did not find include directive  for CP in user's ssh config file, "
-                          "so adding it.")
-                    line_prepender(User_SSH_Config, "Include ~/.ssh/cloud-profiler")
-            profiles_update_p = th.Process(
-                target=update_ssh_config,
-                args=(
-                    cloud_instances_obj_list,
+            User_SSH_Config = os.path.join(os.path.join(os.path.expanduser("~"), ".ssh"), "config")
+            CP_SSH_Config = os.path.join(os.path.join(os.path.expanduser("~"), ".ssh"), "cloud-profiler")
+            if not platform.system() == 'Windows' and not os.path.exists(User_SSH_Config):
+                with open(User_SSH_Config, "w") as file:
+                    file.write("")
+                with open(User_SSH_Config) as f:
+                    if f"Include ~/.ssh/cloud-profiler" in f.read():
+                        print(
+                            "Cloud-profiler - Found ssh_config include directive for CP in user's ssh config file, "
+                            "so leaving it as is.")
+                    else:
+                        print("Cloud-profiler - Did not find include directive  for CP in user's ssh config file, "
+                              "so adding it.")
+                        line_prepender(User_SSH_Config, "Include ~/.ssh/cloud-profiler")
+                profiles_update_p = th.Process(
+                    target=update_ssh_config,
+                    args=(
+                        cloud_instances_obj_list,
+                    )
                 )
-            )
-            profiles_update_p.start()
-            profiles_update_list.append(profiles_update_p)
+                profiles_update_p.start()
+                profiles_update_list.append(profiles_update_p)
+            else:
+                print("Cloud-profiler - SSH_Config_create - This is a Windows native run, so skipping it.")
         else:
             print("Cloud-profiler - SSH_Config_create - \"SSH_Config_create\" is not set, so skipping it.")
 

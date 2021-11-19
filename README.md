@@ -35,7 +35,7 @@ This Hakuteiken [dove](https://en.wikipedia.org/wiki/Doves_as_symbols),
 WSL2 is also the recommended supported method of working with Windows, as it gets the most testing.
 Note: Right now on Windows, the user uid for the container is always root, due to integration with the host issues.
 
-As of v6.0 (Chasey Lain)[https://www.youtube.com/watch?v=If9fC9aJd-U] rudemnty ESXi support has been added.
+As of v6.0 ([Chasey Lain](https://www.youtube.com/watch?v=If9fC9aJd-U)) rudimentary ESXi support has been added.
 
 ## This project has some assumptions
 - Your system has Docker, or python3 installed (if using the "system install" method).
@@ -93,7 +93,7 @@ Local:
   Bastion: False
   SSH_keys_path: "~/Downloads"
   Use_shared_key: False
-  Login_command: "sudo -i"
+  Login_command: "sudo -E su"
   Parallel_exec: True
   Skip_stopped: True
   Badge_info_to_display:
@@ -109,7 +109,7 @@ Local:
     Group: False
     Id: True
     Instance_use_Bastion: False
-    Instance_use_ip_public: False
+    instance_use_ip_public: False
     Iterm_tags_prefixs: ["ENV"]
     # Iterm_tags_prefixs: []
     Password: False
@@ -224,7 +224,7 @@ in order to get a line braked list of the name information.
 
 `Instance_use_Bastion` - Is the flag of using the Bastion set?
 
-`Instance_use_Ip_public` - Is the flag of using the public IP set?
+`instance_use_ip_public` - Is the flag of using the public IP set?
 
 `Iterm_tags_prefixs` - Iterm_tags, are what iTerm uses for indexing and show as information in the instance.
 It is possible to set this toggle to false so not show them at all.
@@ -371,6 +371,9 @@ The default is to not use the shared key with the value of "False".
 `Cloud_profiler_SSH_key` - The name of the key to use. If this is not defined, and the "Use_shared_key" is set,
 the key name on the instance is used.
 
+`cloud_profiler_Login_command` - The command to execute when connecting (using -t). I used to use "sudo -i" to gain root,
+however I've found that "sudo -E su" achieves the same result, but keeps forwarding my SSH key... so up to you...
+
 ### Digital Ocean
 Digital Ocean's implementation of VPC is such that there isn't a way to set tags on it (that I have seen).
 On DO, you set a tag by adding it to the instance. The format to be used is: "tag_name:value".
@@ -412,7 +415,7 @@ I was going to fix it with a workaround of creating a file for the connection,
 
 ### Static profiles
 The "Static profiles" feature of Cloud_profiler (currently only for MAC),
-  allows you to centrally distribute profiles so that you can reference them with the "iTerm_dynamic_profile_parent"
+  allows you to centrally distribute profiles so that you can reference them with the "Cloud_profiler_dynamic_profile_parent"
 tag. For example, the two profiles in the repo,
 give the "Red Alert" and "Dracula" color schemes with my beloved keyboard shortcuts.
 They are installed for you in the dynamic profiles automatically,

@@ -1,4 +1,78 @@
 # Change Log
+## v6.1.2 - [Chasey Pencive Gil](https://wiki.python.org/moin/GlobalInterpreterLock)
+Version name thoughts: It seems the move to python 3.10.0, didn't bring the improvement I was after, 
+and Cloud profiler's container was still
+getting hung on random. the only thing I found so far that consistently helps,
+is switching the threads in the main section to be process instead. 
+I can only guess that not all threads are born equal in the eyes of the 
+[Gil](https://wiki.python.org/moin/GlobalInterpreterLock)?
+
+Also Pencive is still to young to go.
+
+
+## v6.1.1 - [Chasey Pencive Flitterby](https://harrypotter.fandom.com/wiki/Flitterby)
+Version name thoughts: Right after release, Shira has brought to my attention that I have introduced a bug, and [Pencive](https://harrypotterwizardsunite.fandom.com/wiki/Pensieve)
+is such a good name it's a shame to let it go so soon, so I didn't.
+
+I was trying to make it so the 
+SSH config file will be created for the user automatically. 
+However, I forgot to add the "only if it doesn't exist" part...
+
+Even the wings of a tiny Flitterby can change the world with one innocent flap.
+
+
+
+CP in Moba mode, is now able to ask a provided list of external ip providers for the "real" external IP of the machine.
+
+## v6.1.0 - [Chasey Pencive](https://harrypotterwizardsunite.fandom.com/wiki/Pensieve)
+Version name thoughts: Girls give me a name for something that shows you information you already know -> 
+[Pencive](https://harrypotterwizardsunite.fandom.com/wiki/Pensieve).
+
+Note: "Asking the girls" be like asking [teletraan1](https://youtu.be/MiFxHUHY83Q?t=954).
+
+Pencive: Windows users now get vanity information (if toggled in settings) for easier access to the information gathered 
+by CP.
+
+Added better resolve of where the "documents" folder is for windows (onedrive support).
+
+Improved the native Windows run.
+
+Moved to Python 3.10.0 as the alpha version had issues with threads.
+
+Added protections for AWS stuff not being present 
+(Who are you, that uses CP only for DO... but if you're not me, let me know...).
+
+Another contribution by Eyal to make "sorry" more durable (committed on his behalf).
+
+Config file now gives the correct default directive for "instance use public ip".
+
+Removed Python packages version pinning. I'm distributing a finished and working container...
+I want my stuff to always be on the latest greatest and as few CVEs as possible. 
+if anyone wants to "build" it from scratch and this causes issues, 
+they should "deal with it" and return the results to us per GPL.
+
+## v6.0.9 - [Chasey Butō](https://bleach.fandom.com/wiki/But%C5%8D)
+Version name thoughts: Null -> null step (Butō) -> TTS Butō (sounds like butt) -> Chasey butt?? how can I resist?
+
+Added the ability to put the value of the "Login_command" tag to "null", as a way to disable it.
+This was needed, because when tagging on DO, it was not possible to use the regular empty string 
+(as I have been doing on AWS), as DO simply doesn't allow it.
+
+## v6.0.4-8 - [Chasey Bit](https://freqtrade.io/)
+Version name thoughts: This past couple of months I've been chasing the Bitcoin with a trading bot so havn't invested in Cloud-profiler...
+Also, this is only a little "bit" of change :)
+
+Updated the python/alpine base (seems Github doesn't like all python images, and python doesn't support s390x anymore for some reason).
+
+Snyk: updated jsonpickle
+
+Restored "sh" on container (you already have python... who am I kidding?)
+
+Connectivity checker to default to verifying SSL.
+
+Improved the way tailing logs works
+
+
 ## v6.0.3 - [Chasey Amy](https://en.wikipedia.org/wiki/Chasing_Amy)
 Version name thoughts: Chasey... -> Chasing.... -> Chasing Amy -> [Intergalactic civil war?](https://www.youtube.com/watch?v=v3XTHVC1Nf0)
 
@@ -274,7 +348,7 @@ Updated superlinter version used.
 ## v1.8.4
 Added the tags "PrivateDnsName" and "ImageId" for AWS instances to be part of the information gathered.
 
-Internal, Added repo linting as github action.
+Internal, Added repo linting as Github action.
 
 ## v1.8.3
 Update profiles now simply resets the "rest counter" instead of causing an out of turn execution.
