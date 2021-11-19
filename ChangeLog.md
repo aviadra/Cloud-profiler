@@ -1,4 +1,15 @@
 # Change Log
+## v6.1.2 - [Chasey Pencive Gil](https://wiki.python.org/moin/GlobalInterpreterLock)
+Version name thoughts: It seems the move to python 3.10.0, didn't bring the improvement I was after, 
+and Cloud profiler's container was still
+getting hung on random. the only thing I found so far that consistently helps,
+is switching the threads in the main section to be process instead. 
+I can only guess that not all threads are born equal in the eyes of the 
+[Gil](https://wiki.python.org/moin/GlobalInterpreterLock)?
+
+Also Pencive is still to young to go.
+
+
 ## v6.1.1 - [Chasey Pencive Flitterby](https://harrypotter.fandom.com/wiki/Flitterby)
 Version name thoughts: Right after release, Shira has brought to my attention that I have introduced a bug, and [Pencive](https://harrypotterwizardsunite.fandom.com/wiki/Pensieve)
 is such a good name it's a shame to let it go so soon, so I didn't.
