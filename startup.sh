@@ -3,7 +3,7 @@ logger()
 {
   echo -e "Cloud-profiler - $1"
 }
-[ -z ${CP_Version+x} ] && CP_Version='v6.1.1_Chasey_Pencive_Flitterby'
+[ -z ${CP_Version+x} ] && CP_Version='v6.1.2_Chasey_Pencive_Gil'
 [ "${CP_Branch}" == "develop" ] && CP_Version='edge'
 Personal_Static_Profiles="${HOME}/iTerm2-static-profiles"
 SRC_Static_Profiles="/home/appuser/iTerm2-static-profiles"
