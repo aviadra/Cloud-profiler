@@ -1446,14 +1446,14 @@ if __name__ == '__main__':
 
         # ESX profiles iterator
         if script_config['ESX'].get('profiles', False):
-            p = th.Process(target=esx_worker, args=(script_config, instance_counter, cloud_instances_obj_list))
+            p = mp.Process(target=esx_worker, args=(script_config, instance_counter, cloud_instances_obj_list))
             p.start()
             p_list.append(p)
 
         # AWS profiles iterator
         if script_config['AWS'].get('profiles', False):
             # aws_profiles_from_config_file(script_config)
-            p = th.Process(
+            p = mp.Process(
                 name="aws_profiles_from_config_file",
                 target=aws_profiles_from_config_file,
                 args=(
@@ -1486,14 +1486,13 @@ if __name__ == '__main__':
                     vanity="DO",
                     terminate=True
                 )
-            p = th.Process(target=do_worker, args=(script_config, instance_counter, cloud_instances_obj_list))
+            p = mp.Process(target=do_worker, args=(script_config, instance_counter, cloud_instances_obj_list))
             p.start()
             p_list.append(p)
 
         """Wait for all processes (cloud providers) to finish before moving on"""
-        for p in p_list:
-            p.join(script_config['Local'].get('Subs_timeout', 60))
-
+        for _ in p_list:
+            _.join(script_config['Local'].get('Subs_timeout', 60))
         profiles_update_list = []
         if platform.system() == 'Windows' or os.environ.get('CP_Windows', False):
             profiles_update_p = th.Process(
