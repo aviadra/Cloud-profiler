@@ -842,7 +842,7 @@ def update_moba(obj_list):
                 f"\nCP Update profiles {VERSION} =" \
                 f";  logout#151#14%Default%%Interactive " \
                 f"shell%__PTVIRG__[ -z ${{CP_Version+x}} ] " \
-                f"&& CP_Version__EQUAL__'v6.1.1_Chasey_Pencive_Flitterby'__PTVIRG__[ -z ${{CP_Branch+x}} ] " \
+                f"&& CP_Version__EQUAL__'v6.1.2_Chasey_Pencive_Gil'__PTVIRG__[ -z ${{CP_Branch+x}} ] " \
                 f"&& CP_Branch__EQUAL__'main'__PTVIRG__" \
                 f"[ __DBLQUO__${{CP_Branch}}__DBLQUO__ __EQUAL____EQUAL__ __DBLQUO__develop__DBLQUO__ ] " \
                 f"&& CP_Version__EQUAL__'edge'__PTVIRG__" \
@@ -938,12 +938,13 @@ def update_moba(obj_list):
                                  f"\\n{tags_formatted}\\n"
             ip_providers = script_config['Local'].get('Moba', {}).get('echo_ssh_command', {}).get('what_is_my_ip', [])
             if script_config['Local'].get('Moba', {}).get('echo_ssh_command', {}).get('toggle', False) and ip_providers:
+                machine_ex_ip_prov = random.choice(ip_providers)
                 cosmetic_login_cmd = f"{cosmetic_login_cmd}" \
                                      f"The external IP detected is: " \
-                                     f"$( a=$( curl -s --connect-timeout 2 {random.choice(ip_providers)} )" \
+                                     f"$( a=$( curl -s --connect-timeout 2 {machine_ex_ip_prov} )" \
                                      f";if [[ $? == 0 ]];then echo \"$a\";" \
                                      f"else echo \"Sorry, failed to resolve the external ip address " \
-                                     f"via \'{random.choice(ip_providers)}\'.\" ; fi )"
+                                     f"via \'{machine_ex_ip_prov}\'.\" ; fi )"
             cosmetic_login_cmd = f"{cosmetic_login_cmd}\\n\\nCloud-profiler - The equivalent ssh command is:" \
                                  f"\\nssh {ip_for_connection}"
             if shard_key_path:
@@ -1363,7 +1364,7 @@ def checkinternetrequests(url='http://www.google.com/', timeout=3, verify=False,
 
 # MAIN
 if __name__ == '__main__':
-    VERSION = "v6.1.1_Chasey_Pencive_Flitterby"
+    VERSION = "v6.1.2_Chasey_Pencive_Gil"
     with open("marker.tmp", "w") as file:
         file.write("mark")
 
@@ -1445,14 +1446,14 @@ if __name__ == '__main__':
 
         # ESX profiles iterator
         if script_config['ESX'].get('profiles', False):
-            p = th.Process(target=esx_worker, args=(script_config, instance_counter, cloud_instances_obj_list))
+            p = mp.Process(target=esx_worker, args=(script_config, instance_counter, cloud_instances_obj_list))
             p.start()
             p_list.append(p)
 
         # AWS profiles iterator
         if script_config['AWS'].get('profiles', False):
             # aws_profiles_from_config_file(script_config)
-            p = th.Process(
+            p = mp.Process(
                 name="aws_profiles_from_config_file",
                 target=aws_profiles_from_config_file,
                 args=(
@@ -1485,14 +1486,13 @@ if __name__ == '__main__':
                     vanity="DO",
                     terminate=True
                 )
-            p = th.Process(target=do_worker, args=(script_config, instance_counter, cloud_instances_obj_list))
+            p = mp.Process(target=do_worker, args=(script_config, instance_counter, cloud_instances_obj_list))
             p.start()
             p_list.append(p)
 
         """Wait for all processes (cloud providers) to finish before moving on"""
-        for p in p_list:
-            p.join(script_config['Local'].get('Subs_timeout', 60))
-
+        for _ in p_list:
+            _.join(script_config['Local'].get('Subs_timeout', 60))
         profiles_update_list = []
         if platform.system() == 'Windows' or os.environ.get('CP_Windows', False):
             profiles_update_p = th.Process(
