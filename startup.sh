@@ -11,9 +11,8 @@ SRC_Docker_image_base="aviadra/cp"
 SRC_Docker_Image="${SRC_Docker_image_base}:${CP_Version}"
 if grep -qi Microsoft /proc/version 2> /dev/null; then
   WSL="True"
-  Base_Path="$( powershell.exe -Command '[Environment]::GetFolderPath([Environment+SpecialFolder]::MyDocuments)' )"
-  logger "Base_Path: $Base_Path"
-  arrIN=(${Base_Path//:/ })
+  Base_Path_RAW="$( powershell.exe -Command '[Environment]::GetFolderPath([Environment+SpecialFolder]::MyDocuments)' )"
+  arrIN=(${Base_Path_RAW//:/ })
   Base_Path="/mnt/$( echo ${arrIN[0]} | tr '[:upper:]' '[:lower:]' | tr -d '\r' )$( echo ${arrIN[1]} | tr '\\\\' '/' | tr -d '\r' )"
   CP_Path="${Base_Path}/Cloud_profiler"
   logger "Base_Path: $Base_Path"
@@ -81,7 +80,7 @@ clear_service_container() {
   docker rm cloud-profiler &> /dev/null
 }
 
-Normal_docker_start() {
+.() {
   logger "Normal start - Starting service\n"
   logger "Normal start - This may take a while....\n"
   if [[ ${WSL} == "False" ]]; then
@@ -224,10 +223,10 @@ if [[ -z "$( command -v docker 2>/dev/null )" ]]; then
   exit 42
 fi
 #Is it working enough to even attempt a pass?
-if [[ $( docker images ) ]]; then
-  logger "Seems to be running, so continuing."
+if [[ $( docker images -q ) ]]; then
+  logger "Docker seems to be running, so continuing."
 else
-  logger "Was unable to query what images are on the system..."
+  logger "Was unable to query for Docker images on the system..."
   logger "Make sure Docker is running"
   logger "Goodbye for now..."
   exit 42
@@ -245,17 +244,20 @@ if [[ -z "$( docker images ${SRC_Docker_image_base} | grep -v TAG )" ]] ; then
 fi
 
 #Legacy cleaner
-for f in ${HOME}/iTerm2-static-profiles/Update\ iTerm\ profiles?*.json; do
-    if [ -e "$f" ]; then
-      logger "Legacy update profile file found:"
-      logger "$f."
-      logger "Deleteing..."
-      rm -f "${f}"
-    else
-      logger "Legacy files not found"
-    fi
-    break
-  done
+
+if [[ ${WSL} == "False" ]]; then
+  for f in ${HOME}/iTerm2-static-profiles/Update\ iTerm\ profiles?*.json; do
+      if [ -e "$f" ]; then
+        logger "Legacy update profile file found:"
+        logger "$f."
+        logger "Deleteing..."
+        rm -f "${f}"
+      else
+        logger "Legacy files not found"
+      fi
+      break
+    done
+fi
 
 # Is a part of the installation missing?
 [[ ${WSL} == "True" && -z "$( grep "Include $( eval echo $( wslpath $(wslvar USERPROFILE) ) )/.ssh/cloud-profiler" ~/.ssh/config )" \
@@ -287,17 +289,16 @@ current_keys_dir="$( docker inspect cloud-profiler 2> /dev/null \
     | sed -e 's/^[[:space:]]*//' -e 's/^"//' )"
 cd "${org_dir}" || exit
 
-# Should we start a Normal or Root container?
+# Should we start a "Normal" or "Root" container?
 if [[ "$( grep -E "^  Docker_contexts_create" "${Personal_Config_File}" | awk '{print $2}' 2>/dev/null )" != "True" ]]; then
   logger "Did not find docker contexts directive"
-    if [[ -z "$( docker ps -q -f name=cloud-profiler )" || "${desired_keys_dir}" != "${current_keys_dir}" ]] ; then
-      clear_service_container
-      Normal_docker_start
-    else
-      if [[ -z "$(docker ps -q -f name=cloud-profiler)" ]]; then
-        Normal_docker_start
-      fi
-    fi
+fi
+if [[ "${desired_keys_dir}" != "${current_keys_dir}" ]] ; then
+  clear_service_container
+  Normal_docker_start
+fi
+if [[ -z "$( docker ps -q -f name=cloud-profiler )" ]]; then
+  Normal_docker_start
 fi
 
 if [[ "$( grep "^  Docker_contexts_create" "${Personal_Config_File}" | awk '{print $2}' 2> /dev/null )" == "True" ]] ; then
@@ -321,7 +322,7 @@ else
   logger "Issuing ad-hoc run."
   docker exec \
     cloud-profiler \
-      python3 -c $'import os\nos.mknod("cut.tmp")'
+      sh -c "touch cut.tmp"
   logger "Tailing logs for already running container:\n"
   docker logs --since 0.1s -f cloud-profiler 2>&1 | tee >(sed -n "/clouds/ q")| awk '/Start of loop/,/clouds/'
   logger "Tailing logs DONE.\n"
