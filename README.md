@@ -108,7 +108,7 @@ Local:
     Dynamic_profile_parent: False
     Group: False
     Id: True
-    Instance_use_Bastion: False
+    use_Bastion: False
     instance_use_ip_public: False
     Iterm_tags_prefixs: ["ENV"]
     # Iterm_tags_prefixs: []
@@ -222,7 +222,7 @@ in order to get a line braked list of the name information.
 
 `Id` - The instance ID
 
-`Instance_use_Bastion` - Is the flag of using the Bastion set?
+`use_Bastion` - Is the flag of using the Bastion set?
 
 `instance_use_ip_public` - Is the flag of using the public IP set?
 
