@@ -179,9 +179,11 @@ def setting_resolver(
         if not setting_value and not setting_value == "":
             setting_value = profile.get(setting, False)
             if not setting_value and not setting_value == "":
-                setting_value = resolver_script_config[caller_type].get(setting, False)
+                setting_value = profile.get(setting.casefold(), False)
                 if not setting_value and not setting_value == "":
-                    setting_value = resolver_script_config["Local"].get(setting, False)
+                    setting_value = resolver_script_config[caller_type].get(setting, False)
+                    if not setting_value and not setting_value == "":
+                        setting_value = resolver_script_config["Local"].get(setting, False)
     return setting_value
 
 
