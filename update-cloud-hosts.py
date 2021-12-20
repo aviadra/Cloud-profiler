@@ -29,6 +29,8 @@ from pyVmomi import vim
 from pyVim import connect
 import ctypes.wintypes
 import random
+from linode_api4 import LinodeClient, ApiError
+from linode_api4 import Instance
 
 class InstanceProfile:
     script_config = {}
@@ -167,8 +169,8 @@ def setting_resolver(
         setting_value = {}
     if caller_type == 'AWS':
         setting_value = get_tag_value(instance.get('Tags', ''), setting, False, setting_value)
-    if caller_type == 'DO':
-        setting_value = get_do_tag_value(instance.tags, setting, setting_value)
+    if caller_type == 'DO' or caller_type == 'Linode':
+        setting_value = get_do_and_linode_tag_value(instance.tags, setting, setting_value)
     if caller_type == 'ESX':
         setting_value = get_esx_tag_value(instance.config.annotation, setting, setting_value)
     if not setting_value:
@@ -187,7 +189,7 @@ def setting_resolver(
     return setting_value
 
 
-def get_do_tag_value(tags, q_tag, q_tag_value) -> Union[int, str]:
+def get_do_and_linode_tag_value(tags, q_tag, q_tag_value) -> Union[int, str]:
     for tag in tags:
         tag = tag.casefold()
         if ':' in tag and ('iterm' in tag or 'cloud_profiler' in tag):
@@ -252,6 +254,111 @@ def vpc_data(vpcid, q_tag, response_vpc):
                 else:
                     q_tag_value = get_tag_value(vpc.get('Tags'), q_tag)
     return q_tag_value
+
+
+def get_linode_instances(profile, linode_instance_counter, linode_script_config, linode_cloud_instances_obj_list):
+    instance_source = "Linode." + profile['name']
+    groups = {}
+    linode_instance_counter[instance_source] = 0
+    client = LinodeClient(profile['token'])
+    lnodes = client.linode.instances()
+    for lnode in lnodes:
+        machine = InstanceProfile()
+        if (linode_script_config['DO'].get('Skip_stopped', True)
+            and linode_script_config['Local'].get('Skip_stopped', True)
+            and profile.get('Skip_stopped', True)) \
+                and lnode.status != 'running':
+            continue
+
+        l_password = [False, ""]
+        iterm_tags = []
+        docker_context = setting_resolver(
+            'Docker_contexts_create', machine, {}, "Linode", False, profile, linode_script_config
+        )
+        instance_use_ip_public = setting_resolver(
+            'instance_use_ip_public', machine, {}, "Linode", False, profile, linode_script_config
+        )
+        instance_use_bastion = setting_resolver(
+            'Use_bastion', machine, {}, "Linode", False, profile, linode_script_config
+        )
+        or_host_name = setting_resolver(
+            'Host_name', machine, {}, "Linode", False, profile, linode_script_config
+        )
+        bastion = setting_resolver(
+            'Bastion', machine, {}, "Linode", False, profile, linode_script_config
+        )
+        con_username = setting_resolver(
+            'Con_username', machine, {}, "Linode", False, profile, linode_script_config
+        )
+        bastion_con_username = setting_resolver(
+            'Bastion_Con_username', machine, {}, "Linode", False, profile, linode_script_config
+        )
+        con_port = setting_resolver(
+            'Con_port', machine, {}, "Linode", 22, profile, linode_script_config
+        )
+        bastion_con_port = setting_resolver(
+            'Bastion_Con_port', machine, {}, "Linode", 22, profile, linode_script_config
+        )
+        ssh_key = setting_resolver(
+            'SSH_key', machine, {}, "Linode", False, profile, linode_script_config
+        )
+        use_shared_key = setting_resolver(
+            'use_shared_key', machine, {}, "Linode", False, profile, linode_script_config
+        )
+        login_command = setting_resolver(
+            'Login_command', machine, {}, "Linode", False, profile, linode_script_config
+        )
+        dynamic_profile_parent = setting_resolver(
+            'dynamic_profile_parent', machine, {}, "Linode", False, profile, linode_script_config
+        )
+        public_ip = lnode.ipv4[0]
+
+        machine.con_port = con_port
+        machine.bastion_con_username = bastion_con_username
+        if or_host_name:
+            linode_name = or_host_name
+        else:
+            linode_name = lnode.label
+
+        if instance_use_ip_public:
+            ip = lnode.ipv4[0]
+        else:
+            ip = "sorry"
+
+        if lnode.tags:
+            for tag in lnode.tags:
+                if tag:
+                    iterm_tags.append(tag)
+
+        iterm_tags += f"ip: {ip}", f"Name: {lnode.label}"
+        machine.ip = ip
+        machine.name = f"{instance_source}.{linode_name}"
+        machine.group = linode_name
+        machine.dynamic_profile_parent = dynamic_profile_parent
+        machine.iterm_tags = iterm_tags
+        machine.instancetype = lnode.type.id
+        machine.con_username = con_username
+        machine.bastion_con_port = bastion_con_port
+        machine.id = lnode.id
+        machine.ssh_key = ssh_key
+        machine.use_shared_key = use_shared_key
+        machine.login_command = login_command
+        machine.instance_use_bastion = instance_use_bastion
+        machine.bastion = bastion
+        machine.instance_use_ip_public = instance_use_ip_public
+        machine.ip_public = public_ip
+        machine.password = l_password
+        machine.region = lnode.region.id
+        machine.docker_contexts_create = docker_context
+        machine.instance_source = instance_source
+        machine.provider_long = "Linode"
+        machine.provider_short = "Linode"
+
+        print(
+            f'instance_source: {machine.instance_source}. {machine.name}\tassociated bastion: "{str(machine.bastion)}"'
+        )
+
+        linode_cloud_instances_obj_list.append(machine)
 
 
 def get_do_instances(profile, do_instance_counter, do_script_config, do_cloud_instances_obj_list):
@@ -1304,6 +1411,17 @@ def do_worker(do_script_config, do_instance_counter, do_cloud_instances_obj_list
         get_do_instances(profile, do_instance_counter, do_script_config, do_cloud_instances_obj_list)
 
 
+def linode_worker(linode_script_config, linode_instance_counter, linode_cloud_instances_obj_list):
+    for profile in linode_script_config['Linode']['profiles']:
+        print(f"Cloud-profiler - Linode: Working on {profile['name']}")
+        get_linode_instances(
+            profile,
+            linode_instance_counter,
+            linode_script_config,
+            linode_cloud_instances_obj_list
+        )
+
+
 def esx_worker(esx_script_config, esx_instance_counter, esx_cloud_instances_obj_list):
     p_esx_list = []
     for profile in esx_script_config['ESX']['profiles']:
@@ -1489,6 +1607,24 @@ if __name__ == '__main__':
                     terminate=True
                 )
             p = mp.Process(target=do_worker, args=(script_config, instance_counter, cloud_instances_obj_list))
+            p.start()
+            p_list.append(p)
+
+        if script_config['Linode'].get('profiles', False):
+            if not script_config["Local"].get("On_prem_only", False):
+                checkinternetrequests(
+                    url="https://api.linode.com",
+                    vanity="Linode",
+                    terminate=True
+                )
+            p = mp.Process(
+                target=linode_worker,
+                args=(
+                    script_config,
+                    instance_counter,
+                    cloud_instances_obj_list
+                )
+            )
             p.start()
             p_list.append(p)
 
