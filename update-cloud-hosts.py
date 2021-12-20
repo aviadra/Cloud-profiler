@@ -1055,7 +1055,7 @@ def update_moba(obj_list):
                                      f"else echo \"Sorry, failed to resolve the external ip address " \
                                      f"via \'{machine_ex_ip_prov}\'.\" ; fi )"
             cosmetic_login_cmd = f"{cosmetic_login_cmd}\\n\\nCloud-profiler - The equivalent ssh command is:" \
-                                 f"\\nssh {ip_for_connection}"
+                                 f"\\nssh {ip_for_connection} {script_config['Local']['SSH_base_string']}"
             if shard_key_path:
                 cosmetic_login_cmd = f"{cosmetic_login_cmd} -i {shard_key_path}"
             if con_username and not con_username == "<default>":
