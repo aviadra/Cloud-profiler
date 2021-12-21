@@ -103,6 +103,13 @@ DO:
   #     token: "secretspecialuniquesnowflake"
   #     instance_use_ip_public: True
 
+Linode:
+  profiles:
+  #   -
+  #     name: "Lean mean one"
+  #     token: "secretspecialuniquesnowflake"
+  #     instance_use_ip_public: True
+
 ESX:
   disableSslCertValidation: True
   profiles:

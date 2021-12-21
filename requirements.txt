@@ -19,3 +19,4 @@ sshconf
 ntplib
 pyVmomi ; sys_platform!="linux"
 PyCryptodome ; sys_platform!="linux"
+linode-api4

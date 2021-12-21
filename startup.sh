@@ -80,7 +80,7 @@ clear_service_container() {
   docker rm cloud-profiler &> /dev/null
 }
 
-.() {
+Normal_docker_start() {
   logger "Normal start - Starting service\n"
   logger "Normal start - This may take a while....\n"
   if [[ ${WSL} == "False" ]]; then
