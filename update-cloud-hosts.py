@@ -1321,7 +1321,7 @@ def docker_contexts_creator(dict_list):
                         stderr=subprocess.PIPE,
                     )
                 except subprocess.CalledProcessError as err:
-                    print('ERROR: There was en problem when updating the Docker context.\n', err)
+                    print('ERROR: There was a problem when updating the Docker context.\n', err)
 
 
 def update_ssh_config(dict_list):
