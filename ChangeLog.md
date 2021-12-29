@@ -1,4 +1,26 @@
 # Change Log
+## v7.0.0 - [Alanis_Oughta_Know](https://open.spotify.com/track/72vVa7iyvVtjeaNDJfVBYq?si=eeadb5a51b204aa0)
+Version name thoughts: It was a slap on the face, how quickly I was replaced (it made my head spin).
+
+Updated base container to "python:3.10.1-alpine3.15"
+
+Added Support for Linode cloud (seems the API is extremely similar to DO).
+
+Made the startup script a bit faster and reverted back to using sh for creating the marker file 
+(now that we have the shell back)
+
+Now only copying the files required for CP to work into the container.
+
+Updated "use_Bastion" directive in the example config file.
+
+Fixed settings from config file still case-sensitive (after all this time) causing inconsistent behaviour
+
+Added "SSH_base_string" to "equivalent ssh command" shown in moba when vanity is turned on.
+
+
+
+
+
 ## v6.1.2 - [Chasey Pencive Gil](https://wiki.python.org/moin/GlobalInterpreterLock)
 Version name thoughts: It seems the move to python 3.10.0, didn't bring the improvement I was after, 
 and Cloud profiler's container was still
