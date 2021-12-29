@@ -18,9 +18,6 @@ Fixed settings from config file still case-sensitive (after all this time) causi
 Added "SSH_base_string" to "equivalent ssh command" shown in moba when vanity is turned on.
 
 
-
-
-
 ## v6.1.2 - [Chasey Pencive Gil](https://wiki.python.org/moin/GlobalInterpreterLock)
 Version name thoughts: It seems the move to python 3.10.0, didn't bring the improvement I was after, 
 and Cloud profiler's container was still
