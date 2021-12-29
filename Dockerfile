@@ -1,5 +1,5 @@
 ###BASE
-FROM python:3.10.0-alpine3.14 AS base
+FROM python:3.10.1-alpine3.15 AS base
 # Keeps Python from generating .pyc files in the container
 ENV PYTHONDONTWRITEBYTECODE 1
 # Turns off buffering for easier container logging
@@ -19,10 +19,13 @@ RUN apk -U add --no-cache \
     docker-cli
 RUN /usr/local/bin/python3 -m pip install --no-cache-dir --upgrade pip
 COPY ./requirements.txt /home/appuser/requirements.txt
-RUN pip3 install -r requirements.txt --no-cache-dir --prefer-binary
+RUN pip3 install -r requirements.txt --no-cache-dir --prefer-binary && rm requirements.txt
 COPY --from=wheeler /*.whl .
 RUN pip3 install *.whl && rm -f *.whl
-COPY . /home/appuser/
+COPY ./iTerm2-static-profiles/ /home/appuser/iTerm2-static-profiles/
+COPY ./config.yaml /home/appuser/
+COPY ./service.py /home/appuser/
+COPY ./update-cloud-hosts.py /home/appuser/
 RUN addgroup -S appuser && adduser -S appuser -G appuser && \
     chown -R appuser:appuser /home/appuser/
 RUN chmod -R o+wr /home/appuser/
