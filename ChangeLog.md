@@ -1,4 +1,9 @@
 # Change Log
+## v7.0.1 - [Alanis_Oughta_Bee](https://open.spotify.com/track/6CU0zWIWVTEnmWpSjVHM93?autoplay=true)
+Version name thoughts: Budfix... bug... Bee... and sounds like "be".
+
+Fixed a bug introduced by "vanity", as it was trying to be injected into a Windows profile where it has no place to be.
+
 ## v7.0.0 - [Alanis_Oughta_Know](https://open.spotify.com/track/72vVa7iyvVtjeaNDJfVBYq?si=eeadb5a51b204aa0)
 Version name thoughts: It was a slap on the face, how quickly I was replaced (it made my head spin).
 
