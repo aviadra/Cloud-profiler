@@ -610,6 +610,12 @@ def fetch_ec2_instance(
     password = [False, ""]
     machine = InstanceProfile()
 
+    if 'Tags' in instance:
+        name = get_tag_value(instance['Tags'], "Name", False, instance['InstanceId'])
+        instance_flat_tags = get_tag_value(instance['Tags'], 'flat')
+    else:
+        name = instance['InstanceId']
+
     docker_context = setting_resolver('docker_context', instance, vpc_data_all, 'AWS', False, profile,
                                       fetch_script_config)
     instance_use_bastion = setting_resolver('instance_use_bastion', instance, vpc_data_all, 'AWS', False, profile,
@@ -638,12 +644,6 @@ def fetch_ec2_instance(
 
     if not ssh_key:
         ssh_key = instance.get('KeyName', '')
-
-    if 'Tags' in instance:
-        name = get_tag_value(instance['Tags'], "Name", False, instance['InstanceId'])
-        instance_flat_tags = get_tag_value(instance['Tags'], 'flat')
-    else:
-        name = instance['InstanceId']
 
     if instance_use_ip_public and 'PublicIpAddress' in instance:
         ip = instance['PublicIpAddress']
@@ -1038,7 +1038,8 @@ def update_moba(obj_list):
             login_command = '-1%-1'
         else:
             login_command = ''
-        if script_config['Local'].get('Moba', {}).get('echo_ssh_command', {}).get('toggle', False) and \
+        if not machine.platform == 'windows' and \
+                script_config['Local'].get('Moba', {}).get('echo_ssh_command', {}).get('toggle', False) and \
                 script_config['Local'].get('Moba', {}).get('echo_ssh_command', {}).get('assumed_shell', False):
             tags_formatted = tags.replace(",", "\\n")
             cosmetic_login_cmd = f"Cloud-profiler - What we know of this machine is:" \
