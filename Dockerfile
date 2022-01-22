@@ -1,5 +1,5 @@
 ###BASE
-FROM python:3.10.0-alpine3.14 AS base
+FROM python:3.10.2-alpine3.14 AS base
 # Keeps Python from generating .pyc files in the container
 ENV PYTHONDONTWRITEBYTECODE 1
 # Turns off buffering for easier container logging
