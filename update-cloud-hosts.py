@@ -29,8 +29,7 @@ from pyVmomi import vim
 from pyVim import connect
 import ctypes.wintypes
 import random
-from linode_api4 import LinodeClient, ApiError
-from linode_api4 import Instance
+from linode_api4 import LinodeClient
 
 class InstanceProfile:
     script_config = {}
