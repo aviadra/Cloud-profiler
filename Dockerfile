@@ -1,5 +1,5 @@
 ###BASE
-FROM python:3.10.1-alpine3.15 AS base
+FROM python:3.10.2-alpine3.15 AS base
 # Keeps Python from generating .pyc files in the container
 ENV PYTHONDONTWRITEBYTECODE 1
 # Turns off buffering for easier container logging
@@ -34,4 +34,4 @@ RUN chmod -R o+wr /home/appuser/
 FROM main AS prod
 RUN apk -U upgrade && rm -f /var/cache/apk/*
 USER appuser
-ENTRYPOINT ["python3", "./service.py"]
+ENTRYPOINT ["python3", "-OO", "./service.py"]
