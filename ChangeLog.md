@@ -1,5 +1,14 @@
 # Change Log
-## v7.0.1 - [Alanis_Oughta_Bee](https://open.spotify.com/track/6CU0zWIWVTEnmWpSjVHM93?autoplay=true)
+## v7.1.0 - [Alanis_Jagged](https://www.youtube.com/watch?v=HLHvb9V8Yzs&list=PLjBotm_cyR-IL2x46EZPp_1IePrAMj8Rf)
+Version name thoughts: VladisLabs bug -> google "alanis morissette vladimir" -> 
+[Alanis Morissette Slams HBO’s Doc About Her](https://www.vanityfair.com/hollywood/2021/09/alanis-morissette-slams-hbo-doc-about-her-this-was-not-the-story-i-agreed-to-tell).
+
+Fixed a bug where the code actually tried to use the "groups" feature, and failed... so it was removed.
+
+Fixed the preflight checker to better work on systems with no images yet.
+
+
+## v7.0.1 - [Alanis_Oughta_Bee](https://open.spotify.com/track/6CU0zWIWVTEnmWpSjVHM93)
 Version name thoughts: Budfix... bug... Bee... and sounds like "be".
 
 Fixed a bug introduced by "vanity", as it was trying to be injected into a Windows profile where it has no place to be.
@@ -11,7 +20,7 @@ Updated base container to "python:3.10.1-alpine3.15"
 
 Added Support for Linode cloud (seems the API is extremely similar to DO).
 
-Made the startup script a bit faster and reverted back to using sh for creating the marker file 
+Made the startup script a bit faster and reverted to using sh for creating the marker file 
 (now that we have the shell back)
 
 Now only copying the files required for CP to work into the container.

@@ -3,7 +3,7 @@ logger()
 {
   echo -e "Cloud-profiler - $1"
 }
-[ -z ${CP_Version+x} ] && CP_Version='v7.0.1_Alanis_Oughta_Bee'
+[ -z ${CP_Version+x} ] && CP_Version='v7.1.0_Alanis_Jagged'
 [ "${CP_Branch}" == "develop" ] && CP_Version='edge'
 Personal_Static_Profiles="${HOME}/iTerm2-static-profiles"
 SRC_Static_Profiles="/home/appuser/iTerm2-static-profiles"
@@ -223,7 +223,7 @@ if [[ -z "$( command -v docker 2>/dev/null )" ]]; then
   exit 42
 fi
 #Is it working enough to even attempt a pass?
-if [[ $( docker images -q ) ]]; then
+if [[ output=$( docker images -q ) ]]; then
   logger "Docker seems to be running, so continuing."
 else
   logger "Was unable to query for Docker images on the system..."

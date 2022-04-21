@@ -29,6 +29,13 @@ if os.environ.get('CP_Service', False):
                 break
         print("\n")
 else:
-    exec(open("update-cloud-hosts.py").read())
+    subprocess.run(
+        [
+            "python3",
+            "-OO",
+            "update-cloud-hosts.py"
+        ],
+        capture_output=True
+    )
 
 
