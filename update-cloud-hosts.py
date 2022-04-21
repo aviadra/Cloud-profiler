@@ -257,7 +257,6 @@ def vpc_data(vpcid, q_tag, response_vpc):
 
 def get_linode_instances(profile, linode_instance_counter, linode_script_config, linode_cloud_instances_obj_list):
     instance_source = "Linode." + profile['name']
-    groups = {}
     linode_instance_counter[instance_source] = 0
     client = LinodeClient(profile['token'])
     lnodes = client.linode.instances()
@@ -361,8 +360,7 @@ def get_linode_instances(profile, linode_instance_counter, linode_script_config,
 
 
 def get_do_instances(profile, do_instance_counter, do_script_config, do_cloud_instances_obj_list):
-    instance_source = "DO." + profile['name']
-    groups = {}
+    instance_source = f"DO.{profile['name']}"
 
     do_instance_counter[instance_source] = 0
     do_manager = digitalocean.Manager(token=profile['token'])
@@ -409,11 +407,6 @@ def get_do_instances(profile, do_instance_counter, do_script_config, do_cloud_in
         else:
             ip = drop.private_ip_address
 
-        if drop.name in drop.tags:
-            groups[drop.name] = groups[drop.name] + 1
-        else:
-            groups[drop.name] = 1
-
         if drop.tags:
             for tag in drop.tags:
                 if tag:
@@ -423,7 +416,6 @@ def get_do_instances(profile, do_instance_counter, do_script_config, do_cloud_in
         machine.ip = ip
         machine.name = f"{instance_source}.{drop_name}"
         machine.group = drop_name
-        machine.index = groups[drop.name]
         machine.dynamic_profile_parent = dynamic_profile_parent
         machine.iterm_tags = iterm_tags
         machine.instancetype = drop.size['slug']
@@ -598,7 +590,6 @@ def get_esx_instances_list(
 def fetch_ec2_instance(
         instance,
         client,
-        groups,
         instance_source,
         vpc_data_all,
         profile,
@@ -652,11 +643,6 @@ def fetch_ec2_instance(
         except IndexError:
             ip = r'No IP found at scan time ¯\_(ツ)_/¯, probably a terminated instance. (Sorry)#'
 
-    if name in groups:
-        groups[name] = groups[name] + 1
-    else:
-        groups[name] = 1
-
     if 'PublicIpAddress' in instance:
         public_ip = instance['PublicIpAddress']
         iterm_tags.append(f"Ip_public: {instance['PublicIpAddress']}")
@@ -698,7 +684,6 @@ def fetch_ec2_instance(
         password = decrypt(data, os.path.join(fetch_script_config["Local"].get('SSH_keys_path', '.'), ssh_key))
 
     machine.name = f"{instance_source}.{name}"
-    machine.index = groups[name]
     machine.group = name
     machine.bastion = bastion
     machine.vpc = instance.get('VpcId', ""),
@@ -730,7 +715,6 @@ def fetch_ec2_instance(
 
 def fetch_ec2_region(
         region,
-        groups,
         instance_source,
         credentials=None,
         profile=None,
@@ -773,7 +757,6 @@ def fetch_ec2_region(
                         fetch_ec2_instance,
                         instance,
                         client,
-                        groups,
                         instance_source,
                         vpc_data_all,
                         profile,
@@ -831,7 +814,6 @@ def get_ec2_instances(
     :param ec2_role_arn:
     :type profile: dict
     """
-    groups = {}
     credentials = False
     assumed_role_object = None
 
@@ -927,7 +909,6 @@ def get_ec2_instances(
             target=fetch_ec2_region,
             args=(
                 region,
-                groups,
                 instance_source,
                 credentials,
                 profile,
