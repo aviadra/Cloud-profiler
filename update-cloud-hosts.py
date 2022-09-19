@@ -969,7 +969,7 @@ def update_moba(obj_list):
         for tag in machine.iterm_tags:
             tags.append(tag)
 
-        if "Sorry" in machine.ip:
+        if machine.ip is not None and "Sorry" in machine.ip:
             connection_command = "echo"
             ip_for_connection = machine.ip
         elif (machine.instance_use_ip_public or not machine.bastion) \
